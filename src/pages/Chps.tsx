@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,8 +25,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChpForm, ChpFormValues } from "@/components/ChpForm";
-import { PlusCircle, Pencil, MoreHorizontal } from "lucide-react";
+import { PlusCircle, Pencil, MoreHorizontal, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRole, UserRole } from "@/hooks/useUserRole";
+import { RoleAssignDialog } from "@/components/RoleAssignDialog";
+import { Badge } from "@/components/ui/badge";
 
 interface Profile {
   id: string;
@@ -40,6 +42,7 @@ interface Profile {
 
 interface ChpData extends Profile {
   patientCount: number;
+  role?: UserRole;
 }
 
 const fetchChps = async (): Promise<Profile[]> => {
@@ -56,6 +59,22 @@ const fetchChps = async (): Promise<Profile[]> => {
   return data;
 };
 
+const fetchChpRoles = async (): Promise<Record<string, UserRole>> => {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("user_id, role");
+
+  if (error) {
+    console.error("Error fetching CHP roles:", error);
+    throw new Error(error.message);
+  }
+
+  return data.reduce((acc, item) => {
+    acc[item.user_id] = item.role as UserRole;
+    return acc;
+  }, {} as Record<string, UserRole>);
+};
+
 const fetchAllPatients = async (): Promise<Patient[]> => {
   const { data, error } = await supabase.from("patients").select("id, assigned_to");
   if (error) {
@@ -68,10 +87,17 @@ const fetchAllPatients = async (): Promise<Patient[]> => {
 const Chps = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isSuperAdmin, isLoading: roleLoading } = useUserRole();
 
   const { data: chps = [], isLoading: chpsLoading } = useQuery<Profile[]>({
     queryKey: ['chps'],
     queryFn: fetchChps,
+  });
+
+  const { data: chpRoles = {} } = useQuery<Record<string, UserRole>>({
+    queryKey: ['chp-roles'],
+    queryFn: fetchChpRoles,
+    enabled: isSuperAdmin,
   });
 
   const { data: patients = [] } = useQuery<Patient[]>({
@@ -89,11 +115,14 @@ const Chps = () => {
     return chps.map((chp) => ({
       ...chp,
       patientCount: chpPatientCounts[chp.id] || 0,
+      role: chpRoles[chp.id] || 'chp',
     }));
-  }, [chps, patients]);
+  }, [chps, patients, chpRoles]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [chpToEdit, setChpToEdit] = useState<ChpData | null>(null);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [selectedChpForRole, setSelectedChpForRole] = useState<ChpData | null>(null);
 
   const saveChpMutation = useMutation({
     mutationFn: async ({ data, chpId }: { data: ChpFormValues; chpId?: string }) => {
@@ -166,10 +195,41 @@ const Chps = () => {
     setIsFormOpen(true);
   };
 
+  const openRoleDialog = (chp: ChpData) => {
+    setSelectedChpForRole(chp);
+    setIsRoleDialogOpen(true);
+  };
+
   const getDisplayName = (chp: Profile) => {
     const name = [chp.first_name, chp.last_name].filter(Boolean).join(" ");
     return name || "Unknown User";
   };
+
+  const getRoleBadgeVariant = (role: UserRole) => {
+    switch (role) {
+      case 'super_admin':
+        return 'default';
+      case 'chp':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getRoleDisplay = (role: UserRole) => {
+    switch (role) {
+      case 'super_admin':
+        return 'Super Admin';
+      case 'chp':
+        return 'CHP';
+      default:
+        return 'User';
+    }
+  };
+
+  if (roleLoading) {
+    return <div className="flex items-center justify-center p-8">Loading...</div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -180,11 +240,14 @@ const Chps = () => {
             A list of community health practitioners and their assigned patients.
           </p>
         </div>
-        <Button onClick={openAddForm}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add CHP
-        </Button>
+        {isSuperAdmin && (
+          <Button onClick={openAddForm}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add CHP
+          </Button>
+        )}
       </div>
+
       <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -201,11 +264,20 @@ const Chps = () => {
             open={isFormOpen}
             initialValues={chpToEdit ? { 
               name: getDisplayName(chpToEdit), 
-              contact: "" // Contact field will need to be added to profiles table if needed
+              contact: ""
             } : undefined}
           />
         </DialogContent>
       </Dialog>
+
+      <RoleAssignDialog
+        open={isRoleDialogOpen}
+        onOpenChange={setIsRoleDialogOpen}
+        chpId={selectedChpForRole?.id || ''}
+        chpName={selectedChpForRole ? getDisplayName(selectedChpForRole) : ''}
+        currentRole={selectedChpForRole?.role}
+      />
+
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -213,6 +285,7 @@ const Chps = () => {
               <TableHead>Name</TableHead>
               <TableHead>Facility</TableHead>
               <TableHead>Location</TableHead>
+              {isSuperAdmin && <TableHead>Role</TableHead>}
               <TableHead>Assigned Patients</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -224,6 +297,7 @@ const Chps = () => {
                   <TableCell>Loading...</TableCell>
                   <TableCell>Loading...</TableCell>
                   <TableCell>Loading...</TableCell>
+                  {isSuperAdmin && <TableCell>Loading...</TableCell>}
                   <TableCell>Loading...</TableCell>
                   <TableCell className="text-right">Loading...</TableCell>
                 </TableRow>
@@ -236,6 +310,13 @@ const Chps = () => {
                   <TableCell>
                     {[chp.ward, chp.local_government].filter(Boolean).join(", ") || "Not specified"}
                   </TableCell>
+                  {isSuperAdmin && (
+                    <TableCell>
+                      <Badge variant={getRoleBadgeVariant(chp.role || 'chp')}>
+                        {getRoleDisplay(chp.role || 'chp')}
+                      </Badge>
+                    </TableCell>
+                  )}
                   <TableCell>{chp.patientCount}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -246,10 +327,23 @@ const Chps = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditForm(chp)}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </DropdownMenuItem>
+                        {isSuperAdmin && (
+                          <>
+                            <DropdownMenuItem onClick={() => openEditForm(chp)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              <span>Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openRoleDialog(chp)}>
+                              <Shield className="mr-2 h-4 w-4" />
+                              <span>Assign Role</span>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        {!isSuperAdmin && (
+                          <DropdownMenuItem disabled>
+                            <span className="text-muted-foreground">No actions available</span>
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

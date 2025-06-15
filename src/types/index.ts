@@ -11,4 +11,6 @@ export interface Patient {
   contact: string;
   address: string;
   assignedTo: string;
+  childName?: string;
+  childDob?: Date;
 }

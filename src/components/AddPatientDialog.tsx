@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Service } from "@/types";
+import { calculateNextAppointment } from "@/lib/epi-schedule";
 
 const services: [Service, ...Service[]] = [
   "Routine Immunization",
@@ -52,6 +53,25 @@ const patientFormSchema = z.object({
   dueDate: z.date({
     required_error: "A due date is required.",
   }),
+  childName: z.string().optional(),
+  childDob: z.date().optional(),
+}).superRefine((data, ctx) => {
+  if (data.service === "Routine Immunization") {
+    if (!data.childName || data.childName.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["childName"],
+        message: "Child's name must be at least 2 characters.",
+      });
+    }
+    if (!data.childDob) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["childDob"],
+        message: "Child's date of birth is required.",
+      });
+    }
+  }
 });
 
 type PatientFormValues = z.infer<typeof patientFormSchema>;
@@ -66,8 +86,19 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
       name: "",
       contact: "",
       address: "",
+      childName: "",
     },
   });
+
+  const service = form.watch("service");
+  const childDob = form.watch("childDob");
+
+  useEffect(() => {
+    if (service === "Routine Immunization" && childDob) {
+      const nextDueDate = calculateNextAppointment(childDob);
+      form.setValue("dueDate", nextDueDate, { shouldValidate: true });
+    }
+  }, [service, childDob, form]);
 
   const onSubmit = (data: PatientFormValues) => {
     console.log("New patient data:", data);
@@ -102,14 +133,79 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Patient Name</FormLabel>
+                  <FormLabel>
+                    {service === "Routine Immunization"
+                      ? "Parent/Guardian Name"
+                      : "Patient Name"}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Patient's full name" {...field} />
+                    <Input placeholder="Full name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {service === "Routine Immunization" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="childName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Child's Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Child's full name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="childDob"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Child's Date of Birth</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
             <FormField
               control={form.control}
               name="contact"
@@ -146,7 +242,10 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Service</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a service" />
@@ -169,9 +268,12 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
               name="dueDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Due Date</FormLabel>
+                  <FormLabel>Due Date / Next Appointment</FormLabel>
                   <Popover>
-                    <PopoverTrigger asChild>
+                    <PopoverTrigger
+                      asChild
+                      disabled={service === "Routine Immunization"}
+                    >
                       <FormControl>
                         <Button
                           variant={"outline"}
@@ -179,6 +281,7 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                             "w-full justify-start text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
+                          disabled={service === "Routine Immunization"}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {field.value ? (

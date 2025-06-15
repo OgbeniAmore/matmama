@@ -109,7 +109,7 @@ export default function AuthForm() {
       if (error) {
         toast.error(error.message);
       } else if (data.user) {
-        toast.success('Check your email for the confirmation link!');
+        toast.success('Signed up successfully!');
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({

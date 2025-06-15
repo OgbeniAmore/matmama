@@ -1,11 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 interface MapModalProps {
@@ -14,28 +11,22 @@ interface MapModalProps {
   address: string | null;
 }
 
+// TODO: Replace with your Mapbox public token
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ3B0ZW5naW5lZXIiLCJhIjoiY2x1OHp2eG5wMWR6dTJqbndxM254c3R3cSJ9.Qesg18x12Q3cEAbJbM_YtA';
+
 const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, address }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState(() => localStorage.getItem('mapboxToken') || '');
-  const [tokenInput, setTokenInput] = useState(mapboxToken);
   const { toast } = useToast();
 
-  const handleSaveToken = () => {
-    localStorage.setItem('mapboxToken', tokenInput);
-    setMapboxToken(tokenInput);
-    toast({
-        title: "Token Saved",
-        description: "Your Mapbox token has been saved in your browser's local storage.",
-    });
-  };
-
   useEffect(() => {
-    if (!isOpen || !mapboxToken || !address || !mapContainer.current) return;
+    if (!isOpen || !address || !mapContainer.current || MAPBOX_TOKEN.startsWith('YOUR')) {
+      return;
+    }
 
-    mapboxgl.accessToken = mapboxToken;
+    mapboxgl.accessToken = MAPBOX_TOKEN;
 
-    const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}`;
+    const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${MAPBOX_TOKEN}`;
 
     fetch(geocodeUrl)
       .then(response => response.json())
@@ -80,7 +71,7 @@ const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, address }) => {
         }
       };
 
-  }, [isOpen, mapboxToken, address]);
+  }, [isOpen, address, toast]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -91,20 +82,20 @@ const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, address }) => {
             Map view for: {address}
           </DialogDescription>
         </DialogHeader>
-        {!mapboxToken ? (
+        {MAPBOX_TOKEN.startsWith('YOUR') ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
-            <p className="text-center">Please provide a Mapbox public token to view the map.</p>
-            <div className="w-full max-w-sm space-y-2">
-                <Label htmlFor="mapbox-token">Mapbox Public Token</Label>
-                <Input
-                    id="mapbox-token"
-                    type="password"
-                    value={tokenInput}
-                    onChange={(e) => setTokenInput(e.target.value)}
-                    placeholder="pk.ey..."
-                />
+            <p className="text-center font-semibold">Mapbox Token Required</p>
+            <p className="text-center text-sm">
+              To display the map, please add your Mapbox public token to the source code.
+            </p>
+            <div className="bg-muted p-4 rounded-md text-sm w-full max-w-md">
+              <p>
+                1. Open the file: <code className="font-mono bg-background p-1 rounded">src/components/MapModal.tsx</code>
+              </p>
+              <p className="mt-2">
+                2. Replace the placeholder token with your own.
+              </p>
             </div>
-            <Button onClick={handleSaveToken}>Save Token</Button>
             <p className="text-xs text-muted-foreground">You can get a token from your <a href="https://account.mapbox.com/access-tokens" target="_blank" rel="noopener noreferrer" className="underline">Mapbox account</a>.</p>
           </div>
         ) : (

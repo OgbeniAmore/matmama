@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      patients: {
+        Row: {
+          address: string
+          assigned_to: string
+          child_dob: string | null
+          child_name: string | null
+          contact: string
+          created_at: string
+          due_date: string
+          id: string
+          name: string
+          service: Database["public"]["Enums"]["patient_service"]
+          status: Database["public"]["Enums"]["patient_status"]
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          assigned_to: string
+          child_dob?: string | null
+          child_name?: string | null
+          contact: string
+          created_at?: string
+          due_date: string
+          id: string
+          name: string
+          service: Database["public"]["Enums"]["patient_service"]
+          status: Database["public"]["Enums"]["patient_status"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          assigned_to?: string
+          child_dob?: string | null
+          child_name?: string | null
+          contact?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          name?: string
+          service?: Database["public"]["Enums"]["patient_service"]
+          status?: Database["public"]["Enums"]["patient_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           country: string
@@ -50,7 +95,11 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      patient_service:
+        | "Routine Immunization"
+        | "Family Planning"
+        | "Ante Natal Care"
+      patient_status: "On Track" | "Defaulting" | "Completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -165,6 +214,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      patient_service: [
+        "Routine Immunization",
+        "Family Planning",
+        "Ante Natal Care",
+      ],
+      patient_status: ["On Track", "Defaulting", "Completed"],
+    },
   },
 } as const

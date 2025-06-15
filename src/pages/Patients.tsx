@@ -1,5 +1,6 @@
-
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -17,13 +18,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
-import { patients as initialPatients } from "@/data/patients";
 import { Patient, Status } from "@/types";
 import { format } from "date-fns";
 import { AddPatientDialog } from "@/components/AddPatientDialog";
 import { type PatientFormValues } from "@/components/PatientForm";
 import { cn } from "@/lib/utils";
 import { ViewPatientSheet } from "@/components/ViewPatientSheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 const statusColors: Record<Status, string> = {
   "On Track": "bg-green-100 text-green-800",
@@ -31,34 +33,125 @@ const statusColors: Record<Status, string> = {
   Completed: "bg-blue-100 text-blue-800",
 };
 
+const fetchPatients = async (): Promise<Patient[]> => {
+  const { data, error } = await supabase
+    .from("patients")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching patients:", error);
+    throw new Error(error.message);
+  }
+
+  return data.map((p) => ({
+    ...p,
+    dueDate: new Date(p.due_date),
+    assignedTo: p.assigned_to,
+    childDob: p.child_dob ? new Date(p.child_dob) : undefined,
+    childName: p.child_name || undefined,
+  }));
+};
+
 const Patients = () => {
-  const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
   const [patientToEdit, setPatientToEdit] = useState<Patient | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const handleSavePatient = (data: PatientFormValues, patientId?: string) => {
-    if (patientId) {
-      setPatients(prevPatients =>
-        prevPatients.map(p => (p.id === patientId ? { ...p, ...data } : p))
-      );
-    } else {
-      const newPatient: Patient = {
-        id: `PAT${String(patients.length + 1).padStart(3, "0")}`,
+  const {
+    data: patients = [],
+    isLoading,
+    error,
+  } = useQuery<Patient[]>({
+    queryKey: ["patients"],
+    queryFn: fetchPatients,
+  });
+
+  const savePatientMutation = useMutation({
+    mutationFn: async ({
+      data,
+      patientId,
+    }: {
+      data: PatientFormValues;
+      patientId?: string;
+    }) => {
+      const patientDataForSupabase = {
         name: data.name,
         service: data.service,
-        dueDate: data.dueDate,
+        due_date: data.dueDate.toISOString(),
         contact: data.contact,
         address: data.address,
-        status: "On Track",
-        assignedTo: "Dr. Kemi",
       };
-      setPatients(prevPatients => [...prevPatients, newPatient]);
-    }
-    setIsFormOpen(false);
-    setPatientToEdit(null);
+
+      if (patientId) {
+        const { error } = await supabase
+          .from("patients")
+          .update(patientDataForSupabase)
+          .eq("id", patientId);
+        if (error) throw error;
+      } else {
+        const newPatientData = {
+          ...patientDataForSupabase,
+          id: `PAT${String(Date.now()).slice(-6)}`,
+          status: "On Track" as Status,
+          assigned_to: "Dr. Kemi", // Default CHP for new patients
+        };
+        const { error } = await supabase.from("patients").insert(newPatientData);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      queryClient.invalidateQueries({ queryKey: ["chps"] });
+    },
+    onError: (error, { patientId }) => {
+      toast({
+        title: "Error",
+        description: `Failed to ${
+          patientId ? "update" : "add"
+        } patient. ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSavePatient = (data: PatientFormValues, patientId?: string) => {
+    savePatientMutation.mutate({ data, patientId });
   };
+  
+  const deletePatientMutation = useMutation({
+    mutationFn: async (patientId: string) => {
+        const { error } = await supabase.from('patients').delete().eq('id', patientId);
+        if (error) throw error;
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['patients'] });
+        queryClient.invalidateQueries({ queryKey: ['defaulters'] });
+        queryClient.invalidateQueries({ queryKey: ['chps'] });
+        toast({
+            title: "Patient Deleted",
+            description: "The patient has been successfully deleted.",
+        });
+    },
+    onError: (error) => {
+        toast({
+            title: "Error",
+            description: `Failed to delete patient. ${error.message}`,
+            variant: "destructive",
+        });
+    }
+  });
+
+  const handleDeletePatient = (patientId: string) => {
+    if (window.confirm("Are you sure you want to delete this patient? This action cannot be undone.")) {
+        deletePatientMutation.mutate(patientId);
+    }
+  };
+
 
   const openAddForm = () => {
     setPatientToEdit(null);
@@ -73,6 +166,10 @@ const Patients = () => {
   const openViewSheet = (patient: Patient) => {
     setSelectedPatient(patient);
     setIsViewSheetOpen(true);
+  }
+
+  if (error) {
+    return <div className="text-red-500 p-4">Error loading patients: {error.message}</div>;
   }
 
   return (
@@ -100,36 +197,78 @@ const Patients = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {patients.map((patient) => (
-              <TableRow key={patient.id}>
-                <TableCell className="font-medium">{patient.name}</TableCell>
-                <TableCell>{patient.service}</TableCell>
-                <TableCell>{format(patient.dueDate, "PPP")}</TableCell>
-                <TableCell>
-                  <Badge className={cn("capitalize", statusColors[patient.status])} variant="outline">
-                    {patient.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{patient.assignedTo}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onSelect={() => openViewSheet(patient)}>View Details</DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => openEditForm(patient)}>Edit</DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-8 w-8" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              : patients.map((patient) => (
+                  <TableRow key={patient.id}>
+                    <TableCell className="font-medium">
+                      {patient.name}
+                    </TableCell>
+                    <TableCell>{patient.service}</TableCell>
+                    <TableCell>{format(patient.dueDate, "PPP")}</TableCell>
+                    <TableCell>
+                      <Badge
+                        className={cn(
+                          "capitalize",
+                          statusColors[patient.status]
+                        )}
+                        variant="outline"
+                      >
+                        {patient.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{patient.assignedTo}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onSelect={() => openViewSheet(patient)}
+                          >
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => openEditForm(patient)}
+                          >
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onSelect={() => handleDeletePatient(patient.id)}
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </div>
@@ -141,7 +280,10 @@ const Patients = () => {
       />
       <AddPatientDialog
         open={isFormOpen}
-        onOpenChange={setIsFormOpen}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) setPatientToEdit(null);
+        }}
         patientToEdit={patientToEdit}
         onSave={handleSavePatient}
       />

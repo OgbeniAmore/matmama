@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -87,12 +86,6 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
   }, [patientToEdit, open, form, isEditMode]);
 
   const onSubmit = (data: PatientFormValues) => {
-    toast({
-      title: isEditMode ? "Patient Updated" : "Patient Added",
-      description: isEditMode
-        ? "The patient's details have been successfully updated."
-        : "The new patient has been successfully added to the system.",
-    });
     onSave(data);
     onFinished();
   };

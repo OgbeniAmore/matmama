@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -7,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { patients as initialPatients } from "@/data/patients";
 import { Patient } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,9 +37,25 @@ interface ChpData extends Chp {
   patientCount: number;
 }
 
+const fetchAllPatients = async (): Promise<Patient[]> => {
+  const { data, error } = await supabase.from("patients").select("id, assigned_to");
+  if (error) {
+    console.error("Error fetching patients for CHP stats:", error);
+    throw new Error(error.message);
+  }
+  // Only need assigned_to for counts, so we can cast to a partial patient
+  return data.map(p => ({ assignedTo: p.assigned_to } as Patient));
+}
+
 const Chps = () => {
   const { toast } = useToast();
-  const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const queryClient = useQueryClient();
+
+  const { data: patients = [] } = useQuery<Patient[]>({
+    queryKey: ['chps-patients'], // Separate query key to not interfere with full patient list
+    queryFn: fetchAllPatients,
+  });
+
   const [chps, setChps] = useState<Chp[]>([
     { name: "Dr. Kemi", contact: "2348012345678" },
     { name: "Dr. Funmi", contact: "2348023456789" },
@@ -46,7 +63,8 @@ const Chps = () => {
 
   const chpsData: ChpData[] = useMemo(() => {
     const chpPatientCounts = patients.reduce((acc, patient) => {
-      acc[patient.assignedTo] = (acc[patient.assignedTo] || 0) + 1;
+      const assignedTo = patient.assignedTo || "Unassigned";
+      acc[assignedTo] = (acc[assignedTo] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
@@ -58,6 +76,28 @@ const Chps = () => {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [chpToEdit, setChpToEdit] = useState<ChpData | null>(null);
+
+  const editChpMutation = useMutation({
+    mutationFn: async ({ name, oldName }: { name: string, oldName: string }) => {
+      const { error } = await supabase
+        .from("patients")
+        .update({ assigned_to: name })
+        .eq("assigned_to", oldName);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      queryClient.invalidateQueries({ queryKey: ['defaulters'] });
+      queryClient.invalidateQueries({ queryKey: ['chps-patients'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating patients",
+        description: `Could not re-assign patients: ${error.message}`,
+        variant: "destructive",
+      })
+    }
+  });
 
   const handleSaveChp = (data: ChpFormValues): boolean => {
     if (chpToEdit) {
@@ -76,12 +116,10 @@ const Chps = () => {
         return false;
       }
 
-      setPatients((prevPatients) =>
-        prevPatients.map((p) =>
-          p.assignedTo === chpToEdit.name ? { ...p, assignedTo: data.name } : p
-        )
-      );
-
+      if (data.name !== chpToEdit.name) {
+        editChpMutation.mutate({ name: data.name, oldName: chpToEdit.name });
+      }
+      
       setChps((prevChps) =>
         prevChps.map((chp) =>
           chp.name === chpToEdit.name ? { ...chp, ...data } : chp

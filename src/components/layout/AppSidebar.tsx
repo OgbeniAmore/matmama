@@ -11,7 +11,8 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, HeartPulse } from "lucide-react";
+import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -20,6 +21,7 @@ const navItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -53,14 +55,33 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t group-data-[collapsible=icon]:hidden">
-        <div className="p-4 bg-blue-50 rounded-lg text-center">
-          <h3 className="font-semibold">Need Help?</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Contact support for any questions.
-          </p>
-          <Button size="sm" className="mt-3 w-full">
-            Contact
-          </Button>
+        <div className="flex flex-col gap-2">
+          {user ? (
+            <>
+              <div className="flex items-center gap-2 p-2 rounded-md bg-muted">
+                <UserIcon className="h-8 w-8 rounded-full bg-primary/10 text-primary p-1.5 shrink-0" />
+                <div className="flex flex-col overflow-hidden">
+                  <span className="text-sm font-medium truncate">
+                    {user.user_metadata?.first_name || user.email?.split('@')[0]}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </span>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={signOut}>
+                <LogOut />
+                <span>Logout</span>
+              </Button>
+            </>
+          ) : (
+            <Button asChild className="w-full justify-start">
+              <NavLink to="/auth">
+                <LogIn />
+                <span>Login / Sign Up</span>
+              </NavLink>
+            </Button>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>

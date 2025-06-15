@@ -20,7 +20,8 @@ import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { patients as initialPatients } from "@/data/patients";
 import { Patient, Status } from "@/types";
 import { format } from "date-fns";
-import { AddPatientDialog, PatientFormValues } from "@/components/AddPatientDialog";
+import { AddPatientDialog } from "@/components/AddPatientDialog";
+import { type PatientFormValues } from "@/components/PatientForm";
 import { cn } from "@/lib/utils";
 import { ViewPatientSheet } from "@/components/ViewPatientSheet";
 

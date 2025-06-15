@@ -198,7 +198,7 @@ const Defaulters = () => {
         address={selectedAddress}
       />
       <AIReminderDialog
-        patient={selectedClient}
+        client={selectedClient}
         open={isAIReminderOpen}
         onOpenChange={setIsAIReminderOpen}
       />

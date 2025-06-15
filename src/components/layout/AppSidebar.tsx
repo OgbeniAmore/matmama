@@ -11,14 +11,13 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, Siren, UserCheck } from "lucide-react";
+import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, Siren } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/patients", label: "Patients", icon: Users },
   { href: "/defaulters", label: "Defaulters", icon: Siren },
-  { href: "/chps", label: "CHPs", icon: UserCheck },
 ];
 
 export function AppSidebar() {

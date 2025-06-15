@@ -20,7 +20,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PhoneCall, Send } from "lucide-react";
+import { MoreHorizontal, PhoneCall, Send, MapPin } from "lucide-react";
 import { patients as initialPatients } from "@/data/patients";
 import { Patient, Status } from "@/types";
 import { format } from "date-fns";
@@ -47,6 +47,11 @@ const Defaulters = () => {
 
   const handleWhatsApp = (contact: string) => {
     window.open(`https://wa.me/${contact}`, '_blank');
+  };
+
+  const handleFindClient = (address: string) => {
+    const query = encodeURIComponent(address);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
   };
 
   return (
@@ -114,6 +119,10 @@ const Defaulters = () => {
                           </DropdownMenuSubContent>
                         </DropdownMenuPortal>
                       </DropdownMenuSub>
+                      <DropdownMenuItem onClick={() => handleFindClient(patient.address)}>
+                        <MapPin className="mr-2 h-4 w-4" />
+                        <span>Find/Visit Client</span>
+                      </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600">
                         Delete
                       </DropdownMenuItem>

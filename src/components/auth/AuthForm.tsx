@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +5,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const lagosLocalGovernments = [
+  "Agege",
+  "Ajeromi-Ifelodun",
+  "Alimosho",
+  "Amuwo-Odofin",
+  "Apapa",
+  "Badagry",
+  "Epe",
+  "Eti-Osa",
+  "Ibeju-Lekki",
+  "Ifako-Ijaiye",
+  "Ikeja",
+  "Ikorodu",
+  "Kosofe",
+  "Lagos Island",
+  "Lagos Mainland",
+  "Mushin",
+  "Ojo",
+  "Oshodi-Isolo",
+  "Shomolu",
+  "Surulere",
+];
 
 export default function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -113,13 +142,16 @@ export default function AuthForm() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="localGovernment">Local Government</Label>
-                <Input
-                id="localGovernment"
-                type="text"
-                value={localGovernment}
-                onChange={(e) => setLocalGovernment(e.target.value)}
-                placeholder="e.g. Ikeja"
-                />
+                <Select onValueChange={setLocalGovernment} value={localGovernment}>
+                  <SelectTrigger id="localGovernment">
+                    <SelectValue placeholder="Select a local government" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lagosLocalGovernments.map((lg) => (
+                      <SelectItem key={lg} value={lg}>{lg}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="ward">Ward</Label>

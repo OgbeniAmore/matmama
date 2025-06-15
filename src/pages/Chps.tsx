@@ -11,17 +11,17 @@ import {
 import { patients as initialPatients } from "@/data/patients";
 import { Patient } from "@/types";
 
-interface PractitionerData {
+interface ChpData {
   name: string;
   patientCount: number;
 }
 
-const Practitioners = () => {
+const Chps = () => {
   const [patients] = useState<Patient[]>(initialPatients);
 
-  const practitionersData: PractitionerData[] = useMemo(() => {
-    const practitionerNames = [...new Set(patients.map((p) => p.assignedTo))];
-    return practitionerNames.map((name) => ({
+  const chpsData: ChpData[] = useMemo(() => {
+    const chpNames = [...new Set(patients.map((p) => p.assignedTo))];
+    return chpNames.map((name) => ({
       name,
       patientCount: patients.filter((p) => p.assignedTo === name).length,
     }));
@@ -31,9 +31,9 @@ const Practitioners = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Practitioners</h1>
+          <h1 className="text-3xl font-bold">Community Health Practitioners</h1>
           <p className="text-muted-foreground">
-            A list of Practitioners and their assigned patients.
+            A list of community health practitioners and their assigned patients.
           </p>
         </div>
       </div>
@@ -46,10 +46,10 @@ const Practitioners = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {practitionersData.map((practitioner) => (
-              <TableRow key={practitioner.name}>
-                <TableCell className="font-medium">{practitioner.name}</TableCell>
-                <TableCell>{practitioner.patientCount}</TableCell>
+            {chpsData.map((chp) => (
+              <TableRow key={chp.name}>
+                <TableCell className="font-medium">{chp.name}</TableCell>
+                <TableCell>{chp.patientCount}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -59,4 +59,4 @@ const Practitioners = () => {
   );
 };
 
-export default Practitioners;
+export default Chps;

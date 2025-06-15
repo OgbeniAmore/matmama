@@ -18,7 +18,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/patients", label: "Patients", icon: Users },
   { href: "/defaulters", label: "Defaulters", icon: Siren },
-  { href: "/practitioners", label: "Practitioners", icon: UserSquare },
+  { href: "/chps", label: "CHPs", icon: UserSquare },
 ];
 
 export function AppSidebar() {

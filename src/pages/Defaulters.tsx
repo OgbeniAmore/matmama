@@ -29,7 +29,6 @@ import { cn } from "@/lib/utils";
 import MapModal from "@/components/MapModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AIReminderDialog } from "@/components/AIReminderDialog";
-import { CHPsList } from "@/components/CHPsList";
 
 const statusColors: Record<Status, string> = {
   "On Track": "bg-green-100 text-green-800",
@@ -192,9 +191,6 @@ const Defaulters = () => {
           </TableBody>
         </Table>
       </div>
-
-      {/* CHPs List Section */}
-      <CHPsList />
 
       <MapModal 
         isOpen={isMapModalOpen}

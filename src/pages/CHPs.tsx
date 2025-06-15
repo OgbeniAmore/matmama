@@ -71,7 +71,7 @@ const fetchCHPs = async (): Promise<CHP[]> => {
   }));
 };
 
-export function CHPsList() {
+const CHPs = () => {
   const { data: chps = [], isLoading, error } = useQuery<CHP[]>({
     queryKey: ["chps"],
     queryFn: fetchCHPs,
@@ -92,12 +92,14 @@ export function CHPsList() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold">Community Health Practitioners</h3>
-        <p className="text-sm text-muted-foreground">
-          CHPs working with defaulted patients
-        </p>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Community Health Practitioners</h1>
+          <p className="text-muted-foreground">
+            Manage and communicate with CHPs in your area
+          </p>
+        </div>
       </div>
       
       <div className="border rounded-lg">
@@ -173,4 +175,6 @@ export function CHPsList() {
       </div>
     </div>
   );
-}
+};
+
+export default CHPs;

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Table,
@@ -25,6 +24,7 @@ import { patients as initialPatients } from "@/data/patients";
 import { Patient, Status } from "@/types";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import MapModal from "@/components/MapModal";
 
 const statusColors: Record<Status, string> = {
   "On Track": "bg-green-100 text-green-800",
@@ -36,6 +36,8 @@ const Defaulters = () => {
   const [defaulters] = useState<Patient[]>(
     initialPatients.filter((p) => p.status === "Defaulting")
   );
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
 
   const handleCall = (contact: string) => {
     window.location.href = `tel:${contact}`;
@@ -50,8 +52,8 @@ const Defaulters = () => {
   };
 
   const handleFindClient = (address: string) => {
-    const query = encodeURIComponent(address);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    setSelectedAddress(address);
+    setIsMapModalOpen(true);
   };
 
   return (
@@ -134,6 +136,11 @@ const Defaulters = () => {
           </TableBody>
         </Table>
       </div>
+      <MapModal 
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+        address={selectedAddress}
+      />
     </div>
   );
 };

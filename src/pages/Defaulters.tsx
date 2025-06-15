@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ import { cn } from "@/lib/utils";
 import MapModal from "@/components/MapModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AIReminderDialog } from "@/components/AIReminderDialog";
+import { CHPsList } from "@/components/CHPsList";
 
 const statusColors: Record<Status, string> = {
   "On Track": "bg-green-100 text-green-800",
@@ -102,6 +104,7 @@ const Defaulters = () => {
             <p className="text-muted-foreground">A list of patients who have defaulted on their schedule.</p>
         </div>
       </div>
+      
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -189,6 +192,10 @@ const Defaulters = () => {
           </TableBody>
         </Table>
       </div>
+
+      {/* CHPs List Section */}
+      <CHPsList />
+
       <MapModal 
         isOpen={isMapModalOpen}
         onClose={() => setIsMapModalOpen(false)}

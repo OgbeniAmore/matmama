@@ -23,7 +23,7 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, PhoneCall, Send, MapPin, Bot } from "lucide-react";
-import { Patient, Status } from "@/types";
+import { Client, Status } from "@/types";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import MapModal from "@/components/MapModal";
@@ -36,9 +36,9 @@ const statusColors: Record<Status, string> = {
   Completed: "bg-blue-100 text-blue-800",
 };
 
-const fetchDefaulters = async (): Promise<Patient[]> => {
+const fetchDefaulters = async (): Promise<Client[]> => {
   const { data, error } = await supabase
-    .from("patients")
+    .from("clients")
     .select("*")
     .eq("status", "Defaulting")
     .order("due_date", { ascending: true });
@@ -59,7 +59,7 @@ const fetchDefaulters = async (): Promise<Patient[]> => {
 };
 
 const Defaulters = () => {
-  const { data: defaulters = [], isLoading, error } = useQuery<Patient[]>({
+  const { data: defaulters = [], isLoading, error } = useQuery<Client[]>({
     queryKey: ["defaulters"],
     queryFn: fetchDefaulters,
   });
@@ -67,7 +67,7 @@ const Defaulters = () => {
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [isAIReminderOpen, setIsAIReminderOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const handleCall = (contact: string) => {
     window.location.href = `tel:${contact}`;
@@ -86,8 +86,8 @@ const Defaulters = () => {
     setIsMapModalOpen(true);
   };
 
-  const handleAIReminder = (patient: Patient) => {
-    setSelectedPatient(patient);
+  const handleAIReminder = (client: Client) => {
+    setSelectedClient(client);
     setIsAIReminderOpen(true);
   };
 
@@ -100,7 +100,7 @@ const Defaulters = () => {
       <div className="flex items-center justify-between">
         <div>
             <h1 className="text-3xl font-bold">Defaulters</h1>
-            <p className="text-muted-foreground">A list of patients who have defaulted on their schedule.</p>
+            <p className="text-muted-foreground">A list of clients who have defaulted on their schedule.</p>
         </div>
       </div>
       
@@ -128,17 +128,17 @@ const Defaulters = () => {
                     <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
                   </TableRow>
                 ))
-            ) : defaulters.map((patient) => (
-              <TableRow key={patient.id}>
-                <TableCell className="font-medium">{patient.name}</TableCell>
-                <TableCell>{patient.service}</TableCell>
-                <TableCell>{format(patient.dueDate, "PPP")}</TableCell>
+            ) : defaulters.map((client) => (
+              <TableRow key={client.id}>
+                <TableCell className="font-medium">{client.name}</TableCell>
+                <TableCell>{client.service}</TableCell>
+                <TableCell>{format(client.dueDate, "PPP")}</TableCell>
                 <TableCell>
-                  <Badge className={cn("capitalize", statusColors[patient.status])} variant="outline">
-                    {patient.status}
+                  <Badge className={cn("capitalize", statusColors[client.status])} variant="outline">
+                    {client.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{patient.assignedTo}</TableCell>
+                <TableCell>{client.assignedTo}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -150,7 +150,7 @@ const Defaulters = () => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>View Details</DropdownMenuItem>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAIReminder(patient)}>
+                      <DropdownMenuItem onClick={() => handleAIReminder(client)}>
                         <Bot className="mr-2 h-4 w-4" />
                         <span>Send AI Reminder</span>
                       </DropdownMenuItem>
@@ -161,22 +161,22 @@ const Defaulters = () => {
                         </DropdownMenuSubTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuSubContent>
-                            <DropdownMenuItem onClick={() => handleCall(patient.contact)}>
+                            <DropdownMenuItem onClick={() => handleCall(client.contact)}>
                               <PhoneCall className="mr-2 h-4 w-4" />
                               <span>Call</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSms(patient.contact)}>
+                            <DropdownMenuItem onClick={() => handleSms(client.contact)}>
                               <Send className="mr-2 h-4 w-4" />
                               <span>SMS</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleWhatsApp(patient.contact)}>
+                            <DropdownMenuItem onClick={() => handleWhatsApp(client.contact)}>
                               <Send className="mr-2 h-4 w-4" />
                               <span>WhatsApp</span>
                             </DropdownMenuItem>
                           </DropdownMenuSubContent>
                         </DropdownMenuPortal>
                       </DropdownMenuSub>
-                      <DropdownMenuItem onClick={() => handleFindClient(patient.address)}>
+                      <DropdownMenuItem onClick={() => handleFindClient(client.address)}>
                         <MapPin className="mr-2 h-4 w-4" />
                         <span>Find/Visit Client</span>
                       </DropdownMenuItem>
@@ -198,7 +198,7 @@ const Defaulters = () => {
         address={selectedAddress}
       />
       <AIReminderDialog
-        patient={selectedPatient}
+        patient={selectedClient}
         open={isAIReminderOpen}
         onOpenChange={setIsAIReminderOpen}
       />

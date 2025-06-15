@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      clients: {
+        Row: {
+          address: string
+          assigned_to: string
+          child_dob: string | null
+          child_name: string | null
+          contact: string
+          created_at: string
+          due_date: string
+          edd: string | null
+          id: string
+          name: string
+          service: Database["public"]["Enums"]["client_service"]
+          status: Database["public"]["Enums"]["client_status"]
+          trimester: number | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          assigned_to: string
+          child_dob?: string | null
+          child_name?: string | null
+          contact: string
+          created_at?: string
+          due_date: string
+          edd?: string | null
+          id: string
+          name: string
+          service: Database["public"]["Enums"]["client_service"]
+          status: Database["public"]["Enums"]["client_status"]
+          trimester?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          assigned_to?: string
+          child_dob?: string | null
+          child_name?: string | null
+          contact?: string
+          created_at?: string
+          due_date?: string
+          edd?: string | null
+          id?: string
+          name?: string
+          service?: Database["public"]["Enums"]["client_service"]
+          status?: Database["public"]["Enums"]["client_status"]
+          trimester?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       epi_schedule: {
         Row: {
           age_months: number | null
@@ -39,10 +90,10 @@ export type Database = {
       immunization_records: {
         Row: {
           administered_date: string | null
+          client_id: string
           created_at: string
           id: string
           notes: string | null
-          patient_id: string
           scheduled_date: string
           status: string
           updated_at: string
@@ -50,10 +101,10 @@ export type Database = {
         }
         Insert: {
           administered_date?: string | null
+          client_id: string
           created_at?: string
           id?: string
           notes?: string | null
-          patient_id: string
           scheduled_date: string
           status?: string
           updated_at?: string
@@ -61,10 +112,10 @@ export type Database = {
         }
         Update: {
           administered_date?: string | null
+          client_id?: string
           created_at?: string
           id?: string
           notes?: string | null
-          patient_id?: string
           scheduled_date?: string
           status?: string
           updated_at?: string
@@ -72,64 +123,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "immunization_records_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: "immunization_records_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "patients"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
-      }
-      patients: {
-        Row: {
-          address: string
-          assigned_to: string
-          child_dob: string | null
-          child_name: string | null
-          contact: string
-          created_at: string
-          due_date: string
-          edd: string | null
-          id: string
-          name: string
-          service: Database["public"]["Enums"]["patient_service"]
-          status: Database["public"]["Enums"]["patient_status"]
-          trimester: number | null
-          updated_at: string
-        }
-        Insert: {
-          address: string
-          assigned_to: string
-          child_dob?: string | null
-          child_name?: string | null
-          contact: string
-          created_at?: string
-          due_date: string
-          edd?: string | null
-          id: string
-          name: string
-          service: Database["public"]["Enums"]["patient_service"]
-          status: Database["public"]["Enums"]["patient_status"]
-          trimester?: number | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string
-          assigned_to?: string
-          child_dob?: string | null
-          child_name?: string | null
-          contact?: string
-          created_at?: string
-          due_date?: string
-          edd?: string | null
-          id?: string
-          name?: string
-          service?: Database["public"]["Enums"]["patient_service"]
-          status?: Database["public"]["Enums"]["patient_status"]
-          trimester?: number | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       profiles: {
         Row: {
@@ -175,11 +175,11 @@ export type Database = {
       }
     }
     Enums: {
-      patient_service:
+      client_service:
         | "Routine Immunization"
         | "Family Planning"
         | "Ante Natal Care"
-      patient_status: "On Track" | "Defaulting" | "Completed"
+      client_status: "On Track" | "Defaulting" | "Completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -295,12 +295,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      patient_service: [
+      client_service: [
         "Routine Immunization",
         "Family Planning",
         "Ante Natal Care",
       ],
-      patient_status: ["On Track", "Defaulting", "Completed"],
+      client_status: ["On Track", "Defaulting", "Completed"],
     },
   },
 } as const

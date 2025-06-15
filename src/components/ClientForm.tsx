@@ -28,7 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Patient, Service } from "@/types";
+import { Client, Service } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const services: [Service, ...Service[]] = [
@@ -37,7 +37,7 @@ const services: [Service, ...Service[]] = [
   "Ante Natal Care",
 ];
 
-export const patientFormSchema = z.object({
+export const clientFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   contact: z.string().min(10, { message: "Please enter a valid phone number." }),
   address: z.string().min(5, { message: "Please enter a valid address." }),
@@ -67,38 +67,38 @@ export const patientFormSchema = z.object({
   path: ["trimester"],
 });
 
-export type PatientFormValues = z.infer<typeof patientFormSchema>;
+export type ClientFormValues = z.infer<typeof clientFormSchema>;
 
-interface PatientFormProps {
-  onSave: (data: PatientFormValues) => void;
-  patientToEdit?: Patient | null;
+interface ClientFormProps {
+  onSave: (data: ClientFormValues) => void;
+  clientToEdit?: Client | null;
   onFinished: () => void;
   open: boolean;
 }
 
-export function PatientForm({ onSave, patientToEdit, onFinished, open }: PatientFormProps) {
+export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFormProps) {
   const { toast } = useToast();
-  const isEditMode = !!patientToEdit;
+  const isEditMode = !!clientToEdit;
 
-  const form = useForm<PatientFormValues>({
-    resolver: zodResolver(patientFormSchema),
+  const form = useForm<ClientFormValues>({
+    resolver: zodResolver(clientFormSchema),
   });
 
   const watchedService = form.watch("service");
 
   useEffect(() => {
     if (open) {
-      if (isEditMode && patientToEdit) {
+      if (isEditMode && clientToEdit) {
         form.reset({
-          name: patientToEdit.name,
-          contact: patientToEdit.contact,
-          address: patientToEdit.address,
-          service: patientToEdit.service,
-          dueDate: patientToEdit.dueDate,
-          childName: patientToEdit.childName || "",
-          childDob: patientToEdit.childDob,
-          trimester: patientToEdit.trimester || undefined,
-          edd: patientToEdit.edd,
+          name: clientToEdit.name,
+          contact: clientToEdit.contact,
+          address: clientToEdit.address,
+          service: clientToEdit.service,
+          dueDate: clientToEdit.dueDate,
+          childName: clientToEdit.childName || "",
+          childDob: clientToEdit.childDob,
+          trimester: clientToEdit.trimester || undefined,
+          edd: clientToEdit.edd,
         });
       } else {
         form.reset({
@@ -114,9 +114,9 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
         });
       }
     }
-  }, [patientToEdit, open, form, isEditMode]);
+  }, [clientToEdit, open, form, isEditMode]);
 
-  const onSubmit = (data: PatientFormValues) => {
+  const onSubmit = (data: ClientFormValues) => {
     onSave(data);
     onFinished();
   };
@@ -132,7 +132,7 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {watchedService === "Routine Immunization" ? "Parent/Guardian Name" : "Patient Name"}
+                    {watchedService === "Routine Immunization" ? "Parent/Guardian Name" : "Client Name"}
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Full name" {...field} />
@@ -381,7 +381,7 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
 
         <DialogFooter className="pt-4">
           <Button type="submit">
-            {isEditMode ? "Save Changes" : "Save Patient"}
+            {isEditMode ? "Save Changes" : "Save Client"}
           </Button>
         </DialogFooter>
       </form>

@@ -4,17 +4,17 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Users, Siren, Baby, HeartPulse } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Patient } from "@/types";
+import { Client } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const fetchPatients = async (): Promise<Patient[]> => {
+const fetchClients = async (): Promise<Client[]> => {
   const { data, error } = await supabase
-    .from("patients")
+    .from("clients")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching patients:", error);
+    console.error("Error fetching clients:", error);
     throw new Error(error.message);
   }
 
@@ -30,27 +30,27 @@ const fetchPatients = async (): Promise<Patient[]> => {
 
 const Dashboard = () => {
   const {
-    data: patients = [],
+    data: clients = [],
     isLoading,
     error,
-  } = useQuery<Patient[]>({
-    queryKey: ["patients"],
-    queryFn: fetchPatients,
+  } = useQuery<Client[]>({
+    queryKey: ["clients"],
+    queryFn: fetchClients,
   });
 
   if (error) {
     return <div className="text-red-500 p-4">Error loading dashboard data: {error.message}</div>;
   }
 
-  const totalPatients = patients.length;
-  const immunizationDefaulters = patients.filter(p => p.service === "Routine Immunization" && p.status === "Defaulting").length;
-  const familyPlanningDefaulters = patients.filter(p => p.service === "Family Planning" && p.status === "Defaulting").length;
-  const ancDefaulters = patients.filter(p => p.service === "Ante Natal Care" && p.status === "Defaulting").length;
+  const totalClients = clients.length;
+  const immunizationDefaulters = clients.filter(p => p.service === "Routine Immunization" && p.status === "Defaulting").length;
+  const familyPlanningDefaulters = clients.filter(p => p.service === "Family Planning" && p.status === "Defaulting").length;
+  const ancDefaulters = clients.filter(p => p.service === "Ante Natal Care" && p.status === "Defaulting").length;
 
   const chartData = [
-    { name: 'Immunization', OnTrack: patients.filter(p => p.service === "Routine Immunization" && p.status === "On Track").length, Defaulting: patients.filter(p => p.service === "Routine Immunization" && p.status === "Defaulting").length },
-    { name: 'Family Planning', OnTrack: patients.filter(p => p.service === "Family Planning" && p.status === "On Track").length, Defaulting: patients.filter(p => p.service === "Family Planning" && p.status === "Defaulting").length },
-    { name: 'ANC', OnTrack: patients.filter(p => p.service === "Ante Natal Care" && p.status === "On Track").length, Defaulting: patients.filter(p => p.service === "Ante Natal Care" && p.status === "Defaulting").length },
+    { name: 'Immunization', OnTrack: clients.filter(p => p.service === "Routine Immunization" && p.status === "On Track").length, Defaulting: clients.filter(p => p.service === "Routine Immunization" && p.status === "Defaulting").length },
+    { name: 'Family Planning', OnTrack: clients.filter(p => p.service === "Family Planning" && p.status === "On Track").length, Defaulting: clients.filter(p => p.service === "Family Planning" && p.status === "Defaulting").length },
+    { name: 'ANC', OnTrack: clients.filter(p => p.service === "Ante Natal Care" && p.status === "On Track").length, Defaulting: clients.filter(p => p.service === "Ante Natal Care" && p.status === "Defaulting").length },
   ];
 
   return (
@@ -63,14 +63,14 @@ const Dashboard = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-2xl font-bold">{totalPatients}</div>
+              <div className="text-2xl font-bold">{totalClients}</div>
             )}
           </CardContent>
         </Card>

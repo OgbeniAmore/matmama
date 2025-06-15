@@ -1,4 +1,5 @@
-import { Patient, Status } from "@/types";
+
+import { Client, Status } from "@/types";
 import { format } from "date-fns";
 import {
   Card,
@@ -25,14 +26,14 @@ const statusColors: Record<Status, string> = {
   "Completed": "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100",
 };
 
-interface PatientCardProps {
-  patient: Patient;
-  onView: (patient: Patient) => void;
-  onEdit: (patient: Patient) => void;
-  onDelete: (patientId: string) => void;
+interface ClientCardProps {
+  client: Client;
+  onView: (client: Client) => void;
+  onEdit: (client: Client) => void;
+  onDelete: (clientId: string) => void;
 }
 
-export const PatientCard = ({ patient, onView, onEdit, onDelete }: PatientCardProps) => {
+export const ClientCard = ({ client, onView, onEdit, onDelete }: ClientCardProps) => {
   return (
     <Card className="flex flex-col hover:shadow-lg transition-shadow duration-300">
       <CardHeader>
@@ -42,8 +43,8 @@ export const PatientCard = ({ patient, onView, onEdit, onDelete }: PatientCardPr
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">{patient.name}</CardTitle>
-              <CardDescription>{patient.service}</CardDescription>
+              <CardTitle className="text-lg">{client.name}</CardTitle>
+              <CardDescription>{client.service}</CardDescription>
             </div>
           </div>
           <DropdownMenu>
@@ -54,15 +55,15 @@ export const PatientCard = ({ patient, onView, onEdit, onDelete }: PatientCardPr
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => onView(patient)}>
+              <DropdownMenuItem onSelect={() => onView(client)}>
                 View Details
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => onEdit(patient)}>
+              <DropdownMenuItem onSelect={() => onEdit(client)}>
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                onSelect={() => onDelete(patient.id)}
+                onSelect={() => onDelete(client.id)}
               >
                 Delete
               </DropdownMenuItem>
@@ -71,35 +72,35 @@ export const PatientCard = ({ patient, onView, onEdit, onDelete }: PatientCardPr
         </div>
       </CardHeader>
       <CardContent className="flex-grow space-y-3 text-sm">
-        {patient.service === "Routine Immunization" && patient.childName && (
+        {client.service === "Routine Immunization" && client.childName && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <User className="h-4 w-4" />
             <span>
-              {patient.childName} (DOB:{" "}
-              {patient.childDob ? format(patient.childDob, "PP") : "N/A"})
+              {client.childName} (DOB:{" "}
+              {client.childDob ? format(client.childDob, "PP") : "N/A"})
             </span>
           </div>
         )}
-        {patient.service === "Ante Natal Care" && (
+        {client.service === "Ante Natal Care" && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Stethoscope className="h-4 w-4" />
             <span>
-              Trimester: {patient.trimester || "N/A"} (EDD:{" "}
-              {patient.edd ? format(patient.edd, "PP") : "N/A"})
+              Trimester: {client.trimester || "N/A"} (EDD:{" "}
+              {client.edd ? format(client.edd, "PP") : "N/A"})
             </span>
           </div>
         )}
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium">Due: {format(patient.dueDate, "PPP")}</span>
+          <span className="font-medium">Due: {format(client.dueDate, "PPP")}</span>
         </div>
       </CardContent>
       <CardFooter>
         <Badge
-          className={cn("capitalize font-semibold", statusColors[patient.status])}
+          className={cn("capitalize font-semibold", statusColors[client.status])}
           variant="outline"
         >
-          {patient.status}
+          {client.status}
         </Badge>
       </CardFooter>
     </Card>

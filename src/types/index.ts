@@ -2,7 +2,7 @@
 export type Service = "Routine Immunization" | "Family Planning" | "Ante Natal Care";
 export type Status = "On Track" | "Defaulting" | "Completed";
 
-export interface Patient {
+export interface Client {
   id: string;
   name: string;
   service: Service;

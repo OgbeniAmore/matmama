@@ -57,24 +57,6 @@ const fetchPatients = async (): Promise<Patient[]> => {
   }));
 };
 
-const fetchChps = async () => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name")
-    .order("first_name", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching CHPs:", error);
-    throw new Error(error.message);
-  }
-
-  return data.reduce((acc, chp) => {
-    const name = [chp.first_name, chp.last_name].filter(Boolean).join(" ") || "Unknown User";
-    acc[chp.id] = name;
-    return acc;
-  }, {} as Record<string, string>);
-};
-
 const fetchEpiSchedule = async (): Promise<EpiSchedule[]> => {
   const { data, error } = await supabase
     .from("epi_schedule")
@@ -106,11 +88,6 @@ const Patients = () => {
     queryFn: fetchPatients,
   });
 
-  const { data: chpNames = {} } = useQuery({
-    queryKey: ["chp-names"],
-    queryFn: fetchChps,
-  });
-
   const { data: epiSchedule = [] } = useQuery<EpiSchedule[]>({
     queryKey: ["epi-schedule"],
     queryFn: fetchEpiSchedule,
@@ -130,7 +107,7 @@ const Patients = () => {
         due_date: data.dueDate.toISOString(),
         contact: data.contact,
         address: data.address,
-        assigned_to: data.assignedTo,
+        assigned_to: 'System', // Default value since field is removed
         child_name: data.childName || null,
         child_dob: data.childDob ? data.childDob.toISOString().split('T')[0] : null,
         trimester: data.trimester || null,
@@ -176,8 +153,6 @@ const Patients = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
-      queryClient.invalidateQueries({ queryKey: ["chps"] });
-      queryClient.invalidateQueries({ queryKey: ["chp-names"] });
       toast({
         title: "Success",
         description: patientToEdit ? "Patient updated successfully" : "Patient added successfully with immunization schedule",
@@ -206,7 +181,6 @@ const Patients = () => {
     onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['patients'] });
         queryClient.invalidateQueries({ queryKey: ['defaulters'] });
-        queryClient.invalidateQueries({ queryKey: ['chps'] });
         toast({
             title: "Patient Deleted",
             description: "The patient has been successfully deleted.",
@@ -267,7 +241,6 @@ const Patients = () => {
               <TableHead>Child Info</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Assigned To</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -289,9 +262,6 @@ const Patients = () => {
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24" />
                     </TableCell>
                     <TableCell className="text-right">
                       <Skeleton className="h-8 w-8" />
@@ -330,7 +300,6 @@ const Patients = () => {
                         {patient.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{chpNames[patient.assignedTo] || patient.assignedTo}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

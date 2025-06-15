@@ -88,9 +88,6 @@ export function ViewPatientSheet({ patient, open, onOpenChange, onEdit }: ViewPa
               <h3 className="text-sm font-medium text-muted-foreground">Status</h3>
               <p className="col-start-2">{patient.status}</p>
 
-              <h3 className="text-sm font-medium text-muted-foreground">Assigned To</h3>
-              <p className="col-start-2">{patient.assignedTo}</p>
-
               <h3 className="text-sm font-medium text-muted-foreground">Contact</h3>
               <p className="col-start-2">{patient.contact}</p>
             </div>

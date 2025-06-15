@@ -38,6 +38,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Service } from "@/types";
 import { calculateNextAppointment } from "@/lib/epi-schedule";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const services: [Service, ...Service[]] = [
   "Routine Immunization",
@@ -127,35 +128,95 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {service === "Routine Immunization"
-                      ? "Parent/Guardian Name"
-                      : "Patient Name"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Full name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {service === "Routine Immunization" && (
-              <>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="h-96 pr-6">
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="childName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Child's Name</FormLabel>
+                      <FormLabel>
+                        {service === "Routine Immunization"
+                          ? "Parent/Guardian Name"
+                          : "Patient Name"}
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Child's full name" {...field} />
+                        <Input placeholder="Full name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {service === "Routine Immunization" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="childName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Child's Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Child's full name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="childDob"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Child's Date of Birth</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                                className="pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="contact"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="08012345678" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -163,12 +224,59 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                 />
                 <FormField
                   control={form.control}
-                  name="childDob"
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Residential Address</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter full residential address"
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="service"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Service</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a service" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {services.map((service) => (
+                            <SelectItem key={service} value={service}>
+                              {service}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dueDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Child's Date of Birth</FormLabel>
+                      <FormLabel>Due Date / Next Appointment</FormLabel>
                       <Popover>
-                        <PopoverTrigger asChild>
+                        <PopoverTrigger
+                          asChild
+                          disabled={service === "Routine Immunization"}
+                        >
                           <FormControl>
                             <Button
                               variant={"outline"}
@@ -176,6 +284,7 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                                 "w-full justify-start text-left font-normal",
                                 !field.value && "text-muted-foreground"
                               )}
+                              disabled={service === "Routine Immunization"}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {field.value ? (
@@ -191,9 +300,6 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
                             initialFocus
                             className="pointer-events-auto"
                           />
@@ -203,110 +309,10 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                     </FormItem>
                   )}
                 />
-              </>
-            )}
+              </div>
+            </ScrollArea>
 
-            <FormField
-              control={form.control}
-              name="contact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="08012345678" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Residential Address</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter full residential address"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="service"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Service</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a service" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {services.map((service) => (
-                        <SelectItem key={service} value={service}>
-                          {service}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Due Date / Next Appointment</FormLabel>
-                  <Popover>
-                    <PopoverTrigger
-                      asChild
-                      disabled={service === "Routine Immunization"}
-                    >
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                          disabled={service === "Routine Immunization"}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
+            <DialogFooter className="pt-4">
               <Button type="submit">Save Patient</Button>
             </DialogFooter>
           </form>

@@ -11,17 +11,17 @@ import {
 import { patients as initialPatients } from "@/data/patients";
 import { Patient } from "@/types";
 
-interface Chp {
+interface PractitionerData {
   name: string;
   patientCount: number;
 }
 
-const Chps = () => {
+const Practitioners = () => {
   const [patients] = useState<Patient[]>(initialPatients);
 
-  const chpsData: Chp[] = useMemo(() => {
-    const chpNames = [...new Set(patients.map((p) => p.assignedTo))];
-    return chpNames.map((name) => ({
+  const practitionersData: PractitionerData[] = useMemo(() => {
+    const practitionerNames = [...new Set(patients.map((p) => p.assignedTo))];
+    return practitionerNames.map((name) => ({
       name,
       patientCount: patients.filter((p) => p.assignedTo === name).length,
     }));
@@ -31,9 +31,9 @@ const Chps = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">CHPs</h1>
+          <h1 className="text-3xl font-bold">Practitioners</h1>
           <p className="text-muted-foreground">
-            A list of Community Health Providers and their assigned patients.
+            A list of Practitioners and their assigned patients.
           </p>
         </div>
       </div>
@@ -46,10 +46,10 @@ const Chps = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {chpsData.map((chp) => (
-              <TableRow key={chp.name}>
-                <TableCell className="font-medium">{chp.name}</TableCell>
-                <TableCell>{chp.patientCount}</TableCell>
+            {practitionersData.map((practitioner) => (
+              <TableRow key={practitioner.name}>
+                <TableCell className="font-medium">{practitioner.name}</TableCell>
+                <TableCell>{practitioner.patientCount}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -59,4 +59,4 @@ const Chps = () => {
   );
 };
 
-export default Chps;
+export default Practitioners;

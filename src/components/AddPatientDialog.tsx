@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,6 +79,7 @@ type PatientFormValues = z.infer<typeof patientFormSchema>;
 
 export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => void }) {
   const [open, setOpen] = useState(false);
+  const [appointmentName, setAppointmentName] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<PatientFormValues>({
@@ -94,9 +96,21 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
   const childDob = form.watch("childDob");
 
   useEffect(() => {
-    if (service === "Routine Immunization" && childDob) {
-      const nextDueDate = calculateNextAppointment(childDob);
-      form.setValue("dueDate", nextDueDate, { shouldValidate: true });
+    if (service === "Routine Immunization") {
+      if (childDob) {
+        const nextAppointment = calculateNextAppointment(childDob);
+        form.setValue("dueDate", nextAppointment.dueDate, { shouldValidate: true });
+        setAppointmentName(nextAppointment.name);
+      } else {
+        form.setValue("dueDate", undefined);
+        setAppointmentName(null);
+      }
+    } else {
+      // Not RI, clear all related fields
+      form.resetField("childName");
+      form.resetField("childDob");
+      form.resetField("dueDate");
+      setAppointmentName(null);
     }
   }, [service, childDob, form]);
 
@@ -304,6 +318,11 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                           />
                         </PopoverContent>
                       </Popover>
+                      {appointmentName && (
+                        <FormDescription>
+                          {appointmentName}
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

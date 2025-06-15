@@ -10,7 +10,7 @@ export interface EpiSchedule {
 
 export interface ImmunizationRecord {
   id: string;
-  patient_id: string;
+  client_id: string;
   vaccine_name: string;
   scheduled_date: string;
   administered_date?: string;

@@ -5,7 +5,7 @@ import { EpiSchedule, ImmunizationRecord } from "@/types/immunization";
 export const generateImmunizationSchedule = (
   childDob: Date,
   epiSchedule: EpiSchedule[],
-  patientId: string
+  clientId: string
 ): Omit<ImmunizationRecord, 'id' | 'created_at' | 'updated_at'>[] => {
   const schedule: Omit<ImmunizationRecord, 'id' | 'created_at' | 'updated_at'>[] = [];
 
@@ -24,7 +24,7 @@ export const generateImmunizationSchedule = (
     }
 
     schedule.push({
-      patient_id: patientId,
+      client_id: clientId,
       vaccine_name: vaccine.vaccine_name,
       scheduled_date: scheduledDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
       status: 'scheduled',

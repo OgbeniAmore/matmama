@@ -14,15 +14,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2, MessageSquare, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Patient } from "@/types";
+import { Client } from "@/types";
 
 interface AIReminderDialogProps {
-  patient: Patient | null;
+  client: Client | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function AIReminderDialog({ patient, open, onOpenChange }: AIReminderDialogProps) {
+export function AIReminderDialog({ client, open, onOpenChange }: AIReminderDialogProps) {
   const { toast } = useToast();
   const [reminderType, setReminderType] = useState<"sms" | "whatsapp">("sms");
 
@@ -55,11 +55,11 @@ export function AIReminderDialog({ patient, open, onOpenChange }: AIReminderDial
   });
 
   const handleSendReminder = () => {
-    if (!patient) return;
-    sendReminderMutation.mutate({ patientId: patient.id, type: reminderType });
+    if (!client) return;
+    sendReminderMutation.mutate({ patientId: client.id, type: reminderType });
   };
 
-  if (!patient) return null;
+  if (!client) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,7 +67,7 @@ export function AIReminderDialog({ patient, open, onOpenChange }: AIReminderDial
         <DialogHeader>
           <DialogTitle>Send AI-Generated Reminder</DialogTitle>
           <DialogDescription>
-            Send a personalized reminder to {patient.name} for their {patient.service} appointment.
+            Send a personalized reminder to {client.name} for their {client.service} appointment.
           </DialogDescription>
         </DialogHeader>
         

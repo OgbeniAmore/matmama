@@ -14,12 +14,13 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { ChpForm, ChpFormValues } from "@/components/ChpForm";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Pencil } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChpData {
   name: string;
@@ -27,7 +28,8 @@ interface ChpData {
 }
 
 const Chps = () => {
-  const [patients] = useState<Patient[]>(initialPatients);
+  const { toast } = useToast();
+  const [patients, setPatients] = useState<Patient[]>(initialPatients);
 
   const initialChpsData: ChpData[] = useMemo(() => {
     const chpNames = [...new Set(patients.map((p) => p.assignedTo))];
@@ -39,12 +41,85 @@ const Chps = () => {
 
   const [chpsData, setChpsData] = useState<ChpData[]>(initialChpsData);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [chpToEdit, setChpToEdit] = useState<ChpData | null>(null);
 
-  const handleSaveChp = (data: ChpFormValues) => {
-    const newChp = { name: data.name, patientCount: 0 };
-    if (!chpsData.some(chp => chp.name === newChp.name)) {
+  const handleSaveChp = (data: ChpFormValues): boolean => {
+    if (chpToEdit) {
+      if (
+        chpsData.some(
+          (chp) =>
+            chp.name.toLowerCase() === data.name.toLowerCase() &&
+            chp.name.toLowerCase() !== chpToEdit.name.toLowerCase()
+        )
+      ) {
+        toast({
+          title: "Error",
+          description: "A CHP with this name already exists.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      setPatients((prevPatients) =>
+        prevPatients.map((p) =>
+          p.assignedTo === chpToEdit.name ? { ...p, assignedTo: data.name } : p
+        )
+      );
+
+      setChpsData((prevChps) =>
+        prevChps.map((chp) =>
+          chp.name === chpToEdit.name ? { ...chp, name: data.name } : chp
+        )
+      );
+      toast({
+        title: "CHP Updated",
+        description:
+          "The community health practitioner has been successfully updated.",
+      });
+    } else {
+      if (
+        chpsData.some(
+          (chp) => chp.name.toLowerCase() === data.name.toLowerCase()
+        )
+      ) {
+        toast({
+          title: "Error",
+          description: "A CHP with this name already exists.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      const newChp = { name: data.name, patientCount: 0 };
       setChpsData((prevChps) => [...prevChps, newChp]);
+      toast({
+        title: "CHP Added",
+        description:
+          "The new community health practitioner has been successfully added.",
+      });
     }
+    return true;
+  };
+
+  const onFormFinished = () => {
+    setIsFormOpen(false);
+    setChpToEdit(null);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsFormOpen(open);
+    if (!open) {
+      setChpToEdit(null);
+    }
+  };
+
+  const openAddForm = () => {
+    setChpToEdit(null);
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = (chp: ChpData) => {
+    setChpToEdit(chp);
+    setIsFormOpen(true);
   };
 
   return (
@@ -56,31 +131,36 @@ const Chps = () => {
             A list of community health practitioners and their assigned patients.
           </p>
         </div>
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add CHP
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New CHP</DialogTitle>
-            </DialogHeader>
-            <ChpForm
-              onSave={handleSaveChp}
-              onFinished={() => setIsFormOpen(false)}
-              open={isFormOpen}
-            />
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openAddForm}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add CHP
+        </Button>
       </div>
+      <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{chpToEdit ? "Edit CHP" : "Add New CHP"}</DialogTitle>
+            <DialogDescription>
+              {chpToEdit
+                ? "Make changes to the CHP's name."
+                : "Add a new CHP to the list. You can assign patients later."}
+            </DialogDescription>
+          </DialogHeader>
+          <ChpForm
+            onSave={handleSaveChp}
+            onFinished={onFormFinished}
+            open={isFormOpen}
+            initialValues={chpToEdit ? { name: chpToEdit.name } : undefined}
+          />
+        </DialogContent>
+      </Dialog>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Assigned Patients</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -88,6 +168,16 @@ const Chps = () => {
               <TableRow key={chp.name}>
                 <TableCell className="font-medium">{chp.name}</TableCell>
                 <TableCell>{chp.patientCount}</TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEditForm(chp)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    <span className="sr-only">Edit CHP</span>
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

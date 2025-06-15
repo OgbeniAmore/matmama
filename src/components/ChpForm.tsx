@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,36 +22,35 @@ export const chpFormSchema = z.object({
 export type ChpFormValues = z.infer<typeof chpFormSchema>;
 
 interface ChpFormProps {
-  onSave: (data: ChpFormValues) => void;
+  onSave: (data: ChpFormValues) => boolean;
   onFinished: () => void;
   open: boolean;
+  initialValues?: ChpFormValues;
 }
 
-export function ChpForm({ onSave, onFinished, open }: ChpFormProps) {
-  const { toast } = useToast();
-
+export function ChpForm({ onSave, onFinished, open, initialValues }: ChpFormProps) {
   const form = useForm<ChpFormValues>({
     resolver: zodResolver(chpFormSchema),
-    defaultValues: {
+    defaultValues: initialValues || {
       name: "",
     },
   });
 
   useEffect(() => {
     if (open) {
-      form.reset({
-        name: "",
-      });
+      form.reset(
+        initialValues || {
+          name: "",
+        }
+      );
     }
-  }, [open, form]);
+  }, [open, form, initialValues]);
 
   const onSubmit = (data: ChpFormValues) => {
-    toast({
-      title: "CHP Added",
-      description: "The new community health practitioner has been successfully added.",
-    });
-    onSave(data);
-    onFinished();
+    const success = onSave(data);
+    if (success) {
+      onFinished();
+    }
   };
 
   return (
@@ -76,7 +74,7 @@ export function ChpForm({ onSave, onFinished, open }: ChpFormProps) {
 
         <DialogFooter className="pt-4">
           <Button type="submit">
-            Save CHP
+            {initialValues ? "Update CHP" : "Save CHP"}
           </Button>
         </DialogFooter>
       </form>

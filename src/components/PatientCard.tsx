@@ -1,4 +1,3 @@
-
 import { Patient, Status } from "@/types";
 import { format } from "date-fns";
 import {

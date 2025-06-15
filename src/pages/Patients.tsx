@@ -1,39 +1,16 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { Patient, Status, EpiSchedule } from "@/types";
-import { format } from "date-fns";
 import { AddPatientDialog } from "@/components/AddPatientDialog";
 import { type PatientFormValues } from "@/components/PatientForm";
-import { cn } from "@/lib/utils";
 import { ViewPatientSheet } from "@/components/ViewPatientSheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { generateImmunizationSchedule } from "@/utils/immunizationUtils";
-
-const statusColors: Record<Status, string> = {
-  "On Track": "bg-green-100 text-green-800",
-  Defaulting: "bg-red-100 text-red-800",
-  Completed: "bg-blue-100 text-blue-800",
-};
+import { PatientCard } from "@/components/PatientCard";
+import { PatientCardSkeleton } from "@/components/PatientCardSkeleton";
 
 const fetchPatients = async (): Promise<Patient[]> => {
   const { data, error } = await supabase
@@ -232,107 +209,38 @@ const Patients = () => {
             Add New Patient
         </Button>
       </div>
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Child Info</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading
-              ? Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-40" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Skeleton className="h-8 w-8" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              : patients.map((patient) => (
-                  <TableRow key={patient.id}>
-                    <TableCell className="font-medium">
-                      {patient.name}
-                    </TableCell>
-                    <TableCell>{patient.service}</TableCell>
-                    <TableCell>
-                      {patient.service === "Routine Immunization" ? (
-                        <div className="text-sm">
-                          <div className="font-medium">{patient.childName}</div>
-                          {patient.childDob && (
-                            <div className="text-muted-foreground">
-                              DOB: {format(patient.childDob, "PP")}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">N/A</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{format(patient.dueDate, "PPP")}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={cn(
-                          "capitalize",
-                          statusColors[patient.status]
-                        )}
-                        variant="outline"
-                      >
-                        {patient.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onSelect={() => openViewSheet(patient)}
-                          >
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onSelect={() => openEditForm(patient)}
-                          >
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onSelect={() => handleDeletePatient(patient.id)}
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
+      
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+                <PatientCardSkeleton key={i} />
+            ))}
+        </div>
+      ) : patients.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {patients.map((patient) => (
+                <PatientCard
+                    key={patient.id}
+                    patient={patient}
+                    onView={openViewSheet}
+                    onEdit={openEditForm}
+                    onDelete={handleDeletePatient}
+                />
+            ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-16 text-center">
+            <h2 className="text-2xl font-bold tracking-tight">No patients yet</h2>
+            <p className="text-muted-foreground mt-2 max-w-sm">
+                You can start managing patients by clicking the button below to add your first one.
+            </p>
+            <Button onClick={openAddForm} className="mt-6">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Patient
+            </Button>
+        </div>
+      )}
+
       <ViewPatientSheet
         patient={selectedPatient}
         open={isViewSheetOpen}

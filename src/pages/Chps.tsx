@@ -18,35 +18,56 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ChpForm, ChpFormValues } from "@/components/ChpForm";
-import { PlusCircle, Pencil } from "lucide-react";
+import { PlusCircle, Pencil, MoreHorizontal, PhoneCall, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface ChpData {
+interface Chp {
   name: string;
+  contact: string;
+}
+
+interface ChpData extends Chp {
   patientCount: number;
 }
 
 const Chps = () => {
   const { toast } = useToast();
   const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const [chps, setChps] = useState<Chp[]>([
+    { name: "Dr. Kemi", contact: "2348012345678" },
+    { name: "Dr. Funmi", contact: "2348023456789" },
+  ]);
 
-  const initialChpsData: ChpData[] = useMemo(() => {
-    const chpNames = [...new Set(patients.map((p) => p.assignedTo))];
-    return chpNames.map((name) => ({
-      name,
-      patientCount: patients.filter((p) => p.assignedTo === name).length,
+  const chpsData: ChpData[] = useMemo(() => {
+    const chpPatientCounts = patients.reduce((acc, patient) => {
+      acc[patient.assignedTo] = (acc[patient.assignedTo] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return chps.map((chp) => ({
+      ...chp,
+      patientCount: chpPatientCounts[chp.name] || 0,
     }));
-  }, [patients]);
+  }, [chps, patients]);
 
-  const [chpsData, setChpsData] = useState<ChpData[]>(initialChpsData);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [chpToEdit, setChpToEdit] = useState<ChpData | null>(null);
 
   const handleSaveChp = (data: ChpFormValues): boolean => {
     if (chpToEdit) {
       if (
-        chpsData.some(
+        chps.some(
           (chp) =>
             chp.name.toLowerCase() === data.name.toLowerCase() &&
             chp.name.toLowerCase() !== chpToEdit.name.toLowerCase()
@@ -66,9 +87,9 @@ const Chps = () => {
         )
       );
 
-      setChpsData((prevChps) =>
+      setChps((prevChps) =>
         prevChps.map((chp) =>
-          chp.name === chpToEdit.name ? { ...chp, name: data.name } : chp
+          chp.name === chpToEdit.name ? { ...chp, ...data } : chp
         )
       );
       toast({
@@ -78,7 +99,7 @@ const Chps = () => {
       });
     } else {
       if (
-        chpsData.some(
+        chps.some(
           (chp) => chp.name.toLowerCase() === data.name.toLowerCase()
         )
       ) {
@@ -89,8 +110,8 @@ const Chps = () => {
         });
         return false;
       }
-      const newChp = { name: data.name, patientCount: 0 };
-      setChpsData((prevChps) => [...prevChps, newChp]);
+      const newChp: Chp = { name: data.name, contact: data.contact };
+      setChps((prevChps) => [...prevChps, newChp]);
       toast({
         title: "CHP Added",
         description:
@@ -122,6 +143,18 @@ const Chps = () => {
     setIsFormOpen(true);
   };
 
+  const handleCall = (contact: string) => {
+    window.location.href = `tel:${contact}`;
+  };
+
+  const handleSms = (contact: string) => {
+    window.location.href = `sms:${contact}`;
+  };
+
+  const handleWhatsApp = (contact: string) => {
+    window.open(`https://wa.me/${contact}`, '_blank');
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -142,7 +175,7 @@ const Chps = () => {
             <DialogTitle>{chpToEdit ? "Edit CHP" : "Add New CHP"}</DialogTitle>
             <DialogDescription>
               {chpToEdit
-                ? "Make changes to the CHP's name."
+                ? "Make changes to the CHP's details."
                 : "Add a new CHP to the list. You can assign patients later."}
             </DialogDescription>
           </DialogHeader>
@@ -150,7 +183,7 @@ const Chps = () => {
             onSave={handleSaveChp}
             onFinished={onFormFinished}
             open={isFormOpen}
-            initialValues={chpToEdit ? { name: chpToEdit.name } : undefined}
+            initialValues={chpToEdit ? { name: chpToEdit.name, contact: chpToEdit.contact } : undefined}
           />
         </DialogContent>
       </Dialog>
@@ -169,14 +202,42 @@ const Chps = () => {
                 <TableCell className="font-medium">{chp.name}</TableCell>
                 <TableCell>{chp.patientCount}</TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openEditForm(chp)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit CHP</span>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openEditForm(chp)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Send className="mr-2 h-4 w-4" />
+                          <span>Send Reminder</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem onClick={() => handleCall(chp.contact)}>
+                              <PhoneCall className="mr-2 h-4 w-4" />
+                              <span>Call</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSms(chp.contact)}>
+                              <Send className="mr-2 h-4 w-4" />
+                              <span>SMS</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleWhatsApp(chp.contact)}>
+                              <Send className="mr-2 h-4 w-4" />
+                              <span>WhatsApp</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

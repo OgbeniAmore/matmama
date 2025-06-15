@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,36 +47,36 @@ interface ChpData extends Profile {
 }
 
 const fetchChps = async (): Promise<Profile[]> => {
-  // Join profiles with user_roles to only get users who have roles assigned
-  const { data, error } = await supabase
+  // First, get all user IDs that have roles assigned
+  const { data: userRoles, error: rolesError } = await supabase
     .from("user_roles")
-    .select(`
-      user_id,
-      profiles!inner(
-        id,
-        first_name,
-        last_name,
-        facility,
-        local_government,
-        ward
-      )
-    `)
-    .order("profiles(first_name)", { ascending: true });
+    .select("user_id");
 
-  if (error) {
-    console.error("Error fetching CHPs:", error);
-    throw new Error(error.message);
+  if (rolesError) {
+    console.error("Error fetching user roles:", rolesError);
+    throw new Error(rolesError.message);
   }
 
-  // Transform the data to match the Profile interface
-  return data.map(item => ({
-    id: item.profiles.id,
-    first_name: item.profiles.first_name,
-    last_name: item.profiles.last_name,
-    facility: item.profiles.facility,
-    local_government: item.profiles.local_government,
-    ward: item.profiles.ward,
-  }));
+  if (!userRoles || userRoles.length === 0) {
+    return [];
+  }
+
+  // Extract user IDs
+  const userIds = userRoles.map(role => role.user_id);
+
+  // Then fetch profiles for those users
+  const { data: profiles, error: profilesError } = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name, facility, local_government, ward")
+    .in("id", userIds)
+    .order("first_name", { ascending: true });
+
+  if (profilesError) {
+    console.error("Error fetching profiles:", profilesError);
+    throw new Error(profilesError.message);
+  }
+
+  return profiles || [];
 };
 
 const fetchChpRoles = async (): Promise<Record<string, UserRole>> => {

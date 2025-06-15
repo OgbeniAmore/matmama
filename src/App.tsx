@@ -12,6 +12,7 @@ import { MainLayout } from "./components/layout/MainLayout";
 import { AuthProvider } from "./contexts/AuthContext";
 import AuthPage from "./pages/Auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ProfilePage from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
                 <Route path="/patients" element={<Navigate to="/clients" replace />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/defaulters" element={<Defaulters />} />
+                <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

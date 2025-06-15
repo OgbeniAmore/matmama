@@ -16,12 +16,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { patients as initialPatients } from "@/data/patients";
 import { Patient, Status } from "@/types";
 import { format } from "date-fns";
-import { AddPatientDialog } from "@/components/AddPatientDialog";
+import { AddPatientDialog, PatientFormValues } from "@/components/AddPatientDialog";
 import { cn } from "@/lib/utils";
+import { ViewPatientSheet } from "@/components/ViewPatientSheet";
 
 const statusColors: Record<Status, string> = {
   "On Track": "bg-green-100 text-green-800",
@@ -31,10 +32,46 @@ const statusColors: Record<Status, string> = {
 
 const Patients = () => {
   const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
+  const [patientToEdit, setPatientToEdit] = useState<Patient | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const handlePatientAdded = () => {
-    // In a real app, you'd refetch the data. Here we'll just log it.
-    console.log("A new patient was added, you would refetch data here.");
+  const handleSavePatient = (data: PatientFormValues, patientId?: string) => {
+    if (patientId) {
+      setPatients(prevPatients =>
+        prevPatients.map(p => (p.id === patientId ? { ...p, ...data } : p))
+      );
+    } else {
+      const newPatient: Patient = {
+        id: `PAT${String(patients.length + 1).padStart(3, "0")}`,
+        name: data.name,
+        service: data.service,
+        dueDate: data.dueDate,
+        contact: data.contact,
+        address: data.address,
+        status: "On Track",
+        assignedTo: "Dr. Kemi",
+      };
+      setPatients(prevPatients => [...prevPatients, newPatient]);
+    }
+    setIsFormOpen(false);
+    setPatientToEdit(null);
+  };
+
+  const openAddForm = () => {
+    setPatientToEdit(null);
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = (patient: Patient) => {
+    setPatientToEdit(patient);
+    setIsFormOpen(true);
+  };
+
+  const openViewSheet = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setIsViewSheetOpen(true);
   }
 
   return (
@@ -44,7 +81,10 @@ const Patients = () => {
             <h1 className="text-3xl font-bold">Patients</h1>
             <p className="text-muted-foreground">Manage all patients in the system.</p>
         </div>
-        <AddPatientDialog onPatientAdded={handlePatientAdded} />
+        <Button onClick={openAddForm}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add New Patient
+        </Button>
       </div>
       <div className="border rounded-lg">
         <Table>
@@ -79,8 +119,8 @@ const Patients = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => openViewSheet(patient)}>View Details</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => openEditForm(patient)}>Edit</DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600">
                         Delete
                       </DropdownMenuItem>
@@ -92,6 +132,18 @@ const Patients = () => {
           </TableBody>
         </Table>
       </div>
+      <ViewPatientSheet
+        patient={selectedPatient}
+        open={isViewSheetOpen}
+        onOpenChange={setIsViewSheetOpen}
+        onEdit={openEditForm}
+      />
+      <AddPatientDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        patientToEdit={patientToEdit}
+        onSave={handleSavePatient}
+      />
     </div>
   );
 };

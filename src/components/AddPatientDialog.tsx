@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, PlusCircle } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +35,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Service } from "@/types";
+import { Patient, Service } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const services: [Service, ...Service[]] = [
@@ -44,7 +44,7 @@ const services: [Service, ...Service[]] = [
   "Ante Natal Care",
 ];
 
-const patientFormSchema = z.object({
+export const patientFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   contact: z.string().min(10, { message: "Please enter a valid phone number." }),
   address: z.string().min(5, { message: "Please enter a valid address." }),
@@ -54,45 +54,63 @@ const patientFormSchema = z.object({
   }),
 });
 
-type PatientFormValues = z.infer<typeof patientFormSchema>;
+export type PatientFormValues = z.infer<typeof patientFormSchema>;
 
-export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => void }) {
-  const [open, setOpen] = useState(false);
+interface AddPatientDialogProps {
+  onSave: (data: PatientFormValues, patientId?: string) => void;
+  patientToEdit?: Patient | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function AddPatientDialog({ onSave, patientToEdit, open, onOpenChange }: AddPatientDialogProps) {
   const { toast } = useToast();
+  const isEditMode = !!patientToEdit;
 
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(patientFormSchema),
-    defaultValues: {
-      name: "",
-      contact: "",
-      address: "",
-    },
   });
 
+  useEffect(() => {
+    if (open) {
+      if (isEditMode && patientToEdit) {
+        form.reset({
+          name: patientToEdit.name,
+          contact: patientToEdit.contact,
+          address: patientToEdit.address,
+          service: patientToEdit.service,
+          dueDate: patientToEdit.dueDate,
+        });
+      } else {
+        form.reset({
+          name: "",
+          contact: "",
+          address: "",
+          service: undefined,
+          dueDate: undefined,
+        });
+      }
+    }
+  }, [patientToEdit, open, form, isEditMode]);
+
   const onSubmit = (data: PatientFormValues) => {
-    console.log("New patient data:", data);
     toast({
-      title: "Patient Added",
-      description: "The new patient has been successfully added to the system.",
+      title: isEditMode ? "Patient Updated" : "Patient Added",
+      description: isEditMode
+        ? "The patient's details have been successfully updated."
+        : "The new patient has been successfully added to the system.",
     });
-    onPatientAdded();
-    setOpen(false);
-    form.reset();
+    onSave(data, patientToEdit?.id);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add New Patient
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Patient</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Patient" : "Add New Patient"}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a new patient.
+            {isEditMode ? "Update the patient's details below." : "Fill in the details below to add a new patient."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -154,6 +172,7 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -218,7 +237,7 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
 
             <DialogFooter className="pt-4">
               <Button type="submit">
-                Save Patient
+                {isEditMode ? "Save Changes" : "Save Patient"}
               </Button>
             </DialogFooter>
           </form>

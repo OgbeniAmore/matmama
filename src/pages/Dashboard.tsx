@@ -24,6 +24,7 @@ const fetchPatients = async (): Promise<Patient[]> => {
     assignedTo: p.assigned_to,
     childDob: p.child_dob ? new Date(p.child_dob) : undefined,
     childName: p.child_name || undefined,
+    edd: p.edd ? new Date(p.edd) : undefined,
   }));
 };
 

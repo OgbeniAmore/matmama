@@ -1,5 +1,5 @@
-
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -17,8 +17,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PhoneCall, Send } from "lucide-react";
+import { MoreHorizontal, UserPlus, Edit, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AddEditChpDialog } from "@/components/AddEditChpDialog";
+import { ChpFormValues } from "@/components/ChpForm";
+import { toast } from "sonner";
 
 interface CHP {
   id: string;
@@ -71,20 +74,102 @@ const fetchCHPs = async (): Promise<CHP[]> => {
   }));
 };
 
+const addChp = async (values: ChpFormValues) => {
+  const newChpId = crypto.randomUUID();
+
+  const { error: profileError } = await supabase.from("profiles").insert({
+    id: newChpId,
+    first_name: values.first_name,
+    last_name: values.last_name,
+    local_government: values.local_government || null,
+    ward: values.ward || null,
+    facility: values.facility || null,
+  });
+
+  if (profileError) {
+    console.error("Error creating profile:", profileError);
+    throw new Error("Failed to create CHP profile.");
+  }
+
+  const { error: roleError } = await supabase
+    .from("user_roles")
+    .insert({ user_id: newChpId, role: "chp" });
+
+  if (roleError) {
+    console.error("Error assigning role:", roleError);
+    await supabase.from("profiles").delete().eq("id", newChpId);
+    throw new Error("Failed to assign CHP role.");
+  }
+};
+
+const editChp = async ({ values, id }: { values: ChpFormValues; id: string }) => {
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      first_name: values.first_name,
+      last_name: values.last_name,
+      local_government: values.local_government || null,
+      ward: values.ward || null,
+      facility: values.facility || null,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating profile:", error);
+    throw new Error("Failed to update CHP profile.");
+  }
+};
+
 const CHPs = () => {
+  const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedChp, setSelectedChp] = useState<CHP | null>(null);
+
   const { data: chps = [], isLoading, error } = useQuery<CHP[]>({
     queryKey: ["chps"],
     queryFn: fetchCHPs,
   });
 
-  const handleCall = (chpId: string) => {
-    // This would need to be implemented with actual contact info
-    console.log(`Calling CHP: ${chpId}`);
+  const addMutation = useMutation({
+    mutationFn: addChp,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chps"] });
+      toast.success("CHP added successfully!");
+      setIsDialogOpen(false);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editChp,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chps"] });
+      toast.success("CHP updated successfully!");
+      setIsDialogOpen(false);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
+  const handleOpenAddDialog = () => {
+    setSelectedChp(null);
+    setIsDialogOpen(true);
   };
 
-  const handleMessage = (chpId: string) => {
-    // This would need to be implemented with actual contact info
-    console.log(`Messaging CHP: ${chpId}`);
+  const handleOpenEditDialog = (chp: CHP) => {
+    setSelectedChp(chp);
+    setIsDialogOpen(true);
+  };
+
+  const handleDialogSubmit = async (values: ChpFormValues, chpId?: string) => {
+    if (chpId) {
+      await editMutation.mutateAsync({ values, id: chpId });
+    } else {
+      await addMutation.mutateAsync(values);
+    }
   };
 
   if (error) {
@@ -100,6 +185,10 @@ const CHPs = () => {
             Manage and communicate with CHPs in your area
           </p>
         </div>
+        <Button onClick={handleOpenAddDialog}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add CHP
+        </Button>
       </div>
       
       <div className="border rounded-lg">
@@ -136,11 +225,11 @@ const CHPs = () => {
               chps.map((chp) => (
                 <TableRow key={chp.id}>
                   <TableCell className="font-medium">
-                    {`${chp.first_name || ''} ${chp.last_name || ''}`.trim() || 'N/A'}
+                    {`${chp.first_name || ""} ${chp.last_name || ""}`.trim() || "N/A"}
                   </TableCell>
-                  <TableCell>{chp.local_government || 'N/A'}</TableCell>
-                  <TableCell>{chp.ward || 'N/A'}</TableCell>
-                  <TableCell>{chp.facility || 'N/A'}</TableCell>
+                  <TableCell>{chp.local_government || "N/A"}</TableCell>
+                  <TableCell>{chp.ward || "N/A"}</TableCell>
+                  <TableCell>{chp.facility || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="capitalize">
                       {chp.role}
@@ -155,14 +244,15 @@ const CHPs = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Profile</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleCall(chp.id)}>
-                          <PhoneCall className="mr-2 h-4 w-4" />
-                          <span>Call</span>
+                        <DropdownMenuItem onClick={() => handleOpenEditDialog(chp)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          <span>Edit</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleMessage(chp.id)}>
-                          <Send className="mr-2 h-4 w-4" />
-                          <span>Message</span>
+                        <DropdownMenuItem
+                          onClick={() => toast.info("Assign action coming soon!")}
+                        >
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Assign</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -173,6 +263,13 @@ const CHPs = () => {
           </TableBody>
         </Table>
       </div>
+      <AddEditChpDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSubmit={handleDialogSubmit}
+        chp={selectedChp}
+        isSubmitting={addMutation.isPending || editMutation.isPending}
+      />
     </div>
   );
 };

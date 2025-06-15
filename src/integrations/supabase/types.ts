@@ -11,19 +11,34 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          country: string
+          facility: string | null
           first_name: string | null
           id: string
           last_name: string | null
+          local_government: string | null
+          state: string
+          ward: string | null
         }
         Insert: {
+          country?: string
+          facility?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
+          local_government?: string | null
+          state?: string
+          ward?: string | null
         }
         Update: {
+          country?: string
+          facility?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
+          local_government?: string | null
+          state?: string
+          ward?: string | null
         }
         Relationships: []
       }

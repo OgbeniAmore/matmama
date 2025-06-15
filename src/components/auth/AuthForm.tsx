@@ -13,6 +13,9 @@ export default function AuthForm() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [localGovernment, setLocalGovernment] = useState('');
+  const [ward, setWard] = useState('');
+  const [facility, setFacility] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -28,6 +31,9 @@ export default function AuthForm() {
           data: {
             first_name: firstName,
             last_name: lastName,
+            local_government: localGovernment,
+            ward: ward,
+            facility: facility,
           },
           emailRedirectTo: `${window.location.origin}/`,
         },
@@ -80,6 +86,60 @@ export default function AuthForm() {
                 required
                 placeholder="Doe"
               />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Input
+                    id="country"
+                    type="text"
+                    value="Nigeria"
+                    readOnly
+                    className="bg-muted"
+                />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input
+                    id="state"
+                    type="text"
+                    value="Lagos"
+                    readOnly
+                    className="bg-muted"
+                />
+                </div>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="localGovernment">Local Government</Label>
+                <Input
+                id="localGovernment"
+                type="text"
+                value={localGovernment}
+                onChange={(e) => setLocalGovernment(e.target.value)}
+                placeholder="e.g. Ikeja"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="ward">Ward</Label>
+                <Input
+                id="ward"
+                type="text"
+                value={ward}
+                onChange={(e) => setWard(e.target.value)}
+                placeholder="e.g. Oregun"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="facility">Facility</Label>
+                <Input
+                id="facility"
+                type="text"
+                value={facility}
+                onChange={(e) => setFacility(e.target.value)}
+                placeholder="e.g. Oregun General Hospital"
+                />
             </div>
           </div>
         </>

@@ -30,6 +30,16 @@ interface CHP {
   role: string;
 }
 
+interface ProfileWithRole {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  local_government: string | null;
+  ward: string | null;
+  facility: string | null;
+  user_roles: Array<{ role: string }>;
+}
+
 const fetchCHPs = async (): Promise<CHP[]> => {
   const { data, error } = await supabase
     .from("profiles")
@@ -50,7 +60,7 @@ const fetchCHPs = async (): Promise<CHP[]> => {
     throw new Error(error.message);
   }
 
-  return data.map((profile) => ({
+  return (data as ProfileWithRole[]).map((profile) => ({
     id: profile.id,
     first_name: profile.first_name,
     last_name: profile.last_name,

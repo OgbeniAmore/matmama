@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,14 +29,32 @@ import { ChpForm, ChpFormValues } from "@/components/ChpForm";
 import { PlusCircle, Pencil, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface Chp {
-  name: string;
-  contact: string;
+interface Profile {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  facility: string | null;
+  local_government: string | null;
+  ward: string | null;
 }
 
-interface ChpData extends Chp {
+interface ChpData extends Profile {
   patientCount: number;
 }
+
+const fetchChps = async (): Promise<Profile[]> => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name, facility, local_government, ward")
+    .order("first_name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching CHPs:", error);
+    throw new Error(error.message);
+  }
+
+  return data;
+};
 
 const fetchAllPatients = async (): Promise<Patient[]> => {
   const { data, error } = await supabase.from("patients").select("id, assigned_to");
@@ -43,7 +62,6 @@ const fetchAllPatients = async (): Promise<Patient[]> => {
     console.error("Error fetching patients for CHP stats:", error);
     throw new Error(error.message);
   }
-  // Only need assigned_to for counts, so we can cast to a partial patient
   return data.map(p => ({ assignedTo: p.assigned_to } as Patient));
 }
 
@@ -51,15 +69,15 @@ const Chps = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: patients = [] } = useQuery<Patient[]>({
-    queryKey: ['chps-patients'], // Separate query key to not interfere with full patient list
-    queryFn: fetchAllPatients,
+  const { data: chps = [], isLoading: chpsLoading } = useQuery<Profile[]>({
+    queryKey: ['chps'],
+    queryFn: fetchChps,
   });
 
-  const [chps, setChps] = useState<Chp[]>([
-    { name: "Dr. Kemi", contact: "2348012345678" },
-    { name: "Dr. Funmi", contact: "2348023456789" },
-  ]);
+  const { data: patients = [] } = useQuery<Patient[]>({
+    queryKey: ['chps-patients'],
+    queryFn: fetchAllPatients,
+  });
 
   const chpsData: ChpData[] = useMemo(() => {
     const chpPatientCounts = patients.reduce((acc, patient) => {
@@ -70,87 +88,59 @@ const Chps = () => {
 
     return chps.map((chp) => ({
       ...chp,
-      patientCount: chpPatientCounts[chp.name] || 0,
+      patientCount: chpPatientCounts[chp.id] || 0,
     }));
   }, [chps, patients]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [chpToEdit, setChpToEdit] = useState<ChpData | null>(null);
 
-  const editChpMutation = useMutation({
-    mutationFn: async ({ name, oldName }: { name: string, oldName: string }) => {
-      const { error } = await supabase
-        .from("patients")
-        .update({ assigned_to: name })
-        .eq("assigned_to", oldName);
-      if (error) throw error;
+  const saveChpMutation = useMutation({
+    mutationFn: async ({ data, chpId }: { data: ChpFormValues; chpId?: string }) => {
+      if (chpId) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            first_name: data.name.split(' ')[0] || data.name,
+            last_name: data.name.split(' ').slice(1).join(' ') || null,
+          })
+          .eq("id", chpId);
+        if (error) throw error;
+      } else {
+        const newChpId = crypto.randomUUID();
+        const { error } = await supabase
+          .from("profiles")
+          .insert({
+            id: newChpId,
+            first_name: data.name.split(' ')[0] || data.name,
+            last_name: data.name.split(' ').slice(1).join(' ') || null,
+          });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chps'] });
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['defaulters'] });
       queryClient.invalidateQueries({ queryKey: ['chps-patients'] });
+      toast({
+        title: chpToEdit ? "CHP Updated" : "CHP Added",
+        description: chpToEdit 
+          ? "The community health practitioner has been successfully updated."
+          : "The new community health practitioner has been successfully added.",
+      });
     },
     onError: (error) => {
       toast({
-        title: "Error updating patients",
-        description: `Could not re-assign patients: ${error.message}`,
+        title: "Error",
+        description: `Failed to ${chpToEdit ? "update" : "add"} CHP. ${error.message}`,
         variant: "destructive",
-      })
-    }
+      });
+    },
   });
 
   const handleSaveChp = (data: ChpFormValues): boolean => {
-    if (chpToEdit) {
-      if (
-        chps.some(
-          (chp) =>
-            chp.name.toLowerCase() === data.name.toLowerCase() &&
-            chp.name.toLowerCase() !== chpToEdit.name.toLowerCase()
-        )
-      ) {
-        toast({
-          title: "Error",
-          description: "A CHP with this name already exists.",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      if (data.name !== chpToEdit.name) {
-        editChpMutation.mutate({ name: data.name, oldName: chpToEdit.name });
-      }
-      
-      setChps((prevChps) =>
-        prevChps.map((chp) =>
-          chp.name === chpToEdit.name ? { ...chp, ...data } : chp
-        )
-      );
-      toast({
-        title: "CHP Updated",
-        description:
-          "The community health practitioner has been successfully updated.",
-      });
-    } else {
-      if (
-        chps.some(
-          (chp) => chp.name.toLowerCase() === data.name.toLowerCase()
-        )
-      ) {
-        toast({
-          title: "Error",
-          description: "A CHP with this name already exists.",
-          variant: "destructive",
-        });
-        return false;
-      }
-      const newChp: Chp = { name: data.name, contact: data.contact };
-      setChps((prevChps) => [...prevChps, newChp]);
-      toast({
-        title: "CHP Added",
-        description:
-          "The new community health practitioner has been successfully added.",
-      });
-    }
+    saveChpMutation.mutate({ data, chpId: chpToEdit?.id });
     return true;
   };
 
@@ -174,6 +164,11 @@ const Chps = () => {
   const openEditForm = (chp: ChpData) => {
     setChpToEdit(chp);
     setIsFormOpen(true);
+  };
+
+  const getDisplayName = (chp: Profile) => {
+    const name = [chp.first_name, chp.last_name].filter(Boolean).join(" ");
+    return name || "Unknown User";
   };
 
   return (
@@ -204,7 +199,10 @@ const Chps = () => {
             onSave={handleSaveChp}
             onFinished={onFormFinished}
             open={isFormOpen}
-            initialValues={chpToEdit ? { name: chpToEdit.name, contact: chpToEdit.contact } : undefined}
+            initialValues={chpToEdit ? { 
+              name: getDisplayName(chpToEdit), 
+              contact: "" // Contact field will need to be added to profiles table if needed
+            } : undefined}
           />
         </DialogContent>
       </Dialog>
@@ -213,33 +211,51 @@ const Chps = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Facility</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Assigned Patients</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {chpsData.map((chp) => (
-              <TableRow key={chp.name}>
-                <TableCell className="font-medium">{chp.name}</TableCell>
-                <TableCell>{chp.patientCount}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openEditForm(chp)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        <span>Edit</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+            {chpsLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>Loading...</TableCell>
+                  <TableCell>Loading...</TableCell>
+                  <TableCell>Loading...</TableCell>
+                  <TableCell>Loading...</TableCell>
+                  <TableCell className="text-right">Loading...</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              chpsData.map((chp) => (
+                <TableRow key={chp.id}>
+                  <TableCell className="font-medium">{getDisplayName(chp)}</TableCell>
+                  <TableCell>{chp.facility || "Not specified"}</TableCell>
+                  <TableCell>
+                    {[chp.ward, chp.local_government].filter(Boolean).join(", ") || "Not specified"}
+                  </TableCell>
+                  <TableCell>{chp.patientCount}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditForm(chp)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          <span>Edit</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

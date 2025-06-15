@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +57,24 @@ const fetchPatients = async (): Promise<Patient[]> => {
   }));
 };
 
+const fetchChps = async () => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name")
+    .order("first_name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching CHPs:", error);
+    throw new Error(error.message);
+  }
+
+  return data.reduce((acc, chp) => {
+    const name = [chp.first_name, chp.last_name].filter(Boolean).join(" ") || "Unknown User";
+    acc[chp.id] = name;
+    return acc;
+  }, {} as Record<string, string>);
+};
+
 const fetchEpiSchedule = async (): Promise<EpiSchedule[]> => {
   const { data, error } = await supabase
     .from("epi_schedule")
@@ -85,6 +104,11 @@ const Patients = () => {
   } = useQuery<Patient[]>({
     queryKey: ["patients"],
     queryFn: fetchPatients,
+  });
+
+  const { data: chpNames = {} } = useQuery({
+    queryKey: ["chp-names"],
+    queryFn: fetchChps,
   });
 
   const { data: epiSchedule = [] } = useQuery<EpiSchedule[]>({
@@ -130,7 +154,6 @@ const Patients = () => {
         const { error: patientError } = await supabase.from("patients").insert(newPatientData);
         if (patientError) throw patientError;
 
-        // If this is a routine immunization patient with child DOB, generate immunization schedule
         if (data.service === "Routine Immunization" && data.childDob) {
           const immunizationSchedule = generateImmunizationSchedule(
             data.childDob,
@@ -145,7 +168,6 @@ const Patients = () => {
             
             if (scheduleError) {
               console.error("Error creating immunization schedule:", scheduleError);
-              // Don't throw error here as patient was created successfully
             }
           }
         }
@@ -155,6 +177,7 @@ const Patients = () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
       queryClient.invalidateQueries({ queryKey: ["chps"] });
+      queryClient.invalidateQueries({ queryKey: ["chp-names"] });
       toast({
         title: "Success",
         description: patientToEdit ? "Patient updated successfully" : "Patient added successfully with immunization schedule",
@@ -307,7 +330,7 @@ const Patients = () => {
                         {patient.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{patient.assignedTo}</TableCell>
+                    <TableCell>{chpNames[patient.assignedTo] || patient.assignedTo}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

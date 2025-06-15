@@ -69,7 +69,7 @@ export function AssignedToSelect({ value, onValueChange, disabled }: AssignedToS
       </SelectTrigger>
       <SelectContent>
         {chps.map((chp) => (
-          <SelectItem key={chp.id} value={getDisplayName(chp)}>
+          <SelectItem key={chp.id} value={chp.id}>
             <div className="flex flex-col">
               <span>{getDisplayName(chp)}</span>
               {chp.facility && (

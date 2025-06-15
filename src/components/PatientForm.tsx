@@ -52,7 +52,6 @@ export const patientFormSchema = z.object({
   trimester: z.coerce.number().min(1).max(3).optional(),
   edd: z.date().optional(),
 }).refine((data) => {
-  // If service is Routine Immunization, child name and DOB are required
   if (data.service === "Routine Immunization") {
     return data.childName && data.childName.trim().length > 0 && data.childDob;
   }
@@ -61,7 +60,6 @@ export const patientFormSchema = z.object({
   message: "Child name and date of birth are required for Routine Immunization",
   path: ["childName"],
 }).refine((data) => {
-  // If service is Ante Natal Care, trimester and EDD are required
   if (data.service === "Ante Natal Care") {
     return data.trimester && data.edd;
   }

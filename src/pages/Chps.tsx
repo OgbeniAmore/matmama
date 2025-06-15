@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import {
   Table,
@@ -22,14 +21,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChpForm, ChpFormValues } from "@/components/ChpForm";
-import { PlusCircle, Pencil, MoreHorizontal, PhoneCall, Send } from "lucide-react";
+import { PlusCircle, Pencil, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Chp {
@@ -143,18 +138,6 @@ const Chps = () => {
     setIsFormOpen(true);
   };
 
-  const handleCall = (contact: string) => {
-    window.location.href = `tel:${contact}`;
-  };
-
-  const handleSms = (contact: string) => {
-    window.location.href = `sms:${contact}`;
-  };
-
-  const handleWhatsApp = (contact: string) => {
-    window.open(`https://wa.me/${contact}`, '_blank');
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -214,28 +197,6 @@ const Chps = () => {
                         <Pencil className="mr-2 h-4 w-4" />
                         <span>Edit</span>
                       </DropdownMenuItem>
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <Send className="mr-2 h-4 w-4" />
-                          <span>Send Reminder</span>
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                          <DropdownMenuSubContent>
-                            <DropdownMenuItem onClick={() => handleCall(chp.contact)}>
-                              <PhoneCall className="mr-2 h-4 w-4" />
-                              <span>Call</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSms(chp.contact)}>
-                              <Send className="mr-2 h-4 w-4" />
-                              <span>SMS</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleWhatsApp(chp.contact)}>
-                              <Send className="mr-2 h-4 w-4" />
-                              <span>WhatsApp</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                      </DropdownMenuSub>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

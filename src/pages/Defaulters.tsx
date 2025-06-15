@@ -15,8 +15,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, PhoneCall, Send } from "lucide-react";
 import { patients as initialPatients } from "@/data/patients";
 import { Patient, Status } from "@/types";
 import { format } from "date-fns";
@@ -32,6 +36,18 @@ const Defaulters = () => {
   const [defaulters] = useState<Patient[]>(
     initialPatients.filter((p) => p.status === "Defaulting")
   );
+
+  const handleCall = (contact: string) => {
+    window.location.href = `tel:${contact}`;
+  };
+
+  const handleSms = (contact: string) => {
+    window.location.href = `sms:${contact}`;
+  };
+
+  const handleWhatsApp = (contact: string) => {
+    window.open(`https://wa.me/${contact}`, '_blank');
+  };
 
   return (
     <div className="space-y-8">
@@ -76,6 +92,28 @@ const Defaulters = () => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>View Details</DropdownMenuItem>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Send className="mr-2 h-4 w-4" />
+                          <span>Send Reminder</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem onClick={() => handleCall(patient.contact)}>
+                              <PhoneCall className="mr-2 h-4 w-4" />
+                              <span>Call</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSms(patient.contact)}>
+                              <Send className="mr-2 h-4 w-4" />
+                              <span>SMS</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleWhatsApp(patient.contact)}>
+                              <Send className="mr-2 h-4 w-4" />
+                              <span>WhatsApp</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
                       <DropdownMenuItem className="text-red-600">
                         Delete
                       </DropdownMenuItem>

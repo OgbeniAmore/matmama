@@ -2,32 +2,13 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Patient } from "@/types";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChpForm, ChpFormValues } from "@/components/ChpForm";
-import { PlusCircle, Pencil, MoreHorizontal } from "lucide-react";
+import { ChpFormValues } from "@/components/ChpForm";
+import { PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ChpsTable } from "@/components/ChpsTable";
+import { ChpDialog } from "@/components/ChpDialog";
 
 interface Profile {
   id: string;
@@ -161,11 +142,6 @@ const Chps = () => {
     setIsFormOpen(true);
   };
 
-  const getDisplayName = (chp: Profile) => {
-    const name = [chp.first_name, chp.last_name].filter(Boolean).join(" ");
-    return name || "Unknown User";
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -181,81 +157,19 @@ const Chps = () => {
         </Button>
       </div>
 
-      <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{chpToEdit ? "Edit CHP" : "Add New CHP"}</DialogTitle>
-            <DialogDescription>
-              {chpToEdit
-                ? "Make changes to the CHP's details."
-                : "Add a new CHP to the list. You can assign patients later."}
-            </DialogDescription>
-          </DialogHeader>
-          <ChpForm
-            onSave={handleSaveChp}
-            onFinished={onFormFinished}
-            open={isFormOpen}
-            initialValues={chpToEdit ? { 
-              name: getDisplayName(chpToEdit), 
-              contact: ""
-            } : undefined}
-          />
-        </DialogContent>
-      </Dialog>
+      <ChpDialog
+        isOpen={isFormOpen}
+        onOpenChange={handleOpenChange}
+        chpToEdit={chpToEdit}
+        onSave={handleSaveChp}
+        onFinished={onFormFinished}
+      />
 
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Facility</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Assigned Patients</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {chpsLoading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell>Loading...</TableCell>
-                  <TableCell>Loading...</TableCell>
-                  <TableCell>Loading...</TableCell>
-                  <TableCell>Loading...</TableCell>
-                  <TableCell className="text-right">Loading...</TableCell>
-                </TableRow>
-              ))
-            ) : (
-              chpsData.map((chp) => (
-                <TableRow key={chp.id}>
-                  <TableCell className="font-medium">{getDisplayName(chp)}</TableCell>
-                  <TableCell>{chp.facility || "Not specified"}</TableCell>
-                  <TableCell>
-                    {[chp.ward, chp.local_government].filter(Boolean).join(", ") || "Not specified"}
-                  </TableCell>
-                  <TableCell>{chp.patientCount}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditForm(chp)}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <ChpsTable
+        chpsData={chpsData}
+        isLoading={chpsLoading}
+        onEditChp={openEditForm}
+      />
     </div>
   );
 };

@@ -42,7 +42,23 @@ export function ViewPatientSheet({ patient, open, onOpenChange, onEdit }: ViewPa
               <h3 className="text-sm font-medium text-muted-foreground">Service</h3>
               <p className="col-start-2">{patient.service}</p>
 
-              <h3 className="text-sm font-medium text-muted-foreground">Due Date</h3>
+              {patient.service === "Routine Immunization" && patient.childName && (
+                <>
+                  <h3 className="text-sm font-medium text-muted-foreground">Child Name</h3>
+                  <p className="col-start-2">{patient.childName}</p>
+
+                  {patient.childDob && (
+                    <>
+                      <h3 className="text-sm font-medium text-muted-foreground">Child Date of Birth</h3>
+                      <p className="col-start-2">{format(patient.childDob, "PPP")}</p>
+                    </>
+                  )}
+                </>
+              )}
+
+              <h3 className="text-sm font-medium text-muted-foreground">
+                {patient.service === "Routine Immunization" ? "Next Immunization" : "Due Date"}
+              </h3>
               <p className="col-start-2">{format(patient.dueDate, "PPP")}</p>
               
               <h3 className="text-sm font-medium text-muted-foreground">Status</h3>

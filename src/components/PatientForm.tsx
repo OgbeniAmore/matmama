@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -44,6 +45,17 @@ export const patientFormSchema = z.object({
   dueDate: z.date({
     required_error: "A due date is required.",
   }),
+  childName: z.string().optional(),
+  childDob: z.date().optional(),
+}).refine((data) => {
+  // If service is Routine Immunization, child name and DOB are required
+  if (data.service === "Routine Immunization") {
+    return data.childName && data.childName.trim().length > 0 && data.childDob;
+  }
+  return true;
+}, {
+  message: "Child name and date of birth are required for Routine Immunization",
+  path: ["childName"],
 });
 
 export type PatientFormValues = z.infer<typeof patientFormSchema>;
@@ -63,6 +75,8 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
     resolver: zodResolver(patientFormSchema),
   });
 
+  const watchedService = form.watch("service");
+
   useEffect(() => {
     if (open) {
       if (isEditMode && patientToEdit) {
@@ -72,6 +86,8 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
           address: patientToEdit.address,
           service: patientToEdit.service,
           dueDate: patientToEdit.dueDate,
+          childName: patientToEdit.childName || "",
+          childDob: patientToEdit.childDob,
         });
       } else {
         form.reset({
@@ -80,6 +96,8 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
           address: "",
           service: undefined,
           dueDate: undefined,
+          childName: "",
+          childDob: undefined,
         });
       }
     }
@@ -101,7 +119,7 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Patient Name
+                    {watchedService === "Routine Immunization" ? "Parent/Guardian Name" : "Patient Name"}
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Full name" {...field} />
@@ -110,6 +128,65 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
                 </FormItem>
               )}
             />
+
+            {watchedService === "Routine Immunization" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="childName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Child Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Child's full name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="childDob"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Child Date of Birth *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick child's date of birth</span>
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <FormField
               control={form.control}
@@ -124,6 +201,7 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="address"
@@ -141,6 +219,7 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="service"
@@ -169,16 +248,17 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="dueDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Due Date / Next Appointment</FormLabel>
+                  <FormLabel>
+                    {watchedService === "Routine Immunization" ? "Next Immunization Date" : "Due Date / Next Appointment"}
+                  </FormLabel>
                   <Popover>
-                    <PopoverTrigger
-                      asChild
-                    >
+                    <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant={"outline"}

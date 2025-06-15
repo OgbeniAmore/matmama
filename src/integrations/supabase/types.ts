@@ -9,6 +9,77 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      epi_schedule: {
+        Row: {
+          age_months: number | null
+          age_weeks: number | null
+          created_at: string
+          description: string | null
+          id: string
+          vaccine_name: string
+        }
+        Insert: {
+          age_months?: number | null
+          age_weeks?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          vaccine_name: string
+        }
+        Update: {
+          age_months?: number | null
+          age_weeks?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          vaccine_name?: string
+        }
+        Relationships: []
+      }
+      immunization_records: {
+        Row: {
+          administered_date: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          scheduled_date: string
+          status: string
+          updated_at: string
+          vaccine_name: string
+        }
+        Insert: {
+          administered_date?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          scheduled_date: string
+          status?: string
+          updated_at?: string
+          vaccine_name: string
+        }
+        Update: {
+          administered_date?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          scheduled_date?: string
+          status?: string
+          updated_at?: string
+          vaccine_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immunization_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string

@@ -14,3 +14,6 @@ export interface Patient {
   childName?: string;
   childDob?: Date;
 }
+
+// Re-export immunization types
+export * from './immunization';

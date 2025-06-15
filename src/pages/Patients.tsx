@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
-import { Patient, Status } from "@/types";
+import { Patient, Status, EpiSchedule } from "@/types";
 import { format } from "date-fns";
 import { AddPatientDialog } from "@/components/AddPatientDialog";
 import { type PatientFormValues } from "@/components/PatientForm";
@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { ViewPatientSheet } from "@/components/ViewPatientSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { generateImmunizationSchedule } from "@/utils/immunizationUtils";
 
 const statusColors: Record<Status, string> = {
   "On Track": "bg-green-100 text-green-800",
@@ -53,6 +54,20 @@ const fetchPatients = async (): Promise<Patient[]> => {
   }));
 };
 
+const fetchEpiSchedule = async (): Promise<EpiSchedule[]> => {
+  const { data, error } = await supabase
+    .from("epi_schedule")
+    .select("*")
+    .order("age_weeks", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching EPI schedule:", error);
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
 const Patients = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -70,6 +85,11 @@ const Patients = () => {
     queryFn: fetchPatients,
   });
 
+  const { data: epiSchedule = [] } = useQuery<EpiSchedule[]>({
+    queryKey: ["epi-schedule"],
+    queryFn: fetchEpiSchedule,
+  });
+
   const savePatientMutation = useMutation({
     mutationFn: async ({
       data,
@@ -84,6 +104,8 @@ const Patients = () => {
         due_date: data.dueDate.toISOString(),
         contact: data.contact,
         address: data.address,
+        child_name: data.childName || null,
+        child_dob: data.childDob ? data.childDob.toISOString().split('T')[0] : null,
       };
 
       if (patientId) {
@@ -93,20 +115,46 @@ const Patients = () => {
           .eq("id", patientId);
         if (error) throw error;
       } else {
+        const newPatientId = `PAT${String(Date.now()).slice(-6)}`;
         const newPatientData = {
           ...patientDataForSupabase,
-          id: `PAT${String(Date.now()).slice(-6)}`,
+          id: newPatientId,
           status: "On Track" as Status,
           assigned_to: "Dr. Kemi", // Default CHP for new patients
         };
-        const { error } = await supabase.from("patients").insert(newPatientData);
-        if (error) throw error;
+        
+        const { error: patientError } = await supabase.from("patients").insert(newPatientData);
+        if (patientError) throw patientError;
+
+        // If this is a routine immunization patient with child DOB, generate immunization schedule
+        if (data.service === "Routine Immunization" && data.childDob) {
+          const immunizationSchedule = generateImmunizationSchedule(
+            data.childDob,
+            epiSchedule,
+            newPatientId
+          );
+
+          if (immunizationSchedule.length > 0) {
+            const { error: scheduleError } = await supabase
+              .from("immunization_records")
+              .insert(immunizationSchedule);
+            
+            if (scheduleError) {
+              console.error("Error creating immunization schedule:", scheduleError);
+              // Don't throw error here as patient was created successfully
+            }
+          }
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
       queryClient.invalidateQueries({ queryKey: ["chps"] });
+      toast({
+        title: "Success",
+        description: patientToEdit ? "Patient updated successfully" : "Patient added successfully with immunization schedule",
+      });
     },
     onError: (error, { patientId }) => {
       toast({
@@ -152,7 +200,6 @@ const Patients = () => {
     }
   };
 
-
   const openAddForm = () => {
     setPatientToEdit(null);
     setIsFormOpen(true);
@@ -190,6 +237,7 @@ const Patients = () => {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Service</TableHead>
+              <TableHead>Child Info</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Assigned To</TableHead>
@@ -205,6 +253,9 @@ const Patients = () => {
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-24" />
@@ -226,6 +277,20 @@ const Patients = () => {
                       {patient.name}
                     </TableCell>
                     <TableCell>{patient.service}</TableCell>
+                    <TableCell>
+                      {patient.service === "Routine Immunization" ? (
+                        <div className="text-sm">
+                          <div className="font-medium">{patient.childName}</div>
+                          {patient.childDob && (
+                            <div className="text-muted-foreground">
+                              DOB: {format(patient.childDob, "PP")}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">N/A</span>
+                      )}
+                    </TableCell>
                     <TableCell>{format(patient.dueDate, "PPP")}</TableCell>
                     <TableCell>
                       <Badge

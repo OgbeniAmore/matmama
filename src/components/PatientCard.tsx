@@ -80,7 +80,7 @@ export const PatientCard = ({ patient, onView, onEdit, onDelete }: PatientCardPr
             </span>
           </div>
         )}
-        {patient.service === "Antenatal Care" && (
+        {patient.service === "Ante Natal Care" && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Stethoscope className="h-4 w-4" />
             <span>

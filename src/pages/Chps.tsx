@@ -46,17 +46,36 @@ interface ChpData extends Profile {
 }
 
 const fetchChps = async (): Promise<Profile[]> => {
+  // Join profiles with user_roles to only get users who have roles assigned
   const { data, error } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name, facility, local_government, ward")
-    .order("first_name", { ascending: true });
+    .from("user_roles")
+    .select(`
+      user_id,
+      profiles!inner(
+        id,
+        first_name,
+        last_name,
+        facility,
+        local_government,
+        ward
+      )
+    `)
+    .order("profiles(first_name)", { ascending: true });
 
   if (error) {
     console.error("Error fetching CHPs:", error);
     throw new Error(error.message);
   }
 
-  return data;
+  // Transform the data to match the Profile interface
+  return data.map(item => ({
+    id: item.profiles.id,
+    first_name: item.profiles.first_name,
+    last_name: item.profiles.last_name,
+    facility: item.profiles.facility,
+    local_government: item.profiles.local_government,
+    ward: item.profiles.ward,
+  }));
 };
 
 const fetchChpRoles = async (): Promise<Record<string, UserRole>> => {
@@ -136,15 +155,27 @@ const Chps = () => {
           .eq("id", chpId);
         if (error) throw error;
       } else {
+        // When adding a new CHP, we need to create both profile and role
         const newChpId = crypto.randomUUID();
-        const { error } = await supabase
+        
+        // Insert profile
+        const { error: profileError } = await supabase
           .from("profiles")
           .insert({
             id: newChpId,
             first_name: data.name.split(' ')[0] || data.name,
             last_name: data.name.split(' ').slice(1).join(' ') || null,
           });
-        if (error) throw error;
+        if (profileError) throw profileError;
+
+        // Insert role
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({
+            user_id: newChpId,
+            role: 'chp'
+          });
+        if (roleError) throw roleError;
       }
     },
     onSuccess: () => {
@@ -152,6 +183,7 @@ const Chps = () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['defaulters'] });
       queryClient.invalidateQueries({ queryKey: ['chps-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['chp-roles'] });
       toast({
         title: chpToEdit ? "CHP Updated" : "CHP Added",
         description: chpToEdit 

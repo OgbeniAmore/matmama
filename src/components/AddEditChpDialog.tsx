@@ -43,6 +43,7 @@ export const AddEditChpDialog = ({
           onSubmit={handleFormSubmit}
           defaultValues={chp ?? undefined}
           isSubmitting={isSubmitting}
+          isEditMode={!!chp}
         />
       </DialogContent>
     </Dialog>

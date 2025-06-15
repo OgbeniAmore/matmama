@@ -14,6 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 
 export const chpSchema = z.object({
+  email: z.string().email("Invalid email address.").optional(),
+  password: z.string().min(6, "Password must be at least 6 characters.").optional(),
   first_name: z.string().min(1, { message: "First name is required." }),
   last_name: z.string().min(1, { message: "Last name is required." }),
   facility: z.string().optional(),
@@ -25,12 +27,15 @@ interface ChpFormProps {
   onSubmit: (values: ChpFormValues) => void;
   defaultValues?: Partial<ChpFormValues>;
   isSubmitting?: boolean;
+  isEditMode?: boolean;
 }
 
-export const ChpForm = ({ onSubmit, defaultValues, isSubmitting }: ChpFormProps) => {
+export const ChpForm = ({ onSubmit, defaultValues, isSubmitting, isEditMode }: ChpFormProps) => {
   const form = useForm<ChpFormValues>({
     resolver: zodResolver(chpSchema),
     defaultValues: {
+      email: "",
+      password: "",
       first_name: "",
       last_name: "",
       facility: "",
@@ -41,6 +46,36 @@ export const ChpForm = ({ onSubmit, defaultValues, isSubmitting }: ChpFormProps)
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+        {!isEditMode && (
+          <>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="Enter CHP's email" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Enter temporary password" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
         <FormField
           control={form.control}
           name="first_name"

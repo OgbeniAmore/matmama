@@ -68,28 +68,57 @@ const fetchCHPs = async (): Promise<CHP[]> => {
 };
 
 const addChp = async (values: ChpFormValues) => {
-  const newChpId = crypto.randomUUID();
-
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: newChpId,
-    first_name: values.first_name,
-    last_name: values.last_name,
-    facility: values.facility || null,
-  });
-
-  if (profileError) {
-    console.error("Error creating profile:", profileError);
-    throw new Error("Failed to create CHP profile.");
+  if (!values.email || !values.password) {
+    throw new Error("Email and password are required to add a new CHP.");
   }
 
+  // 1. Save current admin session
+  const { data: { session: adminSession } } = await supabase.auth.getSession();
+
+  // 2. Create the new CHP user
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email: values.email,
+    password: values.password,
+    options: {
+      data: {
+        first_name: values.first_name,
+        last_name: values.last_name,
+        facility: values.facility,
+      },
+    },
+  });
+
+  if (signUpError) {
+    if (adminSession) await supabase.auth.setSession(adminSession);
+    console.error("Error creating user:", signUpError);
+    throw new Error(signUpError.message);
+  }
+
+  if (!signUpData.user) {
+    if (adminSession) await supabase.auth.setSession(adminSession);
+    throw new Error("User not created, but no error was thrown.");
+  }
+  
+  const newUserId = signUpData.user.id;
+
+  // The `handle_new_user` trigger should have created the profile.
+  // Now, assign the 'chp' role.
   const { error: roleError } = await supabase
     .from("user_roles")
-    .insert({ user_id: newChpId, role: "chp" });
+    .insert({ user_id: newUserId, role: "chp" });
+  
+  // Restore admin session
+  if (adminSession) {
+    const { error: sessionError } = await supabase.auth.setSession(adminSession);
+    if (sessionError) {
+      console.error("Could not restore admin session.", sessionError);
+      toast.warning("Created user, but failed to restore your session. Please log out and log back in.");
+    }
+  }
 
   if (roleError) {
     console.error("Error assigning role:", roleError);
-    await supabase.from("profiles").delete().eq("id", newChpId);
-    throw new Error("Failed to assign CHP role.");
+    throw new Error("User created, but failed to assign CHP role. Please assign it manually.");
   }
 };
 

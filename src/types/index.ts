@@ -9,5 +9,6 @@ export interface Patient {
   dueDate: Date;
   status: Status;
   contact: string;
+  address: string;
   assignedTo: string;
 }

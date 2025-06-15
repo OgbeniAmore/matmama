@@ -10,6 +10,7 @@ export const patients: Patient[] = [
     dueDate: addDays(new Date(), 10),
     status: "On Track",
     contact: "08012345678",
+    address: "123 Main St, Lagos",
     assignedTo: "Nurse Funmi",
   },
   {
@@ -19,6 +20,7 @@ export const patients: Patient[] = [
     dueDate: subDays(new Date(), 5),
     status: "Defaulting",
     contact: "08023456789",
+    address: "456 Oak Ave, Ikeja",
     assignedTo: "Dr. Kemi",
   },
   {
@@ -28,6 +30,7 @@ export const patients: Patient[] = [
     dueDate: addDays(new Date(), 30),
     status: "On Track",
     contact: "08034567890",
+    address: "789 Pine Rd, Lekki",
     assignedTo: "Nurse Funmi",
   },
   {
@@ -37,6 +40,7 @@ export const patients: Patient[] = [
     dueDate: subDays(new Date(), 2),
     status: "Defaulting",
     contact: "08045678901",
+    address: "101 Maple Dr, Surulere",
     assignedTo: "Dr. Kemi",
   },
   {
@@ -46,6 +50,7 @@ export const patients: Patient[] = [
     dueDate: addDays(new Date(), 15),
     status: "On Track",
     contact: "08056789012",
+    address: "212 Birch Ln, Victoria Island",
     assignedTo: "Nurse Funmi",
   },
   {
@@ -55,6 +60,7 @@ export const patients: Patient[] = [
     dueDate: addDays(new Date(), 5),
     status: "Completed",
     contact: "08067890123",
+    address: "333 Cedar Blvd, Yaba",
     assignedTo: "Dr. Kemi",
   },
 ];

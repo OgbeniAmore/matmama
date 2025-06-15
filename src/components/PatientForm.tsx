@@ -30,6 +30,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Patient, Service } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AssignedToSelect } from "@/components/AssignedToSelect";
 
 const services: [Service, ...Service[]] = [
   "Routine Immunization",
@@ -45,6 +46,7 @@ export const patientFormSchema = z.object({
   dueDate: z.date({
     required_error: "A due date is required.",
   }),
+  assignedTo: z.string().min(1, { message: "Please assign a CHP." }),
   childName: z.string().optional(),
   childDob: z.date().optional(),
   trimester: z.coerce.number().min(1).max(3).optional(),
@@ -97,6 +99,7 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
           address: patientToEdit.address,
           service: patientToEdit.service,
           dueDate: patientToEdit.dueDate,
+          assignedTo: patientToEdit.assignedTo,
           childName: patientToEdit.childName || "",
           childDob: patientToEdit.childDob,
           trimester: patientToEdit.trimester || undefined,
@@ -109,6 +112,7 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
           address: "",
           service: undefined,
           dueDate: undefined,
+          assignedTo: "",
           childName: "",
           childDob: undefined,
           trimester: undefined,
@@ -330,6 +334,23 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="assignedTo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign to CHP</FormLabel>
+                  <FormControl>
+                    <AssignedToSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

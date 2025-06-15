@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -107,8 +106,11 @@ const Patients = () => {
         due_date: data.dueDate.toISOString(),
         contact: data.contact,
         address: data.address,
+        assigned_to: data.assignedTo,
         child_name: data.childName || null,
         child_dob: data.childDob ? data.childDob.toISOString().split('T')[0] : null,
+        trimester: data.trimester || null,
+        edd: data.edd ? data.edd.toISOString().split('T')[0] : null,
       };
 
       if (patientId) {
@@ -123,7 +125,6 @@ const Patients = () => {
           ...patientDataForSupabase,
           id: newPatientId,
           status: "On Track" as Status,
-          assigned_to: "Dr. Kemi", // Default CHP for new patients
         };
         
         const { error: patientError } = await supabase.from("patients").insert(newPatientData);

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,7 +111,6 @@ const Defaulters = () => {
               <TableHead>Service</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Assigned To</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -124,7 +122,6 @@ const Defaulters = () => {
                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
                   </TableRow>
                 ))
@@ -138,7 +135,6 @@ const Defaulters = () => {
                     {client.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{client.assignedTo}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

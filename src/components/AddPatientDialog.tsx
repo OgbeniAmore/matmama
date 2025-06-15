@@ -313,7 +313,11 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
             </ScrollArea>
 
             <DialogFooter className="pt-4">
-              <Button type="submit">Save Patient</Button>
+              <Button type="submit">
+                {service === "Routine Immunization"
+                  ? "Schedule Immunization"
+                  : "Save Patient"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

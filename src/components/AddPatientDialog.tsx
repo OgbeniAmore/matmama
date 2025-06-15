@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,7 +36,6 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Service } from "@/types";
-import { calculateNextAppointment } from "@/lib/epi-schedule";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const services: [Service, ...Service[]] = [
@@ -54,32 +52,12 @@ const patientFormSchema = z.object({
   dueDate: z.date({
     required_error: "A due date is required.",
   }),
-  childName: z.string().optional(),
-  childDob: z.date().optional(),
-}).superRefine((data, ctx) => {
-  if (data.service === "Routine Immunization") {
-    if (!data.childName || data.childName.length < 2) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["childName"],
-        message: "Child's name must be at least 2 characters.",
-      });
-    }
-    if (!data.childDob) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["childDob"],
-        message: "Child's date of birth is required.",
-      });
-    }
-  }
 });
 
 type PatientFormValues = z.infer<typeof patientFormSchema>;
 
 export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => void }) {
   const [open, setOpen] = useState(false);
-  const [appointmentName, setAppointmentName] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<PatientFormValues>({
@@ -88,31 +66,8 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
       name: "",
       contact: "",
       address: "",
-      childName: "",
     },
   });
-
-  const service = form.watch("service");
-  const childDob = form.watch("childDob");
-
-  useEffect(() => {
-    if (service === "Routine Immunization") {
-      if (childDob) {
-        const nextAppointment = calculateNextAppointment(childDob);
-        form.setValue("dueDate", nextAppointment.dueDate, { shouldValidate: true });
-        setAppointmentName(nextAppointment.name);
-      } else {
-        form.setValue("dueDate", undefined);
-        setAppointmentName(null);
-      }
-    } else {
-      // Not RI, clear all related fields
-      form.resetField("childName");
-      form.resetField("childDob");
-      form.resetField("dueDate");
-      setAppointmentName(null);
-    }
-  }, [service, childDob, form]);
 
   const onSubmit = (data: PatientFormValues) => {
     console.log("New patient data:", data);
@@ -150,9 +105,7 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        {service === "Routine Immunization"
-                          ? "Parent/Guardian Name"
-                          : "Patient Name"}
+                        Patient Name
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="Full name" {...field} />
@@ -161,66 +114,6 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                     </FormItem>
                   )}
                 />
-
-                {service === "Routine Immunization" && (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="childName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Child's Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Child's full name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="childDob"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Child's Date of Birth</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {field.value ? (
-                                    format(field.value, "PPP")
-                                  ) : (
-                                    <span>Pick a date</span>
-                                  )}
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                  date > new Date() || date < new Date("1900-01-01")
-                                }
-                                initialFocus
-                                className="pointer-events-auto"
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
 
                 <FormField
                   control={form.control}
@@ -288,7 +181,6 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                       <Popover>
                         <PopoverTrigger
                           asChild
-                          disabled={service === "Routine Immunization"}
                         >
                           <FormControl>
                             <Button
@@ -297,7 +189,6 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                                 "w-full justify-start text-left font-normal",
                                 !field.value && "text-muted-foreground"
                               )}
-                              disabled={service === "Routine Immunization"}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {field.value ? (
@@ -318,11 +209,6 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
                           />
                         </PopoverContent>
                       </Popover>
-                      {appointmentName && (
-                        <FormDescription>
-                          {appointmentName}
-                        </FormDescription>
-                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -332,9 +218,7 @@ export function AddPatientDialog({ onPatientAdded }: { onPatientAdded: () => voi
 
             <DialogFooter className="pt-4">
               <Button type="submit">
-                {service === "Routine Immunization"
-                  ? "Schedule Immunization"
-                  : "Save Patient"}
+                Save Patient
               </Button>
             </DialogFooter>
           </form>

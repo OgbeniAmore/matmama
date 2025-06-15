@@ -26,11 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChpForm, ChpFormValues } from "@/components/ChpForm";
-import { PlusCircle, Pencil, MoreHorizontal, Shield } from "lucide-react";
+import { PlusCircle, Pencil, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useUserRole, UserRole } from "@/hooks/useUserRole";
-import { RoleAssignDialog } from "@/components/RoleAssignDialog";
-import { Badge } from "@/components/ui/badge";
 
 interface Profile {
   id: string;
@@ -43,56 +40,20 @@ interface Profile {
 
 interface ChpData extends Profile {
   patientCount: number;
-  role?: UserRole;
 }
 
 const fetchChps = async (): Promise<Profile[]> => {
-  // First, get all user IDs that have roles assigned
-  const { data: userRoles, error: rolesError } = await supabase
-    .from("user_roles")
-    .select("user_id");
-
-  if (rolesError) {
-    console.error("Error fetching user roles:", rolesError);
-    throw new Error(rolesError.message);
-  }
-
-  if (!userRoles || userRoles.length === 0) {
-    return [];
-  }
-
-  // Extract user IDs
-  const userIds = userRoles.map(role => role.user_id);
-
-  // Then fetch profiles for those users
-  const { data: profiles, error: profilesError } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("id, first_name, last_name, facility, local_government, ward")
-    .in("id", userIds)
     .order("first_name", { ascending: true });
 
-  if (profilesError) {
-    console.error("Error fetching profiles:", profilesError);
-    throw new Error(profilesError.message);
-  }
-
-  return profiles || [];
-};
-
-const fetchChpRoles = async (): Promise<Record<string, UserRole>> => {
-  const { data, error } = await supabase
-    .from("user_roles")
-    .select("user_id, role");
-
   if (error) {
-    console.error("Error fetching CHP roles:", error);
+    console.error("Error fetching profiles:", error);
     throw new Error(error.message);
   }
 
-  return data.reduce((acc, item) => {
-    acc[item.user_id] = item.role as UserRole;
-    return acc;
-  }, {} as Record<string, UserRole>);
+  return data || [];
 };
 
 const fetchAllPatients = async (): Promise<Patient[]> => {
@@ -107,17 +68,10 @@ const fetchAllPatients = async (): Promise<Patient[]> => {
 const Chps = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isSuperAdmin, isLoading: roleLoading } = useUserRole();
 
   const { data: chps = [], isLoading: chpsLoading } = useQuery<Profile[]>({
     queryKey: ['chps'],
     queryFn: fetchChps,
-  });
-
-  const { data: chpRoles = {} } = useQuery<Record<string, UserRole>>({
-    queryKey: ['chp-roles'],
-    queryFn: fetchChpRoles,
-    enabled: isSuperAdmin,
   });
 
   const { data: patients = [] } = useQuery<Patient[]>({
@@ -135,14 +89,11 @@ const Chps = () => {
     return chps.map((chp) => ({
       ...chp,
       patientCount: chpPatientCounts[chp.id] || 0,
-      role: chpRoles[chp.id] || 'chp',
     }));
-  }, [chps, patients, chpRoles]);
+  }, [chps, patients]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [chpToEdit, setChpToEdit] = useState<ChpData | null>(null);
-  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
-  const [selectedChpForRole, setSelectedChpForRole] = useState<ChpData | null>(null);
 
   const saveChpMutation = useMutation({
     mutationFn: async ({ data, chpId }: { data: ChpFormValues; chpId?: string }) => {
@@ -156,27 +107,13 @@ const Chps = () => {
           .eq("id", chpId);
         if (error) throw error;
       } else {
-        // When adding a new CHP, we need to create both profile and role
-        const newChpId = crypto.randomUUID();
-        
-        // Insert profile
-        const { error: profileError } = await supabase
+        const { error } = await supabase
           .from("profiles")
           .insert({
-            id: newChpId,
             first_name: data.name.split(' ')[0] || data.name,
             last_name: data.name.split(' ').slice(1).join(' ') || null,
           });
-        if (profileError) throw profileError;
-
-        // Insert role
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({
-            user_id: newChpId,
-            role: 'chp'
-          });
-        if (roleError) throw roleError;
+        if (error) throw error;
       }
     },
     onSuccess: () => {
@@ -184,7 +121,6 @@ const Chps = () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['defaulters'] });
       queryClient.invalidateQueries({ queryKey: ['chps-patients'] });
-      queryClient.invalidateQueries({ queryKey: ['chp-roles'] });
       toast({
         title: chpToEdit ? "CHP Updated" : "CHP Added",
         description: chpToEdit 
@@ -228,41 +164,10 @@ const Chps = () => {
     setIsFormOpen(true);
   };
 
-  const openRoleDialog = (chp: ChpData) => {
-    setSelectedChpForRole(chp);
-    setIsRoleDialogOpen(true);
-  };
-
   const getDisplayName = (chp: Profile) => {
     const name = [chp.first_name, chp.last_name].filter(Boolean).join(" ");
     return name || "Unknown User";
   };
-
-  const getRoleBadgeVariant = (role: UserRole) => {
-    switch (role) {
-      case 'super_admin':
-        return 'default';
-      case 'chp':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
-  };
-
-  const getRoleDisplay = (role: UserRole) => {
-    switch (role) {
-      case 'super_admin':
-        return 'Super Admin';
-      case 'chp':
-        return 'CHP';
-      default:
-        return 'User';
-    }
-  };
-
-  if (roleLoading) {
-    return <div className="flex items-center justify-center p-8">Loading...</div>;
-  }
 
   return (
     <div className="space-y-8">
@@ -273,12 +178,10 @@ const Chps = () => {
             A list of community health practitioners and their assigned patients.
           </p>
         </div>
-        {isSuperAdmin && (
-          <Button onClick={openAddForm}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add CHP
-          </Button>
-        )}
+        <Button onClick={openAddForm}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add CHP
+        </Button>
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
@@ -303,14 +206,6 @@ const Chps = () => {
         </DialogContent>
       </Dialog>
 
-      <RoleAssignDialog
-        open={isRoleDialogOpen}
-        onOpenChange={setIsRoleDialogOpen}
-        chpId={selectedChpForRole?.id || ''}
-        chpName={selectedChpForRole ? getDisplayName(selectedChpForRole) : ''}
-        currentRole={selectedChpForRole?.role}
-      />
-
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -318,7 +213,6 @@ const Chps = () => {
               <TableHead>Name</TableHead>
               <TableHead>Facility</TableHead>
               <TableHead>Location</TableHead>
-              {isSuperAdmin && <TableHead>Role</TableHead>}
               <TableHead>Assigned Patients</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -330,7 +224,6 @@ const Chps = () => {
                   <TableCell>Loading...</TableCell>
                   <TableCell>Loading...</TableCell>
                   <TableCell>Loading...</TableCell>
-                  {isSuperAdmin && <TableCell>Loading...</TableCell>}
                   <TableCell>Loading...</TableCell>
                   <TableCell className="text-right">Loading...</TableCell>
                 </TableRow>
@@ -343,13 +236,6 @@ const Chps = () => {
                   <TableCell>
                     {[chp.ward, chp.local_government].filter(Boolean).join(", ") || "Not specified"}
                   </TableCell>
-                  {isSuperAdmin && (
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(chp.role || 'chp')}>
-                        {getRoleDisplay(chp.role || 'chp')}
-                      </Badge>
-                    </TableCell>
-                  )}
                   <TableCell>{chp.patientCount}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -360,23 +246,10 @@ const Chps = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {isSuperAdmin && (
-                          <>
-                            <DropdownMenuItem onClick={() => openEditForm(chp)}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openRoleDialog(chp)}>
-                              <Shield className="mr-2 h-4 w-4" />
-                              <span>Assign Role</span>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        {!isSuperAdmin && (
-                          <DropdownMenuItem disabled>
-                            <span className="text-muted-foreground">No actions available</span>
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem onClick={() => openEditForm(chp)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          <span>Edit</span>
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

@@ -21,12 +21,13 @@ import {
   DropdownMenuPortal,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PhoneCall, Send, MapPin } from "lucide-react";
+import { MoreHorizontal, PhoneCall, Send, MapPin, Bot } from "lucide-react";
 import { Patient, Status } from "@/types";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import MapModal from "@/components/MapModal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AIReminderDialog } from "@/components/AIReminderDialog";
 
 const statusColors: Record<Status, string> = {
   "On Track": "bg-green-100 text-green-800",
@@ -64,6 +65,8 @@ const Defaulters = () => {
 
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const [isAIReminderOpen, setIsAIReminderOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
   const handleCall = (contact: string) => {
     window.location.href = `tel:${contact}`;
@@ -80,6 +83,11 @@ const Defaulters = () => {
   const handleFindClient = (address: string) => {
     setSelectedAddress(address);
     setIsMapModalOpen(true);
+  };
+
+  const handleAIReminder = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setIsAIReminderOpen(true);
   };
 
   if (error) {
@@ -140,10 +148,14 @@ const Defaulters = () => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>View Details</DropdownMenuItem>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAIReminder(patient)}>
+                        <Bot className="mr-2 h-4 w-4" />
+                        <span>Send AI Reminder</span>
+                      </DropdownMenuItem>
                       <DropdownMenuSub>
                         <DropdownMenuSubTrigger>
                           <Send className="mr-2 h-4 w-4" />
-                          <span>Send Reminder</span>
+                          <span>Manual Reminder</span>
                         </DropdownMenuSubTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuSubContent>
@@ -181,6 +193,11 @@ const Defaulters = () => {
         isOpen={isMapModalOpen}
         onClose={() => setIsMapModalOpen(false)}
         address={selectedAddress}
+      />
+      <AIReminderDialog
+        patient={selectedPatient}
+        open={isAIReminderOpen}
+        onOpenChange={setIsAIReminderOpen}
       />
     </div>
   );

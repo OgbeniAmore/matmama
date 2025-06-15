@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Users, Siren, Baby, HeartPulse } from "lucide-react";
+import { Users, Baby, HeartPulse } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types";
@@ -47,11 +46,29 @@ const Dashboard = () => {
   const familyPlanningDefaulters = clients.filter(p => p.service === "Family Planning" && p.status === "Defaulting").length;
   const ancDefaulters = clients.filter(p => p.service === "Ante Natal Care" && p.status === "Defaulting").length;
 
-  const chartData = [
-    { name: 'Immunization', OnTrack: clients.filter(p => p.service === "Routine Immunization" && p.status === "On Track").length, Defaulting: clients.filter(p => p.service === "Routine Immunization" && p.status === "Defaulting").length },
-    { name: 'Family Planning', OnTrack: clients.filter(p => p.service === "Family Planning" && p.status === "On Track").length, Defaulting: clients.filter(p => p.service === "Family Planning" && p.status === "Defaulting").length },
-    { name: 'ANC', OnTrack: clients.filter(p => p.service === "Ante Natal Care" && p.status === "On Track").length, Defaulting: clients.filter(p => p.service === "Ante Natal Care" && p.status === "Defaulting").length },
-  ];
+  const servicesData = [
+    {
+      name: "Routine Immunization",
+      icon: Baby,
+      onTrack: clients.filter(p => p.service === "Routine Immunization" && p.status === "On Track").length,
+      defaulting: immunizationDefaulters,
+      completed: clients.filter(p => p.service === "Routine Immunization" && p.status === "Completed").length,
+    },
+    {
+      name: "Family Planning",
+      icon: Users,
+      onTrack: clients.filter(p => p.service === "Family Planning" && p.status === "On Track").length,
+      defaulting: familyPlanningDefaulters,
+      completed: clients.filter(p => p.service === "Family Planning" && p.status === "Completed").length,
+    },
+    {
+      name: "Ante Natal Care",
+      icon: HeartPulse,
+      onTrack: clients.filter(p => p.service === "Ante Natal Care" && p.status === "On Track").length,
+      defaulting: ancDefaulters,
+      completed: clients.filter(p => p.service === "Ante Natal Care" && p.status === "Completed").length,
+    },
+  ].map(service => ({ ...service, total: service.onTrack + service.defaulting + service.completed }));
 
   return (
     <div className="space-y-8">
@@ -90,7 +107,7 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Family Planning Defaulters</CardTitle>
-            <Siren className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -121,21 +138,66 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
             {isLoading ? (
-              <div className="h-[300px] flex items-center justify-center">
-                <Skeleton className="h-full w-full" />
+              <div className="space-y-6">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i}>
+                        <div className="flex items-center gap-3 mb-2">
+                            <Skeleton className="h-6 w-6 rounded-sm" />
+                            <Skeleton className="h-5 w-36" />
+                            <Skeleton className="h-4 w-20 ml-auto" />
+                        </div>
+                        <div className="pl-9 space-y-2">
+                            <div className="flex justify-between items-center">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-4 w-8" />
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-4 w-8" />
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-4 w-8" />
+                            </div>
+                        </div>
+                    </div>
+                ))}
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="OnTrack" fill="hsl(var(--primary))" />
-                      <Bar dataKey="Defaulting" fill="hsl(var(--destructive))" />
-                  </BarChart>
-              </ResponsiveContainer>
+              <div className="space-y-6">
+                {servicesData.map((service) => (
+                  <div key={service.name}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <service.icon className="h-6 w-6 text-primary" />
+                      <h3 className="font-semibold text-base">{service.name}</h3>
+                      <span className="text-sm text-muted-foreground ml-auto">{service.total} clients</span>
+                    </div>
+                    <div className="pl-9 space-y-1 text-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-green-500" />
+                          <span>On Track</span>
+                        </div>
+                        <span className="font-medium">{service.onTrack}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-red-500" />
+                          <span>Defaulting</span>
+                        </div>
+                        <span className="font-medium text-destructive">{service.defaulting}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-blue-500" />
+                          <span>Completed</span>
+                        </div>
+                        <span className="font-medium">{service.completed}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
         </CardContent>
       </Card>

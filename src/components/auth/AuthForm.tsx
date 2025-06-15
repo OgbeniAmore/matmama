@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -13,27 +14,64 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const lagosLocalGovernments = [
+const lagosLgasAndLcdas = [
   "Agege",
+  "Agbado/Oke-Odo",
+  "Agboyi-Ketu",
   "Ajeromi-Ifelodun",
   "Alimosho",
   "Amuwo-Odofin",
   "Apapa",
+  "Apapa-Iganmu",
+  "Ayobo-Ipaja",
   "Badagry",
+  "Badagry West",
+  "Bariga",
+  "Coker-Aguda",
+  "Egbe-Idimu",
+  "Ejigbo",
   "Epe",
+  "Eredo",
   "Eti-Osa",
+  "Eti-Osa East",
+  "Iba",
   "Ibeju-Lekki",
   "Ifako-Ijaiye",
+  "Ifelodun",
+  "Igando-Ikotun",
+  "Igbogbo-Baiyeku",
+  "Ijede",
   "Ikeja",
   "Ikorodu",
+  "Ikorodu North",
+  "Ikorodu West",
+  "Ikosi-Ejinrin",
+  "Ikosi-Isheri",
+  "Ikoyi-Obalende",
+  "Imota",
+  "Iru Victoria Island",
+  "Isolo",
+  "Itire-Ikate",
   "Kosofe",
   "Lagos Island",
+  "Lagos Island East",
   "Lagos Mainland",
+  "Lekki",
+  "Mosan-Okunola",
   "Mushin",
+  "Odi-Olowo/Ojuwoye",
   "Ojo",
+  "Ojodu",
+  "Ojokoro",
+  "Olorunda",
+  "Onigbongbo",
+  "Oriade",
+  "Orile Agege",
   "Oshodi-Isolo",
+  "Oto-Awori",
   "Shomolu",
   "Surulere",
+  "Yaba",
 ];
 
 export default function AuthForm() {
@@ -147,7 +185,7 @@ export default function AuthForm() {
                     <SelectValue placeholder="Select a local government" />
                   </SelectTrigger>
                   <SelectContent>
-                    {lagosLocalGovernments.map((lg) => (
+                    {lagosLgasAndLcdas.map((lg) => (
                       <SelectItem key={lg} value={lg}>{lg}</SelectItem>
                     ))}
                   </SelectContent>

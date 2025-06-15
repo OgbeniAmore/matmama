@@ -98,6 +98,7 @@ const Chps = () => {
   const saveChpMutation = useMutation({
     mutationFn: async ({ data, chpId }: { data: ChpFormValues; chpId?: string }) => {
       if (chpId) {
+        // Update existing CHP
         const { error } = await supabase
           .from("profiles")
           .update({
@@ -107,13 +108,9 @@ const Chps = () => {
           .eq("id", chpId);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from("profiles")
-          .insert({
-            first_name: data.name.split(' ')[0] || data.name,
-            last_name: data.name.split(' ').slice(1).join(' ') || null,
-          });
-        if (error) throw error;
+        // Create new CHP - this would need proper user creation logic
+        // For now, we'll just show an error since we can't create users directly
+        throw new Error("Creating new CHPs is not supported in this interface. Please use the authentication system.");
       }
     },
     onSuccess: () => {

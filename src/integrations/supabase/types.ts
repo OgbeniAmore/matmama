@@ -89,10 +89,12 @@ export type Database = {
           contact: string
           created_at: string
           due_date: string
+          edd: string | null
           id: string
           name: string
           service: Database["public"]["Enums"]["patient_service"]
           status: Database["public"]["Enums"]["patient_status"]
+          trimester: number | null
           updated_at: string
         }
         Insert: {
@@ -103,10 +105,12 @@ export type Database = {
           contact: string
           created_at?: string
           due_date: string
+          edd?: string | null
           id: string
           name: string
           service: Database["public"]["Enums"]["patient_service"]
           status: Database["public"]["Enums"]["patient_status"]
+          trimester?: number | null
           updated_at?: string
         }
         Update: {
@@ -117,10 +121,12 @@ export type Database = {
           contact?: string
           created_at?: string
           due_date?: string
+          edd?: string | null
           id?: string
           name?: string
           service?: Database["public"]["Enums"]["patient_service"]
           status?: Database["public"]["Enums"]["patient_status"]
+          trimester?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -163,7 +169,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_anc_patient_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       patient_service:

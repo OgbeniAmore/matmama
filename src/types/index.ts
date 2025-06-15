@@ -13,6 +13,8 @@ export interface Patient {
   assignedTo: string;
   childName?: string;
   childDob?: Date;
+  trimester?: number;
+  edd?: Date;
 }
 
 // Re-export immunization types

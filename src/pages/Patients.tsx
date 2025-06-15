@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +52,8 @@ const fetchPatients = async (): Promise<Patient[]> => {
     assignedTo: p.assigned_to,
     childDob: p.child_dob ? new Date(p.child_dob) : undefined,
     childName: p.child_name || undefined,
+    trimester: p.trimester || undefined,
+    edd: p.edd ? new Date(p.edd) : undefined,
   }));
 };
 

@@ -56,8 +56,32 @@ export function ViewPatientSheet({ patient, open, onOpenChange, onEdit }: ViewPa
                 </>
               )}
 
+              {patient.service === "Ante Natal Care" && (
+                <>
+                  {patient.trimester && (
+                    <>
+                      <h3 className="text-sm font-medium text-muted-foreground">Trimester</h3>
+                      <p className="col-start-2">
+                        {patient.trimester === 1 && "First Trimester (1-12 weeks)"}
+                        {patient.trimester === 2 && "Second Trimester (13-26 weeks)"}
+                        {patient.trimester === 3 && "Third Trimester (27-40 weeks)"}
+                      </p>
+                    </>
+                  )}
+
+                  {patient.edd && (
+                    <>
+                      <h3 className="text-sm font-medium text-muted-foreground">Estimated Due Date (EDD)</h3>
+                      <p className="col-start-2">{format(patient.edd, "PPP")}</p>
+                    </>
+                  )}
+                </>
+              )}
+
               <h3 className="text-sm font-medium text-muted-foreground">
-                {patient.service === "Routine Immunization" ? "Next Immunization" : "Due Date"}
+                {patient.service === "Routine Immunization" ? "Next Immunization" : 
+                 patient.service === "Ante Natal Care" ? "Next Appointment" : 
+                 "Due Date"}
               </h3>
               <p className="col-start-2">{format(patient.dueDate, "PPP")}</p>
               

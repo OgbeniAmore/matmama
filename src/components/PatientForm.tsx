@@ -47,6 +47,8 @@ export const patientFormSchema = z.object({
   }),
   childName: z.string().optional(),
   childDob: z.date().optional(),
+  trimester: z.coerce.number().min(1).max(3).optional(),
+  edd: z.date().optional(),
 }).refine((data) => {
   // If service is Routine Immunization, child name and DOB are required
   if (data.service === "Routine Immunization") {
@@ -56,6 +58,15 @@ export const patientFormSchema = z.object({
 }, {
   message: "Child name and date of birth are required for Routine Immunization",
   path: ["childName"],
+}).refine((data) => {
+  // If service is Ante Natal Care, trimester and EDD are required
+  if (data.service === "Ante Natal Care") {
+    return data.trimester && data.edd;
+  }
+  return true;
+}, {
+  message: "Trimester and EDD are required for Ante Natal Care",
+  path: ["trimester"],
 });
 
 export type PatientFormValues = z.infer<typeof patientFormSchema>;
@@ -88,6 +99,8 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
           dueDate: patientToEdit.dueDate,
           childName: patientToEdit.childName || "",
           childDob: patientToEdit.childDob,
+          trimester: patientToEdit.trimester || undefined,
+          edd: patientToEdit.edd,
         });
       } else {
         form.reset({
@@ -98,6 +111,8 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
           dueDate: undefined,
           childName: "",
           childDob: undefined,
+          trimester: undefined,
+          edd: undefined,
         });
       }
     }
@@ -188,6 +203,77 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
               </>
             )}
 
+            {watchedService === "Ante Natal Care" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="trimester"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Trimester *</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select trimester" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">First Trimester (1-12 weeks)</SelectItem>
+                          <SelectItem value="2">Second Trimester (13-26 weeks)</SelectItem>
+                          <SelectItem value="3">Third Trimester (27-40 weeks)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="edd"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Estimated Due Date (EDD) *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick estimated due date</span>
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                            disabled={(date) => date < new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
             <FormField
               control={form.control}
               name="contact"
@@ -255,7 +341,9 @@ export function PatientForm({ onSave, patientToEdit, onFinished, open }: Patient
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>
-                    {watchedService === "Routine Immunization" ? "Next Immunization Date" : "Due Date / Next Appointment"}
+                    {watchedService === "Routine Immunization" ? "Next Immunization Date" : 
+                     watchedService === "Ante Natal Care" ? "Next Appointment Date" : 
+                     "Due Date / Next Appointment"}
                   </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,12 +24,10 @@ import { AddEditChpDialog } from "@/components/AddEditChpDialog";
 import { ChpFormValues } from "@/components/ChpForm";
 import { toast } from "sonner";
 
-interface CHP {
+export interface CHP {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  local_government: string | null;
-  ward: string | null;
   facility: string | null;
   role: string;
 }
@@ -37,8 +36,6 @@ interface ProfileWithRole {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  local_government: string | null;
-  ward: string | null;
   facility: string | null;
   user_roles: Array<{ role: string }>;
 }
@@ -50,8 +47,6 @@ const fetchCHPs = async (): Promise<CHP[]> => {
       id,
       first_name,
       last_name,
-      local_government,
-      ward,
       facility,
       user_roles!inner(role)
     `)
@@ -67,8 +62,6 @@ const fetchCHPs = async (): Promise<CHP[]> => {
     id: profile.id,
     first_name: profile.first_name,
     last_name: profile.last_name,
-    local_government: profile.local_government,
-    ward: profile.ward,
     facility: profile.facility,
     role: profile.user_roles[0]?.role || "chp",
   }));
@@ -81,8 +74,6 @@ const addChp = async (values: ChpFormValues) => {
     id: newChpId,
     first_name: values.first_name,
     last_name: values.last_name,
-    local_government: values.local_government || null,
-    ward: values.ward || null,
     facility: values.facility || null,
   });
 
@@ -108,8 +99,6 @@ const editChp = async ({ values, id }: { values: ChpFormValues; id: string }) =>
     .update({
       first_name: values.first_name,
       last_name: values.last_name,
-      local_government: values.local_government || null,
-      ward: values.ward || null,
       facility: values.facility || null,
     })
     .eq("id", id);
@@ -196,8 +185,6 @@ const CHPs = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Local Government</TableHead>
-              <TableHead>Ward</TableHead>
               <TableHead>Facility</TableHead>
               <TableHead>Role</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -208,8 +195,6 @@ const CHPs = () => {
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                   <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
@@ -217,7 +202,7 @@ const CHPs = () => {
               ))
             ) : chps.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   No CHPs found
                 </TableCell>
               </TableRow>
@@ -227,8 +212,6 @@ const CHPs = () => {
                   <TableCell className="font-medium">
                     {`${chp.first_name || ""} ${chp.last_name || ""}`.trim() || "N/A"}
                   </TableCell>
-                  <TableCell>{chp.local_government || "N/A"}</TableCell>
-                  <TableCell>{chp.ward || "N/A"}</TableCell>
                   <TableCell>{chp.facility || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="capitalize">

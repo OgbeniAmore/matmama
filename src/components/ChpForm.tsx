@@ -16,8 +16,6 @@ import { Input } from "@/components/ui/input";
 export const chpSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required." }),
   last_name: z.string().min(1, { message: "Last name is required." }),
-  local_government: z.string().optional(),
-  ward: z.string().optional(),
   facility: z.string().optional(),
 });
 
@@ -35,8 +33,6 @@ export const ChpForm = ({ onSubmit, defaultValues, isSubmitting }: ChpFormProps)
     defaultValues: {
       first_name: "",
       last_name: "",
-      local_government: "",
-      ward: "",
       facility: "",
       ...defaultValues,
     },
@@ -66,32 +62,6 @@ export const ChpForm = ({ onSubmit, defaultValues, isSubmitting }: ChpFormProps)
               <FormLabel>Last Name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter last name" {...field} value={field.value ?? ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="local_government"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Local Government</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter local government" {...field} value={field.value ?? ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="ward"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Ward</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter ward" {...field} value={field.value ?? ""} />
               </FormControl>
               <FormMessage />
             </FormItem>

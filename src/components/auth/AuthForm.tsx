@@ -108,8 +108,20 @@ export default function AuthForm() {
 
       if (error) {
         toast.error(error.message);
-      } else if (data.user) {
+      } else if (data.user && data.session) {
         toast.success('Signed up successfully!');
+        navigate('/');
+      } else if (data.user) {
+        toast.success('Signed up successfully! Please check your email for a confirmation link.');
+        // Reset form and switch to sign-in
+        setEmail('');
+        setPassword('');
+        setFirstName('');
+        setLastName('');
+        setLocalGovernment('');
+        setWard('');
+        setFacility('');
+        setIsSignUp(false);
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({

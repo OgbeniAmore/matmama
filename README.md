@@ -1,73 +1,46 @@
-# Welcome to your Lovable project
+# Health Reminder Chatbot (Nigeria)
 
-## Project info
+A FastAPI service that powers a WhatsApp and SMS chatbot to enroll clients and send reminders for Immunization (EPI), ANC, Family Planning, and Tuberculosis care in Nigeria.
 
-**URL**: https://lovable.dev/projects/ce3d16fb-efa8-4d3f-bbb0-451d92d7f996
+## Features
+- WhatsApp and SMS via Twilio
+- Conversation flows to collect: child DOB (Immunization), EDD (ANC), drug start (FP, TB)
+- Encoded Nigeria EPI schedule with automatic milestone generation
+- Background scheduler for reminders and defaulter follow-ups (basic)
+- SQLite via SQLModel, easily switchable to Postgres
 
-## How can I edit this code?
+## Quickstart
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/ce3d16fb-efa8-4d3f-bbb0-451d92d7f996) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Create `.env` file
+```
+APP_ENV=development
+DATABASE_URL=sqlite:///./data.db
+TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+TWILIO_SMS_FROM=+1xxxxxxxxxx
+TIMEZONE=Africa/Lagos
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies
+```
+pip install -r requirements.txt
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Run server
+```
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-**Use GitHub Codespaces**
+4. Expose webhook publicly (for local dev) using `ngrok` and set Twilio webhook to `/webhook/twilio`.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Webhook
+Twilio will POST `application/x-www-form-urlencoded` with `From`, `To`, `Body`. The service responds with appropriate prompts and enrolls the user.
 
-## What technologies are used for this project?
+## Scheduling
+- Cron runs every 5 minutes to send due reminders
+- Milestones generated periodically based on enrollments
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/ce3d16fb-efa8-4d3f-bbb0-451d92d7f996) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Notes
+- Nigeria EPI schedule simplified; adjust to your program guidelines.
+- Add signature verification for Twilio webhooks in production.

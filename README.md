@@ -50,6 +50,45 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
+## Backend: Health Reminder Bot (SMS & WhatsApp)
+
+This repo now includes a FastAPI backend that sends automated reminders to clients who default on Immunization, ANC, Family Planning, and Tuberculosis care using Twilio (SMS & WhatsApp).
+
+### Setup
+1. Copy environment file and edit values:
+```bash
+cp .env.example .env
+```
+2. Ensure Python 3.10+ is available, then install deps:
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+3. Seed sample data:
+```bash
+python seed.py
+```
+4. Run the API:
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Webhooks
+Configure Twilio to POST incoming messages to:
+- SMS: `/webhooks/twilio/sms`
+- WhatsApp: `/webhooks/twilio/whatsapp`
+
+### Manual trigger
+Send reminders on demand:
+```bash
+curl -X POST http://localhost:8000/admin/reminders/run
+```
+
+### Notes
+- WhatsApp numbers should be in E.164; Twilio uses the `whatsapp:` prefix for From/To in API-level calls, which the service handles.
+- Default grace periods are configurable via env vars (see `.env.example`).
+
 ## What technologies are used for this project?
 
 This project is built with:

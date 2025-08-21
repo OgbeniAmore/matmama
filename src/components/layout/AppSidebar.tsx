@@ -11,12 +11,14 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, Siren } from "lucide-react";
+import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, Siren, Calendar, MessageSquare, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/patients", label: "Patients", icon: Users },
+  { href: "/appointments", label: "Appointments", icon: Calendar },
+  { href: "/settings", label: "Settings", icon: Settings },
   { href: "/defaulters", label: "Defaulters", icon: Siren },
 ];
 
@@ -30,7 +32,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2">
           <HeartPulse className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold group-data-[collapsible=icon]:opacity-0 transition-opacity duration-200">
-            FamilyFocus
+            HealthReminder
           </h1>
         </div>
         <div className="hidden lg:block">

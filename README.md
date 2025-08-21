@@ -1,73 +1,87 @@
-# Welcome to your Lovable project
+# Immunization & Care Reminder Bot
 
-## Project info
+Automated WhatsApp and SMS chatbot that sends reminders to defaulters of:
 
-**URL**: https://lovable.dev/projects/ce3d16fb-efa8-4d3f-bbb0-451d92d7f996
+- Immunization
+- Antenatal Care (ANC)
+- Family Planning
+- Tuberculosis (TB) care
 
-## How can I edit this code?
+Powered by [Twilio](https://www.twilio.com/) messaging APIs and written in Python.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ce3d16fb-efa8-4d3f-bbb0-451d92d7f996) and start prompting.
+- 📲 Multi-channel messaging (WhatsApp + SMS)
+- 🗓️ Daily scheduled job to detect due / overdue visits
+- 🏥 Simple SQLite database to store patient schedules
+- 🔧 Environment-based configuration – no secrets committed to git
+- 🧩 Modular design ready for extension (e.g. email, IVR)
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## Quick Start
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. **Clone & enter project**
+   ```bash
+   git clone <your-repo-url>
+   cd immunization-reminder-bot
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2. **Create virtualenv & install deps**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-Follow these steps:
+3. **Configure environment**
+   Copy the sample file and fill in your Twilio credentials and phone numbers:
+   ```bash
+   cp .env.example .env
+   # then edit .env
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+4. **Initialize the database**
+   ```bash
+   python db.py --init
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+5. **Add a patient (example)**
+   ```bash
+   python add_patient.py \
+     --name "Jane Doe" \
+     --phone "+15551234567" \
+     --care ANC \
+     --due 2023-09-10 \
+     --channel whatsapp
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+6. **Run the scheduler** (one-off or via cron/systemd)
+   ```bash
+   python scheduler.py
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+| Variable | Purpose |
+| -------- | ------- |
+| `TWILIO_ACCOUNT_SID` | Your Twilio Account SID |
+| `TWILIO_AUTH_TOKEN`  | Your Twilio Auth Token  |
+| `TWILIO_SMS_FROM`    | Verified Twilio SMS number (e.g. `+15558675309`) |
+| `TWILIO_WHATSAPP_FROM` | Twilio WhatsApp sender (e.g. `whatsapp:+14155238886`) |
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Next Steps (Development Roadmap)
 
-## What technologies are used for this project?
+- [ ] Config module for loading environment variables
+- [ ] Database schema & ORM helpers
+- [ ] Message templates
+- [ ] Scheduler (APScheduler)
+- [ ] Deployment guide (Docker / Heroku / Render)
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/ce3d16fb-efa8-4d3f-bbb0-451d92d7f996) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Contributions welcome! Feel free to open issues or PRs.

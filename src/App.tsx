@@ -5,6 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
+import Patients from "./pages/Patients";
+import Appointments from "./pages/Appointments";
+import Settings from "./pages/Settings";
 import Clients from "./pages/Clients";
 import Defaulters from "./pages/Defaulters";
 import NotFound from "./pages/NotFound";
@@ -28,7 +31,9 @@ const App = () => (
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/patients" element={<Navigate to="/clients" replace />} />
+                <Route path="/patients" element={<Patients />} />
+                <Route path="/appointments" element={<Appointments />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/defaulters" element={<Defaulters />} />
                 <Route path="/profile" element={<ProfilePage />} />

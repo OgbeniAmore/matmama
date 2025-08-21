@@ -21,6 +21,12 @@ class Patient(Base):
 	whatsapp_e164 = Column(String, nullable=True, index=True)
 	preferred_channel = Column(Enum("sms", "whatsapp", name="channel_enum"), nullable=False, default="sms")
 	language = Column(String, nullable=False, default="en")
+	# Anchors for schedules
+	date_of_birth = Column(Date, nullable=True)  # For EPI
+	lmp_date = Column(Date, nullable=True)  # For ANC
+	edd_date = Column(Date, nullable=True)  # For ANC (if provided)
+	fp_start_date = Column(Date, nullable=True)  # For Family Planning
+	tb_start_date = Column(Date, nullable=True)  # For TB care
 	is_opted_out = Column(Boolean, nullable=False, default=False)
 	created_at = Column(DateTime, default=datetime.utcnow)
 	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

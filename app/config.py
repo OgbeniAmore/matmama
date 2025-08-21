@@ -1,6 +1,6 @@
 import os
 from functools import lru_cache
-from pydantic import BaseSettings, AnyUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -16,9 +16,7 @@ class Settings(BaseSettings):
 	# Security
 	webhook_secret_token: str = "change-me"
 
-	class Config:
-		env_file = ".env"
-		env_file_encoding = "utf-8"
+	model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 @lru_cache

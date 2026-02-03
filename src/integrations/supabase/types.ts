@@ -7,179 +7,23 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      clients: {
-        Row: {
-          address: string
-          assigned_to: string
-          child_dob: string | null
-          child_name: string | null
-          contact: string
-          created_at: string
-          due_date: string
-          edd: string | null
-          id: string
-          name: string
-          service: Database["public"]["Enums"]["client_service"]
-          status: Database["public"]["Enums"]["client_status"]
-          trimester: number | null
-          updated_at: string
-        }
-        Insert: {
-          address: string
-          assigned_to: string
-          child_dob?: string | null
-          child_name?: string | null
-          contact: string
-          created_at?: string
-          due_date: string
-          edd?: string | null
-          id: string
-          name: string
-          service: Database["public"]["Enums"]["client_service"]
-          status: Database["public"]["Enums"]["client_status"]
-          trimester?: number | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string
-          assigned_to?: string
-          child_dob?: string | null
-          child_name?: string | null
-          contact?: string
-          created_at?: string
-          due_date?: string
-          edd?: string | null
-          id?: string
-          name?: string
-          service?: Database["public"]["Enums"]["client_service"]
-          status?: Database["public"]["Enums"]["client_status"]
-          trimester?: number | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      epi_schedule: {
-        Row: {
-          age_months: number | null
-          age_weeks: number | null
-          created_at: string
-          description: string | null
-          id: string
-          vaccine_name: string
-        }
-        Insert: {
-          age_months?: number | null
-          age_weeks?: number | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          vaccine_name: string
-        }
-        Update: {
-          age_months?: number | null
-          age_weeks?: number | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          vaccine_name?: string
-        }
-        Relationships: []
-      }
-      immunization_records: {
-        Row: {
-          administered_date: string | null
-          client_id: string
-          created_at: string
-          id: string
-          notes: string | null
-          scheduled_date: string
-          status: string
-          updated_at: string
-          vaccine_name: string
-        }
-        Insert: {
-          administered_date?: string | null
-          client_id: string
-          created_at?: string
-          id?: string
-          notes?: string | null
-          scheduled_date: string
-          status?: string
-          updated_at?: string
-          vaccine_name: string
-        }
-        Update: {
-          administered_date?: string | null
-          client_id?: string
-          created_at?: string
-          id?: string
-          notes?: string | null
-          scheduled_date?: string
-          status?: string
-          updated_at?: string
-          vaccine_name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "immunization_records_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          country: string
-          facility: string | null
-          first_name: string | null
-          id: string
-          last_name: string | null
-          local_government: string | null
-          state: string
-          ward: string | null
-        }
-        Insert: {
-          country?: string
-          facility?: string | null
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          local_government?: string | null
-          state?: string
-          ward?: string | null
-        }
-        Update: {
-          country?: string
-          facility?: string | null
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          local_government?: string | null
-          state?: string
-          ward?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      update_anc_patient_status: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
-      client_service:
-        | "Routine Immunization"
-        | "Family Planning"
-        | "Ante Natal Care"
-      client_status: "On Track" | "Defaulting" | "Completed"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -187,21 +31,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -219,14 +67,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -242,14 +92,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -265,14 +117,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -280,27 +134,22 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
-    Enums: {
-      client_service: [
-        "Routine Immunization",
-        "Family Planning",
-        "Ante Natal Care",
-      ],
-      client_status: ["On Track", "Defaulting", "Completed"],
-    },
+    Enums: {},
   },
 } as const

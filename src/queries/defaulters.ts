@@ -16,6 +16,8 @@ export const fetchDefaulters = async (): Promise<Client[]> => {
   
     return data.map((p) => ({
       ...p,
+      service: p.service as Client["service"],
+      status: p.status as Client["status"],
       dueDate: new Date(p.due_date),
       assignedTo: p.assigned_to,
       childDob: p.child_dob ? new Date(p.child_dob) : undefined,

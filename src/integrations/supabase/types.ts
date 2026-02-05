@@ -14,7 +14,157 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          address: string
+          assigned_to: string
+          child_dob: string | null
+          child_name: string | null
+          contact: string
+          created_at: string
+          due_date: string
+          edd: string | null
+          id: string
+          name: string
+          service: string
+          status: string
+          trimester: number | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          assigned_to?: string
+          child_dob?: string | null
+          child_name?: string | null
+          contact: string
+          created_at?: string
+          due_date: string
+          edd?: string | null
+          id: string
+          name: string
+          service: string
+          status?: string
+          trimester?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          assigned_to?: string
+          child_dob?: string | null
+          child_name?: string | null
+          contact?: string
+          created_at?: string
+          due_date?: string
+          edd?: string | null
+          id?: string
+          name?: string
+          service?: string
+          status?: string
+          trimester?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      epi_schedule: {
+        Row: {
+          age_weeks: number
+          description: string | null
+          id: string
+          vaccine_name: string
+        }
+        Insert: {
+          age_weeks: number
+          description?: string | null
+          id?: string
+          vaccine_name: string
+        }
+        Update: {
+          age_weeks?: number
+          description?: string | null
+          id?: string
+          vaccine_name?: string
+        }
+        Relationships: []
+      }
+      immunization_records: {
+        Row: {
+          administered_date: string | null
+          age_weeks: number | null
+          client_id: string
+          created_at: string
+          due_date: string
+          id: string
+          status: string
+          vaccine_name: string
+        }
+        Insert: {
+          administered_date?: string | null
+          age_weeks?: number | null
+          client_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          status?: string
+          vaccine_name: string
+        }
+        Update: {
+          administered_date?: string | null
+          age_weeks?: number | null
+          client_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          status?: string
+          vaccine_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immunization_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          patient_id: string
+          reminder_type: string
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          patient_id: string
+          reminder_type: string
+          sent_at?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          patient_id?: string
+          reminder_type?: string
+          sent_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_reminders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Client, EpiSchedule, Status } from "@/types";
+import { Client, EpiSchedule, Status, Service } from "@/types";
 import { type ClientFormValues } from "@/components/ClientForm";
 import { generateImmunizationSchedule } from "@/utils/immunizationUtils";
 
@@ -17,6 +17,8 @@ export const fetchClients = async (): Promise<Client[]> => {
 
   return data.map((p) => ({
     ...p,
+    service: p.service as Service,
+    status: p.status as Status,
     dueDate: new Date(p.due_date),
     assignedTo: p.assigned_to,
     childDob: p.child_dob ? new Date(p.child_dob) : undefined,
@@ -37,7 +39,7 @@ export const fetchEpiSchedule = async (): Promise<EpiSchedule[]> => {
     throw new Error(error.message);
   }
 
-  return data;
+  return data as EpiSchedule[];
 };
 
 export const saveClient = async ({

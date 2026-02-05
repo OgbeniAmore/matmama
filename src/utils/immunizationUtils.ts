@@ -1,39 +1,28 @@
 
-import { addWeeks, addMonths } from "date-fns";
+import { addWeeks } from "date-fns";
 import { EpiSchedule, ImmunizationRecord } from "@/types/immunization";
 
 export const generateImmunizationSchedule = (
   childDob: Date,
   epiSchedule: EpiSchedule[],
   clientId: string
-): Omit<ImmunizationRecord, 'id' | 'created_at' | 'updated_at'>[] => {
-  const schedule: Omit<ImmunizationRecord, 'id' | 'created_at' | 'updated_at'>[] = [];
+): Omit<ImmunizationRecord, 'id' | 'created_at'>[] => {
+  const schedule: Omit<ImmunizationRecord, 'id' | 'created_at'>[] = [];
 
   epiSchedule.forEach((vaccine) => {
-    let scheduledDate: Date;
-
-    if (vaccine.age_weeks !== null && vaccine.age_weeks !== undefined) {
-      // Schedule based on weeks
-      scheduledDate = addWeeks(childDob, vaccine.age_weeks);
-    } else if (vaccine.age_months !== null && vaccine.age_months !== undefined) {
-      // Schedule based on months
-      scheduledDate = addMonths(childDob, vaccine.age_months);
-    } else {
-      // Default to birth date for vaccines like BCG, OPV 0, HepB 0
-      scheduledDate = childDob;
-    }
+    const scheduledDate = addWeeks(childDob, vaccine.age_weeks);
 
     schedule.push({
       client_id: clientId,
       vaccine_name: vaccine.vaccine_name,
-      scheduled_date: scheduledDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
-      status: 'scheduled',
-      notes: vaccine.description || undefined,
+      due_date: scheduledDate.toISOString().split('T')[0],
+      status: 'Pending',
+      age_weeks: vaccine.age_weeks,
     });
   });
 
   return schedule.sort((a, b) => 
-    new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime()
+    new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
   );
 };
 
@@ -42,14 +31,13 @@ export const getNextDueVaccine = (
 ): ImmunizationRecord | null => {
   const now = new Date();
   
-  // Find the next scheduled vaccine that hasn't been administered
   const upcomingVaccines = immunizationRecords
     .filter(record => 
-      record.status === 'scheduled' && 
-      new Date(record.scheduled_date) >= now
+      record.status === 'Pending' && 
+      new Date(record.due_date) >= now
     )
     .sort((a, b) => 
-      new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime()
+      new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
     );
 
   return upcomingVaccines.length > 0 ? upcomingVaccines[0] : null;
@@ -62,10 +50,10 @@ export const getOverdueVaccines = (
   
   return immunizationRecords
     .filter(record => 
-      record.status === 'scheduled' && 
-      new Date(record.scheduled_date) < now
+      record.status === 'Pending' && 
+      new Date(record.due_date) < now
     )
     .sort((a, b) => 
-      new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime()
+      new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
     );
 };

@@ -1,11 +1,10 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -14,38 +13,72 @@ const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    // Validate auth
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseAuth = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { patientId, reminderType } = await req.json();
     
-    console.log(`Processing ${reminderType} reminder for patient: ${patientId}`);
+    console.log(`Processing ${reminderType} reminder for client: ${patientId}`);
 
-    // Fetch patient details
-    const { data: patient, error: patientError } = await supabase
-      .from('patients')
+    if (!patientId || !reminderType) {
+      throw new Error('Missing required fields: patientId and reminderType');
+    }
+
+    if (!['sms', 'whatsapp'].includes(reminderType)) {
+      throw new Error('Invalid reminder type. Must be "sms" or "whatsapp"');
+    }
+
+    // Fetch client details using service role client
+    const { data: client, error: clientError } = await supabaseAdmin
+      .from('clients')
       .select('*')
       .eq('id', patientId)
       .single();
 
-    if (patientError || !patient) {
-      throw new Error('Patient not found');
+    if (clientError || !client) {
+      console.error('Client fetch error:', clientError);
+      throw new Error('Client not found');
     }
+
+    console.log(`Found client: ${client.name}, service: ${client.service}`);
 
     // Generate personalized message using OpenAI
     const prompt = `Generate a friendly, professional reminder message for a healthcare patient. 
     
     Patient Details:
-    - Name: ${patient.name}
-    - Service: ${patient.service}
-    - Due Date: ${new Date(patient.due_date).toLocaleDateString()}
-    ${patient.child_name ? `- Child Name: ${patient.child_name}` : ''}
-    ${patient.service === 'Ante Natal Care' && patient.trimester ? `- Trimester: ${patient.trimester}` : ''}
+    - Name: ${client.name}
+    - Service: ${client.service}
+    - Due Date: ${new Date(client.due_date).toLocaleDateString()}
+    ${client.child_name ? `- Child Name: ${client.child_name}` : ''}
+    ${client.service === 'Ante Natal Care' && client.trimester ? `- Trimester: ${client.trimester}` : ''}
     
     Create a warm, caring message (max 160 characters for SMS compatibility) that:
     1. Addresses the patient by name
@@ -54,7 +87,8 @@ serve(async (req) => {
     4. Encourages them to reschedule
     5. Uses a supportive, non-judgmental tone
     
-    Do not include any clinic name or contact details - just the reminder message.`;
+    Do not include any clinic name or contact details - just the reminder message.
+    Return ONLY the message text, no quotes or extra formatting.`;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -65,7 +99,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are a helpful healthcare communication assistant.' },
+          { role: 'system', content: 'You are a helpful healthcare communication assistant. Return only the message text.' },
           { role: 'user', content: prompt }
         ],
         max_tokens: 100,
@@ -73,23 +107,27 @@ serve(async (req) => {
       }),
     });
 
+    if (!openaiResponse.ok) {
+      const errorData = await openaiResponse.text();
+      console.error('OpenAI API error:', errorData);
+      throw new Error('Failed to generate reminder message');
+    }
+
     const openaiData = await openaiResponse.json();
-    const generatedMessage = openaiData.choices[0].message.content.trim();
+    const generatedMessage = openaiData.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
     
     console.log('Generated message:', generatedMessage);
 
     // Send reminder based on type
     let result;
     if (reminderType === 'sms') {
-      result = await sendSMS(patient.contact, generatedMessage);
-    } else if (reminderType === 'whatsapp') {
-      result = await sendWhatsApp(patient.contact, generatedMessage);
+      result = await sendSMS(client.contact, generatedMessage);
     } else {
-      throw new Error('Invalid reminder type');
+      result = await sendWhatsApp(client.contact, generatedMessage);
     }
 
-    // Log the reminder activity
-    const { error: logError } = await supabase
+    // Log the reminder activity using service role client
+    const { error: logError } = await supabaseAdmin
       .from('patient_reminders')
       .insert({
         patient_id: patientId,
@@ -107,7 +145,6 @@ serve(async (req) => {
       success: true, 
       message: 'Reminder sent successfully',
       generatedMessage,
-      result 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -125,6 +162,7 @@ serve(async (req) => {
 });
 
 async function sendSMS(phoneNumber: string, message: string) {
+  console.log(`Sending SMS to ${phoneNumber}`);
   const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`, {
     method: 'POST',
     headers: {
@@ -133,20 +171,23 @@ async function sendSMS(phoneNumber: string, message: string) {
     },
     body: new URLSearchParams({
       To: phoneNumber,
-      From: '+1234567890', // Replace with your Twilio phone number
+      From: Deno.env.get('TWILIO_PHONE_NUMBER') || '+1234567890',
       Body: message,
     }),
   });
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(`SMS sending failed: ${data.message}`);
+    console.error('Twilio SMS error:', data);
+    throw new Error(`SMS sending failed: ${data.message || 'Unknown error'}`);
   }
   
+  console.log('SMS sent successfully:', data.sid);
   return data;
 }
 
 async function sendWhatsApp(phoneNumber: string, message: string) {
+  console.log(`Sending WhatsApp to ${phoneNumber}`);
   const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`, {
     method: 'POST',
     headers: {
@@ -155,15 +196,17 @@ async function sendWhatsApp(phoneNumber: string, message: string) {
     },
     body: new URLSearchParams({
       To: `whatsapp:${phoneNumber}`,
-      From: 'whatsapp:+14155238886', // Twilio Sandbox WhatsApp number
+      From: `whatsapp:${Deno.env.get('TWILIO_WHATSAPP_NUMBER') || '+14155238886'}`,
       Body: message,
     }),
   });
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(`WhatsApp sending failed: ${data.message}`);
+    console.error('Twilio WhatsApp error:', data);
+    throw new Error(`WhatsApp sending failed: ${data.message || 'Unknown error'}`);
   }
   
+  console.log('WhatsApp sent successfully:', data.sid);
   return data;
 }

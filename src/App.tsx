@@ -13,6 +13,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import AuthPage from "./pages/Auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ProfilePage from "./pages/Profile";
+import ReminderHistory from "./pages/ReminderHistory";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
                 <Route path="/patients" element={<Navigate to="/clients" replace />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/defaulters" element={<Defaulters />} />
+                <Route path="/reminders" element={<ReminderHistory />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>

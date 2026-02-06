@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      anc_visits: {
+        Row: {
+          actual_date: string | null
+          client_id: string
+          created_at: string
+          gestational_weeks: number
+          id: string
+          notes: string | null
+          scheduled_date: string
+          status: string
+          visit_name: string
+          visit_number: number
+        }
+        Insert: {
+          actual_date?: string | null
+          client_id: string
+          created_at?: string
+          gestational_weeks: number
+          id?: string
+          notes?: string | null
+          scheduled_date: string
+          status?: string
+          visit_name: string
+          visit_number: number
+        }
+        Update: {
+          actual_date?: string | null
+          client_id?: string
+          created_at?: string
+          gestational_weeks?: number
+          id?: string
+          notes?: string | null
+          scheduled_date?: string
+          status?: string
+          visit_name?: string
+          visit_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anc_visits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string

@@ -1,11 +1,13 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ImmunizationRecord } from "@/types/immunization";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { Syringe, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface ImmunizationScheduleViewProps {
   clientId: string;
@@ -18,6 +20,8 @@ const statusConfig: Record<string, { icon: React.ElementType; color: string; bad
 };
 
 export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewProps) {
+  const queryClient = useQueryClient();
+
   const { data: records = [], isLoading } = useQuery<ImmunizationRecord[]>({
     queryKey: ["immunization-records", clientId],
     queryFn: async () => {
@@ -29,6 +33,48 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
 
       if (error) throw error;
       return data as ImmunizationRecord[];
+    },
+  });
+
+  const markAdministered = useMutation({
+    mutationFn: async (recordId: string) => {
+      const { error } = await supabase
+        .from("immunization_records")
+        .update({
+          status: "Administered",
+          administered_date: new Date().toISOString().split("T")[0],
+        })
+        .eq("id", recordId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["immunization-records", clientId] });
+      toast.success("Vaccine marked as administered");
+    },
+    onError: (error) => {
+      toast.error("Failed to update vaccine status");
+      console.error(error);
+    },
+  });
+
+  const undoAdministered = useMutation({
+    mutationFn: async (recordId: string) => {
+      const { error } = await supabase
+        .from("immunization_records")
+        .update({
+          status: "Pending",
+          administered_date: null,
+        })
+        .eq("id", recordId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["immunization-records", clientId] });
+      toast.success("Vaccine status reverted to pending");
+    },
+    onError: (error) => {
+      toast.error("Failed to update vaccine status");
+      console.error(error);
     },
   });
 
@@ -48,7 +94,6 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
     );
   }
 
-  // Group by age_weeks for cleaner display
   const grouped = records.reduce<Record<number, ImmunizationRecord[]>>((acc, record) => {
     const week = record.age_weeks ?? 0;
     if (!acc[week]) acc[week] = [];
@@ -85,15 +130,42 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
                 {vaccines.map((vaccine) => {
                   const config = statusConfig[vaccine.status] || statusConfig.Pending;
                   const StatusIcon = config.icon;
+                  const isAdministered = vaccine.status === "Administered";
+                  const isPending = vaccine.status === "Pending" || vaccine.status === "Missed";
                   return (
-                    <div key={vaccine.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <StatusIcon className={`h-4 w-4 ${config.color}`} />
-                        <span className="text-sm">{vaccine.vaccine_name}</span>
+                    <div key={vaccine.id} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <StatusIcon className={`h-4 w-4 flex-shrink-0 ${config.color}`} />
+                        <span className="text-sm truncate">{vaccine.vaccine_name}</span>
                       </div>
-                      <Badge variant="outline" className={config.badgeClass}>
-                        {vaccine.status}
-                      </Badge>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge variant="outline" className={config.badgeClass}>
+                          {vaccine.status}
+                        </Badge>
+                        {isPending && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs px-2"
+                            disabled={markAdministered.isPending}
+                            onClick={() => markAdministered.mutate(vaccine.id)}
+                          >
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Administer
+                          </Button>
+                        )}
+                        {isAdministered && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs px-2 text-muted-foreground"
+                            disabled={undoAdministered.isPending}
+                            onClick={() => undoAdministered.mutate(vaccine.id)}
+                          >
+                            Undo
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}

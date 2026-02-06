@@ -1,11 +1,13 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AncVisit } from "@/types/anc";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { HeartPulse, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface AncScheduleViewProps {
   clientId: string;
@@ -18,6 +20,8 @@ const statusConfig: Record<string, { icon: React.ElementType; color: string; bad
 };
 
 export function AncScheduleView({ clientId }: AncScheduleViewProps) {
+  const queryClient = useQueryClient();
+
   const { data: visits = [], isLoading } = useQuery<AncVisit[]>({
     queryKey: ["anc-visits", clientId],
     queryFn: async () => {
@@ -29,6 +33,48 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
 
       if (error) throw error;
       return data as AncVisit[];
+    },
+  });
+
+  const markCompleted = useMutation({
+    mutationFn: async (visitId: string) => {
+      const { error } = await supabase
+        .from("anc_visits")
+        .update({
+          status: "Completed",
+          actual_date: new Date().toISOString().split("T")[0],
+        })
+        .eq("id", visitId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["anc-visits", clientId] });
+      toast.success("ANC visit marked as completed");
+    },
+    onError: (error) => {
+      toast.error("Failed to update visit status");
+      console.error(error);
+    },
+  });
+
+  const undoCompleted = useMutation({
+    mutationFn: async (visitId: string) => {
+      const { error } = await supabase
+        .from("anc_visits")
+        .update({
+          status: "Pending",
+          actual_date: null,
+        })
+        .eq("id", visitId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["anc-visits", clientId] });
+      toast.success("Visit status reverted to pending");
+    },
+    onError: (error) => {
+      toast.error("Failed to update visit status");
+      console.error(error);
     },
   });
 
@@ -58,20 +104,47 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
         {visits.map((visit) => {
           const config = statusConfig[visit.status] || statusConfig.Pending;
           const StatusIcon = config.icon;
+          const isCompleted = visit.status === "Completed";
+          const isPending = visit.status === "Pending" || visit.status === "Missed";
           return (
-            <div key={visit.id} className="border rounded-lg p-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <StatusIcon className={`h-5 w-5 ${config.color}`} />
-                <div>
-                  <p className="text-sm font-medium">{visit.visit_name}</p>
+            <div key={visit.id} className="border rounded-lg p-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 min-w-0">
+                <StatusIcon className={`h-5 w-5 flex-shrink-0 ${config.color}`} />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{visit.visit_name}</p>
                   <p className="text-xs text-muted-foreground">
                     Week {visit.gestational_weeks} — {format(new Date(visit.scheduled_date), "PP")}
                   </p>
                 </div>
               </div>
-              <Badge variant="outline" className={config.badgeClass}>
-                {visit.status}
-              </Badge>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Badge variant="outline" className={config.badgeClass}>
+                  {visit.status}
+                </Badge>
+                {isPending && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs px-2"
+                    disabled={markCompleted.isPending}
+                    onClick={() => markCompleted.mutate(visit.id)}
+                  >
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Complete
+                  </Button>
+                )}
+                {isCompleted && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs px-2 text-muted-foreground"
+                    disabled={undoCompleted.isPending}
+                    onClick={() => undoCompleted.mutate(visit.id)}
+                  >
+                    Undo
+                  </Button>
+                )}
+              </div>
             </div>
           );
         })}

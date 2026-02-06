@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Client } from "@/types";
 import { format } from "date-fns";
 import { ScrollArea } from "./ui/scroll-area";
+import { Separator } from "./ui/separator";
+import { ImmunizationScheduleView } from "./clients/ImmunizationScheduleView";
+import { AncScheduleView } from "./clients/AncScheduleView";
 
 interface ViewClientSheetProps {
   client: Client | null;
@@ -96,6 +99,21 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
               <h3 className="text-sm font-medium text-muted-foreground">Address</h3>
               <p className="whitespace-pre-wrap">{client.address}</p>
             </div>
+
+            {/* Show immunization or ANC schedule based on service type */}
+            {client.service === "Routine Immunization" && (
+              <>
+                <Separator />
+                <ImmunizationScheduleView clientId={client.id} />
+              </>
+            )}
+
+            {client.service === "Ante Natal Care" && (
+              <>
+                <Separator />
+                <AncScheduleView clientId={client.id} />
+              </>
+            )}
           </div>
         </ScrollArea>
         <SheetFooter className="pt-4">

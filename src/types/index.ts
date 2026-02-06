@@ -19,3 +19,6 @@ export interface Client {
 
 // Re-export immunization types
 export * from './immunization';
+
+// Re-export ANC types
+export * from './anc';

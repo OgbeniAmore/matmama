@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Client, EpiSchedule, Status, Service } from "@/types";
 import { type ClientFormValues } from "@/components/ClientForm";
 import { generateImmunizationSchedule } from "@/utils/immunizationUtils";
+import { generateAncSchedule } from "@/utils/ancUtils";
 
 export const fetchClients = async (): Promise<Client[]> => {
   const { data, error } = await supabase
@@ -81,6 +82,7 @@ export const saveClient = async ({
     const { error: clientError } = await supabase.from("clients").insert(newClientData);
     if (clientError) throw clientError;
 
+    // Auto-generate immunization schedule for Routine Immunization clients
     if (data.service === "Routine Immunization" && data.childDob) {
       const immunizationSchedule = generateImmunizationSchedule(
         data.childDob,
@@ -95,6 +97,21 @@ export const saveClient = async ({
         
         if (scheduleError) {
           console.error("Error creating immunization schedule:", scheduleError);
+        }
+      }
+    }
+
+    // Auto-generate ANC visit schedule for Ante Natal Care clients
+    if (data.service === "Ante Natal Care" && data.edd) {
+      const ancSchedule = generateAncSchedule(data.edd, newClientId);
+
+      if (ancSchedule.length > 0) {
+        const { error: ancError } = await supabase
+          .from("anc_visits")
+          .insert(ancSchedule);
+        
+        if (ancError) {
+          console.error("Error creating ANC schedule:", ancError);
         }
       }
     }

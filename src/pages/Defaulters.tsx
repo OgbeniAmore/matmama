@@ -4,11 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Client } from "@/types";
 import GoogleMapModal from "@/components/GoogleMapModal";
 import { AIReminderDialog } from "@/components/AIReminderDialog";
+import { BulkReminderDialog } from "@/components/BulkReminderDialog";
 import { DefaultersTable } from "@/components/defaulters/DefaultersTable";
 import { ViewClientSheet } from "@/components/ViewClientSheet";
-import { AddClientDialog } from "@/components/AddClientDialog";
-import { type ClientFormValues } from "@/components/ClientForm";
 import { fetchDefaulters } from "@/queries/defaulters";
+import { Button } from "@/components/ui/button";
+import { Bot, X } from "lucide-react";
 
 const Defaulters = () => {
   const { data: defaulters = [], isLoading, error } = useQuery<Client[]>({
@@ -21,8 +22,10 @@ const Defaulters = () => {
   const [isAIReminderOpen, setIsAIReminderOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkReminderOpen, setIsBulkReminderOpen] = useState(false);
+
+  const selectedClients = defaulters.filter(d => selectedIds.has(d.id));
 
   const handleCall = (contact: string) => {
     window.location.href = `tel:${contact}`;
@@ -52,8 +55,11 @@ const Defaulters = () => {
   };
 
   const handleEditClient = (client: Client) => {
-    setClientToEdit(client);
-    setIsEditOpen(true);
+    // TODO: wire up edit
+  };
+
+  const handleBulkReminderComplete = () => {
+    setSelectedIds(new Set());
   };
 
   if (error) {
@@ -64,14 +70,42 @@ const Defaulters = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-            <h1 className="text-3xl font-bold">Defaulters</h1>
-            <p className="text-muted-foreground">A list of clients who have defaulted on their schedule.</p>
+          <h1 className="text-3xl font-bold">Defaulters</h1>
+          <p className="text-muted-foreground">A list of clients who have defaulted on their schedule.</p>
         </div>
       </div>
-      
-      <DefaultersTable 
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-3">
+          <span className="text-sm font-medium">
+            {selectedIds.size} selected
+          </span>
+          <Button
+            size="sm"
+            onClick={() => setIsBulkReminderOpen(true)}
+            className="gap-1.5"
+          >
+            <Bot className="h-4 w-4" />
+            Send AI Reminder to All
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setSelectedIds(new Set())}
+            className="gap-1.5 ml-auto"
+          >
+            <X className="h-4 w-4" />
+            Clear
+          </Button>
+        </div>
+      )}
+
+      <DefaultersTable
         defaulters={defaulters}
         isLoading={isLoading}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
         onCall={handleCall}
         onSms={handleSms}
         onWhatsApp={handleWhatsApp}
@@ -80,7 +114,7 @@ const Defaulters = () => {
         onViewDetails={handleViewDetails}
       />
 
-      <GoogleMapModal 
+      <GoogleMapModal
         isOpen={isMapModalOpen}
         onClose={() => setIsMapModalOpen(false)}
         address={selectedAddress}
@@ -89,6 +123,12 @@ const Defaulters = () => {
         client={selectedClient}
         open={isAIReminderOpen}
         onOpenChange={setIsAIReminderOpen}
+      />
+      <BulkReminderDialog
+        clients={selectedClients}
+        open={isBulkReminderOpen}
+        onOpenChange={setIsBulkReminderOpen}
+        onComplete={handleBulkReminderComplete}
       />
       <ViewClientSheet
         client={selectedClient}

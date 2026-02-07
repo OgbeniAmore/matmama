@@ -2,9 +2,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Client } from "@/types";
-import MapModal from "@/components/MapModal";
+import GoogleMapModal from "@/components/GoogleMapModal";
 import { AIReminderDialog } from "@/components/AIReminderDialog";
 import { DefaultersTable } from "@/components/defaulters/DefaultersTable";
+import { ViewClientSheet } from "@/components/ViewClientSheet";
+import { AddClientDialog } from "@/components/AddClientDialog";
+import { type ClientFormValues } from "@/components/ClientForm";
 import { fetchDefaulters } from "@/queries/defaulters";
 
 const Defaulters = () => {
@@ -17,6 +20,9 @@ const Defaulters = () => {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [isAIReminderOpen, setIsAIReminderOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
 
   const handleCall = (contact: string) => {
     window.location.href = `tel:${contact}`;
@@ -40,8 +46,18 @@ const Defaulters = () => {
     setIsAIReminderOpen(true);
   };
 
+  const handleViewDetails = (client: Client) => {
+    setSelectedClient(client);
+    setIsViewSheetOpen(true);
+  };
+
+  const handleEditClient = (client: Client) => {
+    setClientToEdit(client);
+    setIsEditOpen(true);
+  };
+
   if (error) {
-    return <div className="text-red-500 p-4">Error loading defaulters: {error.message}</div>;
+    return <div className="text-destructive p-4">Error loading defaulters: {error.message}</div>;
   }
 
   return (
@@ -61,9 +77,10 @@ const Defaulters = () => {
         onWhatsApp={handleWhatsApp}
         onFindClient={handleFindClient}
         onAIReminder={handleAIReminder}
+        onViewDetails={handleViewDetails}
       />
 
-      <MapModal 
+      <GoogleMapModal 
         isOpen={isMapModalOpen}
         onClose={() => setIsMapModalOpen(false)}
         address={selectedAddress}
@@ -72,6 +89,12 @@ const Defaulters = () => {
         client={selectedClient}
         open={isAIReminderOpen}
         onOpenChange={setIsAIReminderOpen}
+      />
+      <ViewClientSheet
+        client={selectedClient}
+        open={isViewSheetOpen}
+        onOpenChange={setIsViewSheetOpen}
+        onEdit={handleEditClient}
       />
     </div>
   );

@@ -20,6 +20,7 @@ interface DefaulterActionsProps {
   onWhatsApp: (contact: string) => void;
   onFindClient: (address: string) => void;
   onAIReminder: (client: Client) => void;
+  onViewDetails?: (client: Client) => void;
 }
 
 export const DefaulterActions = ({
@@ -29,6 +30,7 @@ export const DefaulterActions = ({
   onWhatsApp,
   onFindClient,
   onAIReminder,
+  onViewDetails,
 }: DefaulterActionsProps) => {
   return (
     <DropdownMenu>
@@ -39,7 +41,7 @@ export const DefaulterActions = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem>View Details</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onViewDetails?.(client)}>View Details</DropdownMenuItem>
         <DropdownMenuItem>Edit</DropdownMenuItem>
         <DropdownMenuItem onClick={() => onAIReminder(client)}>
           <Bot className="mr-2 h-4 w-4" />
@@ -71,7 +73,7 @@ export const DefaulterActions = ({
           <MapPin className="mr-2 h-4 w-4" />
           <span>Find/Visit Client</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600">
+        <DropdownMenuItem className="text-destructive">
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AncVisit } from "@/types/anc";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { HeartPulse, CheckCircle2, Clock, AlertCircle } from "lucide-react";
@@ -94,11 +95,25 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
     );
   }
 
+  const completed = visits.filter(v => v.status === "Completed").length;
+  const total = visits.length;
+  const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-1">
         <HeartPulse className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-base">Antenatal Care (ANC) Schedule</h3>
+      </div>
+
+      <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium">
+            {completed} of {total} visits completed
+          </span>
+          <span className="text-muted-foreground font-medium">{progressPercent}%</span>
+        </div>
+        <Progress value={progressPercent} className="h-2" />
       </div>
       <div className="space-y-2">
         {visits.map((visit) => {

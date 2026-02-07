@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -14,6 +15,9 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import { ImmunizationScheduleView } from "./clients/ImmunizationScheduleView";
 import { AncScheduleView } from "./clients/AncScheduleView";
+import { ClientActionBar } from "./ClientActionBar";
+import { AIReminderDialog } from "./AIReminderDialog";
+import GoogleMapModal from "./GoogleMapModal";
 
 interface ViewClientSheetProps {
   client: Client | null;
@@ -23,6 +27,10 @@ interface ViewClientSheetProps {
 }
 
 export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClientSheetProps) {
+  const [isAIReminderOpen, setIsAIReminderOpen] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [mapAddress, setMapAddress] = useState<string | null>(null);
+
   if (!client) return null;
 
   const handleEditClick = () => {
@@ -30,7 +38,25 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
     onEdit(client);
   };
 
+  const handleCall = (contact: string) => {
+    window.location.href = `tel:${contact}`;
+  };
+
+  const handleSms = (contact: string) => {
+    window.location.href = `sms:${contact}`;
+  };
+
+  const handleWhatsApp = (contact: string) => {
+    window.open(`https://wa.me/${contact}`, '_blank');
+  };
+
+  const handleFindClient = (address: string) => {
+    setMapAddress(address);
+    setIsMapOpen(true);
+  };
+
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col">
         <SheetHeader>
@@ -39,6 +65,21 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
             Client ID: {client.id}
           </SheetDescription>
         </SheetHeader>
+
+        {/* Action buttons above details */}
+        <div className="py-2">
+          <ClientActionBar
+            client={client}
+            onAIReminder={() => setIsAIReminderOpen(true)}
+            onCall={handleCall}
+            onSms={handleSms}
+            onWhatsApp={handleWhatsApp}
+            onFindClient={handleFindClient}
+          />
+        </div>
+
+        <Separator />
+
         <ScrollArea className="flex-grow">
           <div className="space-y-4 pr-6 py-4">
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -121,5 +162,17 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
         </SheetFooter>
       </SheetContent>
     </Sheet>
+
+    <AIReminderDialog
+      client={client}
+      open={isAIReminderOpen}
+      onOpenChange={setIsAIReminderOpen}
+    />
+    <GoogleMapModal
+      isOpen={isMapOpen}
+      onClose={() => setIsMapOpen(false)}
+      address={mapAddress}
+    />
+    </>
   );
 }

@@ -28,6 +28,7 @@ interface DefaultersTableProps {
   onWhatsApp: (contact: string) => void;
   onFindClient: (address: string) => void;
   onAIReminder: (client: Client) => void;
+  onViewDetails?: (client: Client) => void;
 }
 
 export const DefaultersTable = ({
@@ -37,7 +38,8 @@ export const DefaultersTable = ({
   onSms,
   onWhatsApp,
   onFindClient,
-  onAIReminder
+  onAIReminder,
+  onViewDetails,
 }: DefaultersTableProps) => {
   return (
     <div className="border rounded-lg">
@@ -74,13 +76,14 @@ export const DefaultersTable = ({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <DefaulterActions
+                   <DefaulterActions
                     client={client}
                     onCall={onCall}
                     onSms={onSms}
                     onWhatsApp={onWhatsApp}
                     onFindClient={onFindClient}
                     onAIReminder={onAIReminder}
+                    onViewDetails={onViewDetails}
                   />
                 </TableCell>
               </TableRow>

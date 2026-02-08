@@ -1,4 +1,3 @@
-
 import { NavLink, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,19 +10,32 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, Siren, History } from "lucide-react";
+import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/patients", label: "Patients", icon: Users },
-  { href: "/defaulters", label: "Defaulters", icon: Siren },
-  { href: "/reminders", label: "Reminder History", icon: History },
-];
+const roleLabels: Record<string, string> = {
+  system_admin: "System Admin",
+  program_manager: "Program Manager",
+  facility_officer: "Facility Officer",
+  data_entry_officer: "Data Entry",
+};
 
 export function AppSidebar() {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, signOut, profile, role } = useAuth();
+
+  const navItems = [
+    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/clients", label: "Clients", icon: Users },
+    { href: "/defaulters", label: "Defaulters", icon: AlertTriangle },
+    { href: "/reminders", label: "Reminders", icon: History },
+  ];
+
+  // Only show audit log for managers and admins
+  if (role === 'program_manager' || role === 'system_admin') {
+    navItems.push({ href: "/audit-log", label: "Audit Log", icon: FileText });
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -64,11 +76,16 @@ export function AppSidebar() {
                 <UserIcon className="h-8 w-8 rounded-full bg-primary/10 text-primary p-1.5 shrink-0" />
                 <div className="flex flex-col overflow-hidden">
                   <span className="text-sm font-medium truncate">
-                    {user.user_metadata?.first_name || user.email?.split('@')[0]}
+                    {profile?.first_name || user.email?.split('@')[0]}
                   </span>
                   <span className="text-xs text-muted-foreground truncate">
                     {user.email}
                   </span>
+                  {role && (
+                    <Badge variant="outline" className="text-[10px] mt-1 w-fit">
+                      {roleLabels[role] || role}
+                    </Badge>
+                  )}
                 </div>
               </div>
               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={signOut}>

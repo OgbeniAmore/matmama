@@ -14,8 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       anc_visits: {
         Row: {
+          account_id: string | null
           actual_date: string | null
           client_id: string
           created_at: string
@@ -28,6 +50,7 @@ export type Database = {
           visit_number: number
         }
         Insert: {
+          account_id?: string | null
           actual_date?: string | null
           client_id: string
           created_at?: string
@@ -40,6 +63,7 @@ export type Database = {
           visit_number: number
         }
         Update: {
+          account_id?: string | null
           actual_date?: string | null
           client_id?: string
           created_at?: string
@@ -53,6 +77,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "anc_visits_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "anc_visits_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
@@ -61,8 +92,59 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          account_id: string | null
+          action: string
+          created_at: string
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          action: string
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          action?: string
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
+          account_id: string | null
           address: string
           assigned_to: string
           child_dob: string | null
@@ -71,6 +153,7 @@ export type Database = {
           created_at: string
           due_date: string
           edd: string | null
+          facility_id: string | null
           id: string
           name: string
           service: string
@@ -79,6 +162,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           address: string
           assigned_to?: string
           child_dob?: string | null
@@ -87,6 +171,7 @@ export type Database = {
           created_at?: string
           due_date: string
           edd?: string | null
+          facility_id?: string | null
           id: string
           name: string
           service: string
@@ -95,6 +180,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           address?: string
           assigned_to?: string
           child_dob?: string | null
@@ -103,6 +189,7 @@ export type Database = {
           created_at?: string
           due_date?: string
           edd?: string | null
+          facility_id?: string | null
           id?: string
           name?: string
           service?: string
@@ -110,7 +197,22 @@ export type Database = {
           trimester?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       epi_schedule: {
         Row: {
@@ -133,8 +235,50 @@ export type Database = {
         }
         Relationships: []
       }
+      facilities: {
+        Row: {
+          account_id: string
+          address: string | null
+          created_at: string
+          id: string
+          local_government: string | null
+          name: string
+          updated_at: string
+          ward: string | null
+        }
+        Insert: {
+          account_id: string
+          address?: string | null
+          created_at?: string
+          id?: string
+          local_government?: string | null
+          name: string
+          updated_at?: string
+          ward?: string | null
+        }
+        Update: {
+          account_id?: string
+          address?: string | null
+          created_at?: string
+          id?: string
+          local_government?: string | null
+          name?: string
+          updated_at?: string
+          ward?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facilities_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       immunization_records: {
         Row: {
+          account_id: string | null
           administered_date: string | null
           age_weeks: number | null
           client_id: string
@@ -145,6 +289,7 @@ export type Database = {
           vaccine_name: string
         }
         Insert: {
+          account_id?: string | null
           administered_date?: string | null
           age_weeks?: number | null
           client_id: string
@@ -155,6 +300,7 @@ export type Database = {
           vaccine_name: string
         }
         Update: {
+          account_id?: string | null
           administered_date?: string | null
           age_weeks?: number | null
           client_id?: string
@@ -166,6 +312,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "immunization_records_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "immunization_records_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
@@ -176,6 +329,7 @@ export type Database = {
       }
       patient_reminders: {
         Row: {
+          account_id: string | null
           created_at: string
           id: string
           message: string
@@ -185,6 +339,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           id?: string
           message: string
@@ -194,6 +349,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           id?: string
           message?: string
@@ -204,6 +360,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "patient_reminders_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "patient_reminders_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -212,15 +375,103 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          account_id: string
+          created_at: string
+          facility_id: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          facility_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          facility_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_account_id: { Args: { _user_id: string }; Returns: string }
+      get_user_facility_id: { Args: { _user_id: string }; Returns: string }
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "system_admin"
+        | "program_manager"
+        | "facility_officer"
+        | "data_entry_officer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -347,6 +598,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "system_admin",
+        "program_manager",
+        "facility_officer",
+        "data_entry_officer",
+      ],
+    },
   },
 } as const

@@ -1,4 +1,3 @@
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters."),
@@ -18,31 +18,54 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
+const roleLabels: Record<string, string> = {
+  system_admin: "System Admin",
+  program_manager: "Program Manager",
+  facility_officer: "Facility Officer",
+  data_entry_officer: "Data Entry Officer",
+};
+
 export default function ProfileForm() {
-  const { user } = useAuth();
+  const { user, profile, role } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: user?.user_metadata.first_name || '',
-      lastName: user?.user_metadata.last_name || '',
+      firstName: profile?.first_name || user?.user_metadata.first_name || '',
+      lastName: profile?.last_name || user?.user_metadata.last_name || '',
     },
     mode: "onChange",
   });
 
   async function onSubmit(data: ProfileFormValues) {
     setLoading(true);
+
+    // Update profiles table
+    if (user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ first_name: data.firstName, last_name: data.lastName })
+        .eq('user_id', user.id);
+
+      if (profileError) {
+        toast.error(profileError.message);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Also update user_metadata
     const { error } = await supabase.auth.updateUser({
       data: { first_name: data.firstName, last_name: data.lastName },
     });
+
     setLoading(false);
 
     if (error) {
       toast.error(error.message);
     } else {
       toast.success('Profile updated successfully!');
-      // Refresh user data in AuthContext after update
       await supabase.auth.refreshSession();
     }
   }
@@ -50,8 +73,15 @@ export default function ProfileForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>Update your personal information.</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>Update your personal information.</CardDescription>
+          </div>
+          {role && (
+            <Badge variant="secondary">{roleLabels[role] || role}</Badge>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -84,6 +114,11 @@ export default function ProfileForm() {
                 )}
               />
             </div>
+            {user?.email && (
+              <div className="text-sm text-muted-foreground">
+                Email: {user.email}
+              </div>
+            )}
             <Button type="submit" disabled={loading || !form.formState.isDirty}>
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>

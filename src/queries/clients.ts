@@ -47,10 +47,14 @@ export const saveClient = async ({
   data,
   clientId,
   epiSchedule,
+  accountId,
+  facilityId,
 }: {
   data: ClientFormValues;
   clientId?: string;
   epiSchedule: EpiSchedule[];
+  accountId: string;
+  facilityId: string;
 }) => {
   const clientDataForSupabase = {
     name: data.name,
@@ -58,17 +62,21 @@ export const saveClient = async ({
     due_date: data.dueDate.toISOString(),
     contact: data.contact,
     address: data.address,
-    assigned_to: 'System', // Default value since field is removed
+    assigned_to: 'System',
     child_name: data.childName || null,
     child_dob: data.childDob ? data.childDob.toISOString().split('T')[0] : null,
     trimester: data.trimester || null,
     edd: data.edd ? data.edd.toISOString().split('T')[0] : null,
+    account_id: accountId,
+    facility_id: facilityId,
   };
 
   if (clientId) {
+    // Don't update account_id/facility_id on edit
+    const { account_id: _a, facility_id: _f, ...updateData } = clientDataForSupabase;
     const { error } = await supabase
       .from("clients")
-      .update(clientDataForSupabase)
+      .update(updateData)
       .eq("id", clientId);
     if (error) throw error;
   } else {
@@ -91,10 +99,11 @@ export const saveClient = async ({
       );
 
       if (immunizationSchedule.length > 0) {
+        const scheduleWithAccount = immunizationSchedule.map(s => ({ ...s, account_id: accountId }));
         const { error: scheduleError } = await supabase
           .from("immunization_records")
-          .insert(immunizationSchedule);
-        
+          .insert(scheduleWithAccount);
+
         if (scheduleError) {
           console.error("Error creating immunization schedule:", scheduleError);
         }
@@ -106,10 +115,11 @@ export const saveClient = async ({
       const ancSchedule = generateAncSchedule(data.edd, newClientId);
 
       if (ancSchedule.length > 0) {
+        const ancWithAccount = ancSchedule.map(s => ({ ...s, account_id: accountId }));
         const { error: ancError } = await supabase
           .from("anc_visits")
-          .insert(ancSchedule);
-        
+          .insert(ancWithAccount);
+
         if (ancError) {
           console.error("Error creating ANC schedule:", ancError);
         }

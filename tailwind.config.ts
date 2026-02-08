@@ -61,6 +61,11 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				status: {
+					ontrack: 'hsl(var(--status-ontrack))',
+					pending: 'hsl(var(--status-pending))',
+					completed: 'hsl(var(--status-completed))',
 				}
 			},
 			borderRadius: {

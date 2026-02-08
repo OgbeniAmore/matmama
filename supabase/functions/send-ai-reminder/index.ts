@@ -135,6 +135,7 @@ serve(async (req) => {
         message: generatedMessage,
         status: 'sent',
         sent_at: new Date().toISOString(),
+        account_id: client.account_id,
       });
 
     if (logError) {

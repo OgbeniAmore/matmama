@@ -15,6 +15,8 @@ export interface Client {
   childDob?: Date;
   trimester?: number;
   edd?: Date;
+  account_id?: string;
+  facility_id?: string;
 }
 
 // Re-export immunization types

@@ -2,3 +2,6 @@ project_id = "wwhkfahlmivbqbtyidfr"
 
 [functions.send-ai-reminder]
 verify_jwt = false
+
+[functions.setup-account]
+verify_jwt = false

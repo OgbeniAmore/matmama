@@ -21,9 +21,9 @@ import { MoreHorizontal, User, Calendar, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const statusColors: Record<Status, string> = {
-  "On Track": "bg-green-100 text-green-800 border-green-200 hover:bg-green-100",
-  "Defaulting": "bg-red-100 text-red-800 border-red-200 hover:bg-red-100",
-  "Completed": "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100",
+  "On Track": "bg-status-ontrack/10 text-status-ontrack border-status-ontrack/20 hover:bg-status-ontrack/10",
+  "Defaulting": "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/10",
+  "Completed": "bg-status-completed/10 text-status-completed border-status-completed/20 hover:bg-status-completed/10",
 };
 
 interface ClientCardProps {

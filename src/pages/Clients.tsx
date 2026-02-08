@@ -8,6 +8,7 @@ import { AddClientDialog } from "@/components/AddClientDialog";
 import { type ClientFormValues } from "@/components/ClientForm";
 import { ViewClientSheet } from "@/components/ViewClientSheet";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   fetchClients,
   fetchEpiSchedule,
@@ -19,6 +20,7 @@ import { ClientGrid } from "@/components/clients/ClientGrid";
 const Clients = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { accountId, facilityId, role } = useAuth();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
@@ -40,7 +42,7 @@ const Clients = () => {
 
   const saveClientMutation = useMutation({
     mutationFn: (variables: { data: ClientFormValues; clientId?: string }) =>
-      saveClient({ ...variables, epiSchedule }),
+      saveClient({ ...variables, epiSchedule, accountId: accountId!, facilityId: facilityId! }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });

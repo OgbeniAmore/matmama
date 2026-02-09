@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ProfilePage from "./pages/Profile";
 import ReminderHistory from "./pages/ReminderHistory";
 import AuditLog from "./pages/AuditLog";
+import TeamPage from "./pages/Team";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/defaulters" element={<Defaulters />} />
                 <Route path="/reminders" element={<ReminderHistory />} />
                 <Route path="/audit-log" element={<AuditLog />} />
+                <Route path="/team" element={<TeamPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>

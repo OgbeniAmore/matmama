@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -67,14 +67,24 @@ export function BottomNav() {
               <span className="font-medium">Reminder History</span>
             </NavLink>
             {(role === 'program_manager' || role === 'system_admin') && (
-              <NavLink
-                to="/audit-log"
-                onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
-              >
-                <FileText className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">Audit Log</span>
-              </NavLink>
+              <>
+                <NavLink
+                  to="/team"
+                  onClick={() => setMoreOpen(false)}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
+                >
+                  <UsersRound className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Team Management</span>
+                </NavLink>
+                <NavLink
+                  to="/audit-log"
+                  onClick={() => setMoreOpen(false)}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
+                >
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Audit Log</span>
+                </NavLink>
+              </>
             )}
             <NavLink
               to="/profile"

@@ -49,6 +49,8 @@ export const clientFormSchema = z.object({
   childDob: z.date().optional(),
   trimester: z.coerce.number().min(1).max(3).optional(),
   edd: z.date().optional(),
+  lasraaId: z.string().max(50).optional(),
+  ninId: z.string().max(20).optional(),
 }).refine((data) => {
   if (data.service === "Routine Immunization") {
     return data.childName && data.childName.trim().length > 0 && data.childDob;

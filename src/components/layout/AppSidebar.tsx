@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2 } from "lucide-react";
+import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 

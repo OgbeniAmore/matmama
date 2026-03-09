@@ -77,6 +77,14 @@ export function BottomNav() {
                   <span className="font-medium">Team Management</span>
                 </NavLink>
                 <NavLink
+                  to="/facilities"
+                  onClick={() => setMoreOpen(false)}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
+                >
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Facilities</span>
+                </NavLink>
+                <NavLink
                   to="/audit-log"
                   onClick={() => setMoreOpen(false)}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"

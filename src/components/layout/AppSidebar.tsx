@@ -35,6 +35,7 @@ export function AppSidebar() {
   // Only show for managers and admins
   if (role === 'program_manager' || role === 'system_admin') {
     navItems.push({ href: "/team", label: "Team", icon: UsersRound });
+    navItems.push({ href: "/facilities", label: "Facilities", icon: Building2 });
     navItems.push({ href: "/audit-log", label: "Audit Log", icon: FileText });
   }
 

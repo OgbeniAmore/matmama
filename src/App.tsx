@@ -38,6 +38,7 @@ const App = () => (
                 <Route path="/reminders" element={<ReminderHistory />} />
                 <Route path="/audit-log" element={<AuditLog />} />
                 <Route path="/team" element={<TeamPage />} />
+                <Route path="/facilities" element={<FacilitiesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>

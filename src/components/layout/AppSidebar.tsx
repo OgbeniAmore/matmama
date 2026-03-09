@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2 } from "lucide-react";
+import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 
@@ -29,6 +29,7 @@ export function AppSidebar() {
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/clients", label: "Clients", icon: Users },
     { href: "/defaulters", label: "Defaulters", icon: AlertTriangle },
+    { href: "/client-search", label: "Client Search", icon: SearchCheck },
     { href: "/reminders", label: "Reminders", icon: History },
   ];
 

@@ -155,9 +155,12 @@ export type Database = {
           edd: string | null
           facility_id: string | null
           id: string
+          lasraa_id: string | null
           name: string
+          nin_id: string | null
           service: string
           status: string
+          system_id: string | null
           trimester: number | null
           updated_at: string
         }
@@ -173,9 +176,12 @@ export type Database = {
           edd?: string | null
           facility_id?: string | null
           id: string
+          lasraa_id?: string | null
           name: string
+          nin_id?: string | null
           service: string
           status?: string
+          system_id?: string | null
           trimester?: number | null
           updated_at?: string
         }
@@ -191,9 +197,12 @@ export type Database = {
           edd?: string | null
           facility_id?: string | null
           id?: string
+          lasraa_id?: string | null
           name?: string
+          nin_id?: string | null
           service?: string
           status?: string
+          system_id?: string | null
           trimester?: number | null
           updated_at?: string
         }
@@ -468,6 +477,80 @@ export type Database = {
           {
             foreignKeyName: "profiles_facility_id_fkey"
             columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transfer_requests: {
+        Row: {
+          approved_by: string | null
+          client_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          requested_by: string
+          source_account_id: string
+          source_facility_id: string
+          status: string
+          target_account_id: string
+          target_facility_id: string
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          requested_by: string
+          source_account_id: string
+          source_facility_id: string
+          status?: string
+          target_account_id: string
+          target_facility_id: string
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          requested_by?: string
+          source_account_id?: string
+          source_facility_id?: string
+          status?: string
+          target_account_id?: string
+          target_facility_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfer_requests_source_account_id_fkey"
+            columns: ["source_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_requests_source_facility_id_fkey"
+            columns: ["source_facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_requests_target_account_id_fkey"
+            columns: ["target_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_requests_target_facility_id_fkey"
+            columns: ["target_facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
             referencedColumns: ["id"]

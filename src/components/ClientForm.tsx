@@ -49,6 +49,8 @@ export const clientFormSchema = z.object({
   childDob: z.date().optional(),
   trimester: z.coerce.number().min(1).max(3).optional(),
   edd: z.date().optional(),
+  lasraaId: z.string().max(50).optional(),
+  ninId: z.string().max(20).optional(),
 }).refine((data) => {
   if (data.service === "Routine Immunization") {
     return data.childName && data.childName.trim().length > 0 && data.childDob;
@@ -99,6 +101,8 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           childDob: clientToEdit.childDob,
           trimester: clientToEdit.trimester || undefined,
           edd: clientToEdit.edd,
+          lasraaId: clientToEdit.lasraa_id || "",
+          ninId: clientToEdit.nin_id || "",
         });
       } else {
         form.reset({
@@ -111,6 +115,8 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           childDob: undefined,
           trimester: undefined,
           edd: undefined,
+          lasraaId: "",
+          ninId: "",
         });
       }
     }
@@ -303,6 +309,39 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="lasraaId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LASRAA ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter LASRAA ID" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="ninId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>NIN</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter NIN" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Provide LASRAA ID or NIN for cross-facility identification. A system ID will be auto-generated if neither is provided.
+            </p>
 
             <FormField
               control={form.control}

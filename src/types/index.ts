@@ -17,6 +17,24 @@ export interface Client {
   edd?: Date;
   account_id?: string;
   facility_id?: string;
+  lasraa_id?: string;
+  nin_id?: string;
+  system_id?: string;
+}
+
+export interface TransferRequest {
+  id: string;
+  client_id: string;
+  source_facility_id: string;
+  source_account_id: string;
+  target_facility_id: string;
+  target_account_id: string;
+  requested_by: string;
+  approved_by?: string;
+  status: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Re-export immunization types

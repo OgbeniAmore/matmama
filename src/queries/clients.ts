@@ -26,6 +26,9 @@ export const fetchClients = async (): Promise<Client[]> => {
     childName: p.child_name || undefined,
     trimester: p.trimester || undefined,
     edd: p.edd ? new Date(p.edd) : undefined,
+    lasraa_id: p.lasraa_id || undefined,
+    nin_id: p.nin_id || undefined,
+    system_id: p.system_id || undefined,
   }));
 };
 
@@ -56,6 +59,11 @@ export const saveClient = async ({
   accountId: string;
   facilityId: string;
 }) => {
+  // Auto-generate system_id if no LASRAA or NIN provided
+  const systemId = (!data.lasraaId && !data.ninId) 
+    ? `SYS-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+    : null;
+
   const clientDataForSupabase = {
     name: data.name,
     service: data.service,
@@ -69,6 +77,9 @@ export const saveClient = async ({
     edd: data.edd ? data.edd.toISOString().split('T')[0] : null,
     account_id: accountId,
     facility_id: facilityId,
+    lasraa_id: data.lasraaId || null,
+    nin_id: data.ninId || null,
+    system_id: systemId,
   };
 
   if (clientId) {

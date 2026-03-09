@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound } from "lucide-react";
+import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 
@@ -35,6 +35,7 @@ export function AppSidebar() {
   // Only show for managers and admins
   if (role === 'program_manager' || role === 'system_admin') {
     navItems.push({ href: "/team", label: "Team", icon: UsersRound });
+    navItems.push({ href: "/facilities", label: "Facilities", icon: Building2 });
     navItems.push({ href: "/audit-log", label: "Audit Log", icon: FileText });
   }
 

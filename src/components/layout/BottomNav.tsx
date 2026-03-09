@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound } from "lucide-react";
+import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -75,6 +75,14 @@ export function BottomNav() {
                 >
                   <UsersRound className="h-5 w-5 text-muted-foreground" />
                   <span className="font-medium">Team Management</span>
+                </NavLink>
+                <NavLink
+                  to="/facilities"
+                  onClick={() => setMoreOpen(false)}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
+                >
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Facilities</span>
                 </NavLink>
                 <NavLink
                   to="/audit-log"

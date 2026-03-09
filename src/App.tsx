@@ -16,6 +16,7 @@ import ProfilePage from "./pages/Profile";
 import ReminderHistory from "./pages/ReminderHistory";
 import AuditLog from "./pages/AuditLog";
 import TeamPage from "./pages/Team";
+import FacilitiesPage from "./pages/Facilities";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
                 <Route path="/reminders" element={<ReminderHistory />} />
                 <Route path="/audit-log" element={<AuditLog />} />
                 <Route path="/team" element={<TeamPage />} />
+                <Route path="/facilities" element={<FacilitiesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>

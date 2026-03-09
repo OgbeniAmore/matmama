@@ -134,6 +134,25 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
 
               <h3 className="text-sm font-medium text-muted-foreground">Contact</h3>
               <p className="col-start-2">{client.contact}</p>
+
+              {client.lasraa_id && (
+                <>
+                  <h3 className="text-sm font-medium text-muted-foreground">LASRAA ID</h3>
+                  <p className="col-start-2">{client.lasraa_id}</p>
+                </>
+              )}
+              {client.nin_id && (
+                <>
+                  <h3 className="text-sm font-medium text-muted-foreground">NIN</h3>
+                  <p className="col-start-2">{client.nin_id}</p>
+                </>
+              )}
+              {client.system_id && (
+                <>
+                  <h3 className="text-sm font-medium text-muted-foreground">System ID</h3>
+                  <p className="col-start-2">{client.system_id}</p>
+                </>
+              )}
             </div>
 
             <div>

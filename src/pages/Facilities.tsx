@@ -178,6 +178,9 @@ export default function FacilitiesPage() {
                       <TableCell className="text-center">
                         {memberCounts[facility.id] || 0}
                       </TableCell>
+                      <TableCell className="text-center">
+                        {clientCounts[facility.id] || 0}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"

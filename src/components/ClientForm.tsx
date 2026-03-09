@@ -310,6 +310,39 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
               )}
             />
 
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="lasraaId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LASRAA ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter LASRAA ID" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="ninId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>NIN</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter NIN" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Provide LASRAA ID or NIN for cross-facility identification. A system ID will be auto-generated if neither is provided.
+            </p>
+
             <FormField
               control={form.control}
               name="service"

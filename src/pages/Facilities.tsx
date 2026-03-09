@@ -58,6 +58,24 @@ export default function FacilitiesPage() {
     enabled: !!accountId,
   });
 
+  const { data: clientCounts = {} } = useQuery({
+    queryKey: ["facility-client-counts", accountId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("facility_id")
+        .eq("account_id", accountId!)
+        .not("facility_id", "is", null);
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      data.forEach((c) => {
+        if (c.facility_id) counts[c.facility_id] = (counts[c.facility_id] || 0) + 1;
+      });
+      return counts;
+    },
+    enabled: !!accountId,
+  });
+
   if (!isManager) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -134,6 +152,7 @@ export default function FacilitiesPage() {
                     <TableHead className="hidden sm:table-cell">Ward</TableHead>
                     <TableHead className="hidden md:table-cell">LGA</TableHead>
                     <TableHead className="text-center">Staff</TableHead>
+                    <TableHead className="text-center">Clients</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -158,6 +177,9 @@ export default function FacilitiesPage() {
                       </TableCell>
                       <TableCell className="text-center">
                         {memberCounts[facility.id] || 0}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {clientCounts[facility.id] || 0}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

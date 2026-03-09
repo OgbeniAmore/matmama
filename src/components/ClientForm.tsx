@@ -101,6 +101,8 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           childDob: clientToEdit.childDob,
           trimester: clientToEdit.trimester || undefined,
           edd: clientToEdit.edd,
+          lasraaId: clientToEdit.lasraa_id || "",
+          ninId: clientToEdit.nin_id || "",
         });
       } else {
         form.reset({
@@ -113,6 +115,8 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           childDob: undefined,
           trimester: undefined,
           edd: undefined,
+          lasraaId: "",
+          ninId: "",
         });
       }
     }

@@ -26,6 +26,9 @@ export const fetchClients = async (): Promise<Client[]> => {
     childName: p.child_name || undefined,
     trimester: p.trimester || undefined,
     edd: p.edd ? new Date(p.edd) : undefined,
+    lasraa_id: p.lasraa_id || undefined,
+    nin_id: p.nin_id || undefined,
+    system_id: p.system_id || undefined,
   }));
 };
 

@@ -152,6 +152,7 @@ export default function FacilitiesPage() {
                     <TableHead className="hidden sm:table-cell">Ward</TableHead>
                     <TableHead className="hidden md:table-cell">LGA</TableHead>
                     <TableHead className="text-center">Staff</TableHead>
+                    <TableHead className="text-center">Clients</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>

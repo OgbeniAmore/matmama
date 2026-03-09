@@ -58,6 +58,24 @@ export default function FacilitiesPage() {
     enabled: !!accountId,
   });
 
+  const { data: clientCounts = {} } = useQuery({
+    queryKey: ["facility-client-counts", accountId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("facility_id")
+        .eq("account_id", accountId!)
+        .not("facility_id", "is", null);
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      data.forEach((c) => {
+        if (c.facility_id) counts[c.facility_id] = (counts[c.facility_id] || 0) + 1;
+      });
+      return counts;
+    },
+    enabled: !!accountId,
+  });
+
   if (!isManager) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">

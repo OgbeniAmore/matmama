@@ -17,6 +17,7 @@ import ReminderHistory from "./pages/ReminderHistory";
 import AuditLog from "./pages/AuditLog";
 import TeamPage from "./pages/Team";
 import FacilitiesPage from "./pages/Facilities";
+import ClientSearch from "./pages/ClientSearch";
 
 const queryClient = new QueryClient();
 

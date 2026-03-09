@@ -29,6 +29,7 @@ export function AppSidebar() {
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/clients", label: "Clients", icon: Users },
     { href: "/defaulters", label: "Defaulters", icon: AlertTriangle },
+    { href: "/client-search", label: "Client Search", icon: SearchCheck },
     { href: "/reminders", label: "Reminders", icon: History },
   ];
 

@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound, Building2 } from "lucide-react";
+import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound, Building2, SearchCheck, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -58,6 +58,22 @@ export function BottomNav() {
           </SheetHeader>
           <Separator />
           <div className="grid gap-1 py-3">
+            <NavLink
+              to="/client-search"
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
+            >
+              <SearchCheck className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium">Client Search</span>
+            </NavLink>
+            <NavLink
+              to="/transfers"
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
+            >
+              <ArrowRightLeft className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium">Transfer Requests</span>
+            </NavLink>
             <NavLink
               to="/reminders"
               onClick={() => setMoreOpen(false)}

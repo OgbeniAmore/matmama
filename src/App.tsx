@@ -18,6 +18,7 @@ import AuditLog from "./pages/AuditLog";
 import TeamPage from "./pages/Team";
 import FacilitiesPage from "./pages/Facilities";
 import ClientSearch from "./pages/ClientSearch";
+import TransfersPage from "./pages/Transfers";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
                 <Route path="/team" element={<TeamPage />} />
                 <Route path="/facilities" element={<FacilitiesPage />} />
                 <Route path="/client-search" element={<ClientSearch />} />
+                <Route path="/transfers" element={<TransfersPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>

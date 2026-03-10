@@ -75,6 +75,10 @@ const TransfersPage = () => {
         .update({ status, approved_by: userId } as any)
         .eq("id", id);
       if (error) throw error;
+      // Trigger email notification
+      await supabase.functions.invoke("notify-transfer", {
+        body: { transferId: id, event: status },
+      });
     },
     onSuccess: (_, { status }) => {
       toast({ title: status === "approved" ? "Transfer Approved" : "Transfer Rejected", description: status === "approved" ? "The client has been moved to the target facility." : "The transfer request was rejected." });

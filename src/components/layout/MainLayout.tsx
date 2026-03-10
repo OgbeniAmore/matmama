@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, HeartPulse } from "lucide-react";
+import { NotificationBell } from "./NotificationBell";
 import { Badge } from "@/components/ui/badge";
 
 const roleLabels: Record<string, string> = {
@@ -44,6 +45,8 @@ export function MainLayout() {
             </div>
 
             <div className="flex-1" />
+
+            <NotificationBell />
 
             {/* Role badge - all screens */}
             {role && (

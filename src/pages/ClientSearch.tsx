@@ -88,6 +88,10 @@ const ClientSearch = () => {
         notes: transferNotes || null,
       } as any);
       if (error) throw error;
+      // Trigger email notification for the new transfer
+      await supabase.functions.invoke("notify-transfer", {
+        body: { transferId: client.id, event: "created" },
+      });
     },
     onSuccess: () => {
       toast({ title: "Transfer Requested", description: "A transfer request has been submitted for approval." });

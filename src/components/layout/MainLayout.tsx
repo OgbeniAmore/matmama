@@ -46,6 +46,8 @@ export function MainLayout() {
 
             <div className="flex-1" />
 
+            <NotificationBell />
+
             {/* Role badge - all screens */}
             {role && (
               <Badge variant="secondary" className="text-xs hidden sm:inline-flex">

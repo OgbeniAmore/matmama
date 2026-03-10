@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.search-client]
 verify_jwt = false
+
+[functions.notify-transfer]
+verify_jwt = false

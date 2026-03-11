@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound, Building2, SearchCheck, ArrowRightLeft } from "lucide-react";
+import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound, Building2, SearchCheck, ArrowRightLeft, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";

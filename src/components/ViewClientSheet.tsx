@@ -175,6 +175,10 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
                 <AncScheduleView clientId={client.id} />
               </>
             )}
+
+            {/* Transfer History */}
+            <Separator />
+            <TransferHistoryView clientId={client.id} />
           </div>
         </ScrollArea>
         <SheetFooter className="pt-4">

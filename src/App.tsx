@@ -45,6 +45,7 @@ const App = () => (
                 <Route path="/client-search" element={<ClientSearch />} />
                 <Route path="/transfers" element={<TransfersPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/notification-preferences" element={<NotificationPreferences />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

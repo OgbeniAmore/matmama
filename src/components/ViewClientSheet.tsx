@@ -15,6 +15,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import { ImmunizationScheduleView } from "./clients/ImmunizationScheduleView";
 import { AncScheduleView } from "./clients/AncScheduleView";
+import { TransferHistoryView } from "./clients/TransferHistoryView";
 import { ClientActionBar } from "./ClientActionBar";
 import { AIReminderDialog } from "./AIReminderDialog";
 import GoogleMapModal from "./GoogleMapModal";
@@ -174,6 +175,10 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
                 <AncScheduleView clientId={client.id} />
               </>
             )}
+
+            {/* Transfer History */}
+            <Separator />
+            <TransferHistoryView clientId={client.id} />
           </div>
         </ScrollArea>
         <SheetFooter className="pt-4">

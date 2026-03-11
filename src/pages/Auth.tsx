@@ -21,7 +21,7 @@ export default function AuthPage() {
         <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2">
                 <HeartPulse className="h-8 w-8 text-primary" />
-                <h1 className="text-2xl md:text-3xl font-bold">FamilyFocus</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Matmama</h1>
             </div>
           <p className="text-muted-foreground">Sign in or create an account to continue</p>
         </div>

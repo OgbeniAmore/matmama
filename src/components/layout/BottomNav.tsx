@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound, Building2, SearchCheck, ArrowRightLeft } from "lucide-react";
+import { LayoutDashboard, Users, AlertTriangle, Menu, History, User, FileText, LogOut, UsersRound, Building2, SearchCheck, ArrowRightLeft, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -117,6 +117,14 @@ export function BottomNav() {
             >
               <User className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium">Profile & Settings</span>
+            </NavLink>
+            <NavLink
+              to="/notification-preferences"
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
+            >
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium">Notification Preferences</span>
             </NavLink>
             <Separator className="my-1" />
             <button

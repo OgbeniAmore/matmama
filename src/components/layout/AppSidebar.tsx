@@ -47,7 +47,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2">
           <HeartPulse className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold group-data-[collapsible=icon]:opacity-0 transition-opacity duration-200">
-            FamilyFocus
+            Matmama
           </h1>
         </div>
         <div className="hidden lg:block">

@@ -19,6 +19,7 @@ import TeamPage from "./pages/Team";
 import FacilitiesPage from "./pages/Facilities";
 import ClientSearch from "./pages/ClientSearch";
 import TransfersPage from "./pages/Transfers";
+import NotificationPreferences from "./pages/NotificationPreferences";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/client-search" element={<ClientSearch />} />
                 <Route path="/transfers" element={<TransfersPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/notification-preferences" element={<NotificationPreferences />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

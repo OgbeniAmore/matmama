@@ -41,7 +41,7 @@ export function MainLayout() {
             {/* Mobile logo */}
             <div className="flex items-center gap-2 md:hidden">
               <HeartPulse className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg">FamilyFocus</span>
+              <span className="font-bold text-lg">Matmama</span>
             </div>
 
             <div className="flex-1" />

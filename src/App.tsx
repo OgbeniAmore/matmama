@@ -19,6 +19,7 @@ import TeamPage from "./pages/Team";
 import FacilitiesPage from "./pages/Facilities";
 import ClientSearch from "./pages/ClientSearch";
 import TransfersPage from "./pages/Transfers";
+import NotificationPreferences from "./pages/NotificationPreferences";
 
 const queryClient = new QueryClient();
 

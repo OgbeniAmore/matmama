@@ -20,6 +20,7 @@ import FacilitiesPage from "./pages/Facilities";
 import ClientSearch from "./pages/ClientSearch";
 import TransfersPage from "./pages/Transfers";
 import NotificationPreferences from "./pages/NotificationPreferences";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Dashboard />} />

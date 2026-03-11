@@ -387,6 +387,45 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          defaulter_email: boolean
+          defaulter_in_app: boolean
+          id: string
+          reminder_email: boolean
+          reminder_in_app: boolean
+          transfer_email: boolean
+          transfer_in_app: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          defaulter_email?: boolean
+          defaulter_in_app?: boolean
+          id?: string
+          reminder_email?: boolean
+          reminder_in_app?: boolean
+          transfer_email?: boolean
+          transfer_in_app?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          defaulter_email?: boolean
+          defaulter_in_app?: boolean
+          id?: string
+          reminder_email?: boolean
+          reminder_in_app?: boolean
+          transfer_email?: boolean
+          transfer_in_app?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

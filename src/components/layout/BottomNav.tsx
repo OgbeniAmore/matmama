@@ -118,6 +118,14 @@ export function BottomNav() {
               <User className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium">Profile & Settings</span>
             </NavLink>
+            <NavLink
+              to="/notification-preferences"
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
+            >
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium">Notification Preferences</span>
+            </NavLink>
             <Separator className="my-1" />
             <button
               onClick={() => { signOut(); setMoreOpen(false); }}

@@ -115,6 +115,18 @@ export default function AuthForm() {
         return;
       }
 
+      if (leakedProtection) {
+        setCheckingLeak(true);
+        const isLeaked = await checkLeakedPassword(password);
+        setCheckingLeak(false);
+        if (isLeaked) {
+          toast.error("This password has been found in a data breach. Please choose a different password for your security.");
+          setLoading(false);
+          return;
+        }
+      }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,

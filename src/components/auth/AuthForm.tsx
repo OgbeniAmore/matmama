@@ -324,6 +324,21 @@ export default function AuthForm() {
             </div>
           </div>
         )}
+        {isSignUp && (
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-3 mt-2">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs font-medium">Leaked password protection</p>
+                <p className="text-[10px] text-muted-foreground">Block passwords found in data breaches</p>
+              </div>
+            </div>
+            <Switch
+              checked={leakedProtection}
+              onCheckedChange={setLeakedProtection}
+            />
+          </div>
+        )}
       </div>
 
       {!isSignUp && (

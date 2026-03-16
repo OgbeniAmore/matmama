@@ -177,6 +177,9 @@ const Dashboard = () => {
         </Card>
       )}
 
+      {/* Reminder Stats & Upcoming */}
+      <ReminderStatsWidget />
+
       {/* Services Overview */}
       <Card>
         <CardHeader>

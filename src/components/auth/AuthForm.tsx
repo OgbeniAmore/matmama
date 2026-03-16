@@ -353,8 +353,8 @@ export default function AuthForm() {
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
+      <Button type="submit" className="w-full" disabled={loading || checkingLeak}>
+        {checkingLeak ? 'Checking password safety...' : loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
       </Button>
 
       {isSignUp && (

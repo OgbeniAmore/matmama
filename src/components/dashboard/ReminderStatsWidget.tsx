@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, addDays, isAfter, isBefore } from "date-fns";
 import { Bell, CheckCircle, XCircle, Clock, CalendarClock, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ReminderStats {
   total: number;
@@ -97,6 +98,7 @@ function StatItem({
 }
 
 export function ReminderStatsWidget() {
+  const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["reminder-stats"],
     queryFn: fetchReminderStats,
@@ -202,9 +204,10 @@ export function ReminderStatsWidget() {
           ) : (
             <div className="space-y-2.5">
               {upcoming.map((client) => (
-                <div
+                <button
                   key={client.id}
-                  className="flex items-center justify-between gap-2 text-sm"
+                  onClick={() => navigate(`/clients?view=${client.id}`)}
+                  className="flex items-center justify-between gap-2 text-sm w-full rounded-md px-2 py-1.5 -mx-2 hover:bg-muted transition-colors text-left"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <Bell className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -222,7 +225,7 @@ export function ReminderStatsWidget() {
                       {client.service}
                     </Badge>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}

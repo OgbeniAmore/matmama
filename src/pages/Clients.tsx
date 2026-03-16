@@ -1,6 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { Client, EpiSchedule } from "@/types";
@@ -21,6 +22,7 @@ const Clients = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { accountId, facilityId, role } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
@@ -96,6 +98,20 @@ const Clients = () => {
       deleteClientMutation.mutate(clientId);
     }
   };
+
+  // Auto-open client detail from URL param
+  useEffect(() => {
+    const viewId = searchParams.get("view");
+    if (viewId && clients.length > 0) {
+      const client = clients.find((c) => c.id === viewId);
+      if (client) {
+        setSelectedClient(client);
+        setIsViewSheetOpen(true);
+        searchParams.delete("view");
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [searchParams, clients]);
 
   const openAddForm = () => {
     setClientToEdit(null);

@@ -73,6 +73,8 @@ export default function AuthForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [leakedProtection, setLeakedProtection] = useState(true);
+  const [checkingLeak, setCheckingLeak] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [localGovernment, setLocalGovernment] = useState('');

@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
-import { Eye, EyeOff, Shield, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Shield, ShieldAlert, Lock, Mail, CheckCircle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -46,12 +47,34 @@ function getPasswordStrength(password: string): { score: number; label: string; 
   return { score: Math.min(score, 100), label: "Strong", color: "bg-green-500" };
 }
 
+async function checkLeakedPassword(password: string): Promise<boolean> {
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    const prefix = hashHex.substring(0, 5);
+    const suffix = hashHex.substring(5);
+
+    const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+    if (!response.ok) return false;
+
+    const text = await response.text();
+    return text.split('\n').some(line => line.startsWith(suffix));
+  } catch {
+    return false;
+  }
+}
+
 export default function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [leakedProtection, setLeakedProtection] = useState(true);
+  const [checkingLeak, setCheckingLeak] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [localGovernment, setLocalGovernment] = useState('');
@@ -90,6 +113,17 @@ export default function AuthForm() {
         toast.error("Password must be at least 8 characters.");
         setLoading(false);
         return;
+      }
+
+      if (leakedProtection) {
+        setCheckingLeak(true);
+        const isLeaked = await checkLeakedPassword(password);
+        setCheckingLeak(false);
+        if (isLeaked) {
+          toast.error("This password has been found in a data breach. Please choose a different password for your security.");
+          setLoading(false);
+          return;
+        }
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -290,6 +324,21 @@ export default function AuthForm() {
             </div>
           </div>
         )}
+        {isSignUp && (
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-3 mt-2">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs font-medium">Leaked password protection</p>
+                <p className="text-[10px] text-muted-foreground">Block passwords found in data breaches</p>
+              </div>
+            </div>
+            <Switch
+              checked={leakedProtection}
+              onCheckedChange={setLeakedProtection}
+            />
+          </div>
+        )}
       </div>
 
       {!isSignUp && (
@@ -304,8 +353,8 @@ export default function AuthForm() {
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
+      <Button type="submit" className="w-full" disabled={loading || checkingLeak}>
+        {checkingLeak ? 'Checking password safety...' : loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
       </Button>
 
       {isSignUp && (

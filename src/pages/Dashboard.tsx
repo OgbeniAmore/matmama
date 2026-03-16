@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { ReminderStatsWidget } from "@/components/dashboard/ReminderStatsWidget";
 
 const fetchClients = async (): Promise<Client[]> => {
   const { data, error } = await supabase
@@ -175,6 +176,9 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Reminder Stats & Upcoming */}
+      <ReminderStatsWidget />
 
       {/* Services Overview */}
       <Card>

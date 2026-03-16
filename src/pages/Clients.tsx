@@ -99,6 +99,20 @@ const Clients = () => {
     }
   };
 
+  // Auto-open client detail from URL param
+  useEffect(() => {
+    const viewId = searchParams.get("view");
+    if (viewId && clients.length > 0) {
+      const client = clients.find((c) => c.id === viewId);
+      if (client) {
+        setSelectedClient(client);
+        setIsViewSheetOpen(true);
+        searchParams.delete("view");
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [searchParams, clients]);
+
   const openAddForm = () => {
     setClientToEdit(null);
     setIsFormOpen(true);

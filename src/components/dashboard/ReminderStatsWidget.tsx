@@ -225,7 +225,7 @@ export function ReminderStatsWidget() {
                       {client.service}
                     </Badge>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}

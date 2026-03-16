@@ -204,9 +204,10 @@ export function ReminderStatsWidget() {
           ) : (
             <div className="space-y-2.5">
               {upcoming.map((client) => (
-                <div
+                <button
                   key={client.id}
-                  className="flex items-center justify-between gap-2 text-sm"
+                  onClick={() => navigate(`/clients?view=${client.id}`)}
+                  className="flex items-center justify-between gap-2 text-sm w-full rounded-md px-2 py-1.5 -mx-2 hover:bg-muted transition-colors text-left"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <Bell className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

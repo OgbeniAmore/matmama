@@ -22,6 +22,7 @@ const Clients = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { accountId, facilityId, role } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);

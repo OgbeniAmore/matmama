@@ -98,6 +98,7 @@ function StatItem({
 }
 
 export function ReminderStatsWidget() {
+  const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["reminder-stats"],
     queryFn: fetchReminderStats,

@@ -125,7 +125,6 @@ export default function AuthForm() {
           return;
         }
       }
-      }
 
       const { data, error } = await supabase.auth.signUp({
         email,

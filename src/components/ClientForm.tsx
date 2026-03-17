@@ -52,6 +52,7 @@ export const clientFormSchema = z.object({
   edd: z.date().optional(),
   lasraaId: z.string().max(50).optional(),
   ninId: z.string().max(20).optional(),
+  preferredChannel: z.enum(["sms", "whatsapp"]).default("sms"),
 }).refine((data) => {
   if (data.service === "Routine Immunization") {
     return data.childName && data.childName.trim().length > 0 && data.childDob;

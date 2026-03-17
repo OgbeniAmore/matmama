@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, addDays, isAfter, isBefore } from "date-fns";
-import { Bell, CheckCircle, XCircle, Clock, CalendarClock, TrendingUp } from "lucide-react";
+import { Bell, CheckCircle, XCircle, Clock, CalendarClock, TrendingUp, Phone, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ReminderStats {

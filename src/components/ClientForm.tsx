@@ -120,6 +120,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           edd: undefined,
           lasraaId: "",
           ninId: "",
+          preferredChannel: "sms" as const,
         });
       }
     }

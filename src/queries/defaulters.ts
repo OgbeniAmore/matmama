@@ -23,5 +23,6 @@ export const fetchDefaulters = async (): Promise<Client[]> => {
       childDob: p.child_dob ? new Date(p.child_dob) : undefined,
       childName: p.child_name || undefined,
       edd: p.edd ? new Date(p.edd) : undefined,
+      preferred_channel: (p.preferred_channel || 'sms') as Client["preferred_channel"],
     }));
   };

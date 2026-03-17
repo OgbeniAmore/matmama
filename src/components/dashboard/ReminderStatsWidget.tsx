@@ -50,7 +50,7 @@ const fetchUpcomingReminders = async (): Promise<UpcomingClient[]> => {
 
   const { data, error } = await supabase
     .from("clients")
-    .select("id, name, service, due_date, status")
+    .select("id, name, service, due_date, status, preferred_channel")
     .in("status", ["On Track", "Defaulting"])
     .gte("due_date", now.toISOString())
     .lte("due_date", threeDaysOut.toISOString())

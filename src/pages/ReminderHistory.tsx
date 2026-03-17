@@ -42,7 +42,7 @@ const ReminderHistory = () => {
       </div>
 
       {/* Summary cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-4">
         <SummaryCard
           title="Total Sent"
           value={isLoading ? null : reminders.length}
@@ -65,6 +65,15 @@ const ReminderHistory = () => {
               : reminders.filter((r) => r.reminder_type === "whatsapp").length
           }
           icon={<MessageSquare className="h-4 w-4 text-muted-foreground" />}
+        />
+        <SummaryCard
+          title="Automated"
+          value={
+            isLoading
+              ? null
+              : reminders.filter((r) => r.reminder_category?.startsWith("automated")).length
+          }
+          icon={<Bot className="h-4 w-4 text-muted-foreground" />}
         />
       </div>
 

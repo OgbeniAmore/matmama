@@ -21,6 +21,7 @@ interface UpcomingClient {
   service: string;
   dueDate: Date;
   daysUntil: number;
+  preferredChannel: string;
 }
 
 const fetchReminderStats = async (): Promise<ReminderStats> => {

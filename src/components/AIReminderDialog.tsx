@@ -24,7 +24,9 @@ interface AIReminderDialogProps {
 
 export function AIReminderDialog({ client, open, onOpenChange }: AIReminderDialogProps) {
   const { toast } = useToast();
-  const [reminderType, setReminderType] = useState<"sms" | "whatsapp">("sms");
+  const [reminderType, setReminderType] = useState<"sms" | "whatsapp">(
+    client?.preferred_channel || "sms"
+  );
 
   const sendReminderMutation = useMutation({
     mutationFn: async ({ patientId, type }: { patientId: string; type: "sms" | "whatsapp" }) => {

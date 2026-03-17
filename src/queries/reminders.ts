@@ -8,6 +8,7 @@ export interface Reminder {
   status: string;
   sent_at: string;
   created_at: string;
+  reminder_category?: string;
   client_name?: string;
   client_service?: string;
 }

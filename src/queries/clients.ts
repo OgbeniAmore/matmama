@@ -29,6 +29,7 @@ export const fetchClients = async (): Promise<Client[]> => {
     lasraa_id: p.lasraa_id || undefined,
     nin_id: p.nin_id || undefined,
     system_id: p.system_id || undefined,
+    preferred_channel: (p.preferred_channel || 'sms') as Client["preferred_channel"],
   }));
 };
 
@@ -80,6 +81,7 @@ export const saveClient = async ({
     lasraa_id: data.lasraaId || null,
     nin_id: data.ninId || null,
     system_id: systemId,
+    preferred_channel: data.preferredChannel || 'sms',
   };
 
   if (clientId) {

@@ -7,12 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
-const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
@@ -21,93 +17,18 @@ serve(async (req) => {
   }
 
   try {
-    // Support both authenticated calls (manual) and cron calls (with Authorization: Bearer <anon_key>)
-    const authHeader = req.headers.get('Authorization');
-    
     const body = await req.json().catch(() => ({}));
     const { patientId, reminderType, automated } = body;
 
     // --- AUTOMATED CRON MODE ---
     if (automated) {
-      console.log('Running automated reminder cron...');
-      const now = new Date();
-      const threeDaysFromNow = new Date(now);
-      threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-      const threeDaysAgo = new Date(now);
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
-      // Format dates for comparison
-      const targetDate = threeDaysFromNow.toISOString().split('T')[0];
-      const defaulterDate = threeDaysAgo.toISOString().split('T')[0];
-
-      // 1. Upcoming appointments (3 days from now)
-      const { data: upcomingClients, error: upErr } = await supabaseAdmin
-        .from('clients')
-        .select('*')
-        .eq('status', 'On Track')
-        .gte('due_date', `${targetDate}T00:00:00`)
-        .lt('due_date', `${targetDate}T23:59:59`);
-
-      if (upErr) console.error('Error fetching upcoming clients:', upErr);
-
-      // 2. Defaulters (due date was 3 days ago, still not completed)
-      const { data: defaulterClients, error: defErr } = await supabaseAdmin
-        .from('clients')
-        .select('*')
-        .in('status', ['Defaulting', 'On Track'])
-        .gte('due_date', `${defaulterDate}T00:00:00`)
-        .lt('due_date', `${defaulterDate}T23:59:59`);
-
-      if (defErr) console.error('Error fetching defaulter clients:', defErr);
-
-      const results = { upcoming: 0, defaulters: 0, errors: 0 };
-
-      // Send upcoming reminders
-      for (const client of (upcomingClients || [])) {
-        try {
-          const message = await generateMessage(client, 'upcoming');
-          await sendSMS(client.contact, message);
-          await logReminder(client.id, 'sms', message, client.account_id);
-          results.upcoming++;
-        } catch (err) {
-          console.error(`Failed reminder for ${client.id}:`, err.message);
-          results.errors++;
-        }
-      }
-
-      // Send defaulter follow-ups
-      for (const client of (defaulterClients || [])) {
-        try {
-          const message = await generateMessage(client, 'defaulter');
-          await sendSMS(client.contact, message);
-          await logReminder(client.id, 'sms', message, client.account_id);
-          results.defaulters++;
-          
-          // Update status to Defaulting if still On Track
-          if (client.status === 'On Track') {
-            await supabaseAdmin
-              .from('clients')
-              .update({ status: 'Defaulting' })
-              .eq('id', client.id);
-          }
-        } catch (err) {
-          console.error(`Failed defaulter reminder for ${client.id}:`, err.message);
-          results.errors++;
-        }
-      }
-
-      console.log(`Cron complete: ${results.upcoming} upcoming, ${results.defaulters} defaulter reminders sent, ${results.errors} errors`);
-      return new Response(JSON.stringify({ success: true, results }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return await handleAutomatedReminders();
     }
 
     // --- MANUAL SINGLE-CLIENT MODE ---
+    const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -118,16 +39,12 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     if (!patientId || !reminderType) {
       throw new Error('Missing required fields: patientId and reminderType');
     }
-
     if (!['sms', 'whatsapp'].includes(reminderType)) {
       throw new Error('Invalid reminder type. Must be "sms" or "whatsapp"');
     }
@@ -138,41 +55,121 @@ serve(async (req) => {
       .eq('id', patientId)
       .single();
 
-    if (clientError || !client) {
-      throw new Error('Client not found');
-    }
+    if (clientError || !client) throw new Error('Client not found');
 
     const generatedMessage = await generateMessage(client, 'manual');
+    const channel = reminderType as 'sms' | 'whatsapp';
 
-    if (reminderType === 'sms') {
+    if (channel === 'sms') {
       await sendSMS(client.contact, generatedMessage);
     } else {
       await sendWhatsApp(client.contact, generatedMessage);
     }
 
-    await logReminder(patientId, reminderType, generatedMessage, client.account_id);
+    await logReminder(patientId, channel, generatedMessage, client.account_id, 'manual');
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       success: true,
       message: 'Reminder sent successfully',
       generatedMessage,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('Error in send-ai-reminder function:', error);
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message,
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ success: false, error: error.message }, 500);
   }
 });
 
+// ──────────────── AUTOMATED CRON ────────────────
+async function handleAutomatedReminders() {
+  console.log('Running automated reminder cron...');
+  const now = new Date();
+
+  const threeDaysFromNow = new Date(now);
+  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+  const threeDaysAgo = new Date(now);
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+  const targetDate = threeDaysFromNow.toISOString().split('T')[0];
+  const defaulterDate = threeDaysAgo.toISOString().split('T')[0];
+
+  // 1. Upcoming appointments (3 days from now)
+  const { data: upcomingClients, error: upErr } = await supabaseAdmin
+    .from('clients')
+    .select('*')
+    .eq('status', 'On Track')
+    .gte('due_date', `${targetDate}T00:00:00`)
+    .lt('due_date', `${targetDate}T23:59:59`);
+
+  if (upErr) console.error('Error fetching upcoming clients:', upErr);
+
+  // 2. Defaulters (due date was 3 days ago)
+  const { data: defaulterClients, error: defErr } = await supabaseAdmin
+    .from('clients')
+    .select('*')
+    .in('status', ['Defaulting', 'On Track'])
+    .gte('due_date', `${defaulterDate}T00:00:00`)
+    .lt('due_date', `${defaulterDate}T23:59:59`);
+
+  if (defErr) console.error('Error fetching defaulter clients:', defErr);
+
+  const results = { upcoming: 0, defaulters: 0, errors: 0 };
+
+  // Send upcoming reminders using client's preferred channel
+  for (const client of (upcomingClients || [])) {
+    try {
+      const message = await generateMessage(client, 'upcoming');
+      const channel = client.preferred_channel || 'sms';
+      await sendByChannel(channel, client.contact, message);
+      await logReminder(client.id, channel, message, client.account_id, 'automated_upcoming');
+      results.upcoming++;
+    } catch (err) {
+      console.error(`Failed reminder for ${client.id}:`, err.message);
+      await logFailedReminder(client.id, client.preferred_channel || 'sms', err.message, client.account_id, 'automated_upcoming');
+      results.errors++;
+    }
+  }
+
+  // Send defaulter follow-ups using client's preferred channel
+  for (const client of (defaulterClients || [])) {
+    try {
+      const message = await generateMessage(client, 'defaulter');
+      const channel = client.preferred_channel || 'sms';
+      await sendByChannel(channel, client.contact, message);
+      await logReminder(client.id, channel, message, client.account_id, 'automated_defaulter');
+      results.defaulters++;
+
+      if (client.status === 'On Track') {
+        await supabaseAdmin
+          .from('clients')
+          .update({ status: 'Defaulting' })
+          .eq('id', client.id);
+      }
+    } catch (err) {
+      console.error(`Failed defaulter reminder for ${client.id}:`, err.message);
+      await logFailedReminder(client.id, client.preferred_channel || 'sms', err.message, client.account_id, 'automated_defaulter');
+      results.errors++;
+    }
+  }
+
+  console.log(`Cron complete: ${results.upcoming} upcoming, ${results.defaulters} defaulter reminders sent, ${results.errors} errors`);
+  return jsonResponse({ success: true, results });
+}
+
+// ──────────────── CHANNEL DISPATCH ────────────────
+async function sendByChannel(channel: string, phoneNumber: string, message: string) {
+  if (channel === 'whatsapp') {
+    await sendWhatsApp(phoneNumber, message);
+  } else {
+    await sendSMS(phoneNumber, message);
+  }
+}
+
+// ──────────────── AI MESSAGE GENERATION ────────────────
 async function generateMessage(client: any, type: 'upcoming' | 'defaulter' | 'manual'): Promise<string> {
+  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+  if (!openaiApiKey) throw new Error('OPENAI_API_KEY is not configured');
+
   const contextMap = {
     upcoming: 'Their appointment is coming up in 3 days. Remind them warmly.',
     defaulter: 'They missed their appointment 3 days ago. Encourage them to reschedule urgently but caringly.',
@@ -224,7 +221,8 @@ async function generateMessage(client: any, type: 'upcoming' | 'defaulter' | 'ma
   return openaiData.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
 }
 
-async function logReminder(patientId: string, type: string, message: string, accountId: string | null) {
+// ──────────────── LOGGING ────────────────
+async function logReminder(patientId: string, type: string, message: string, accountId: string | null, category: string) {
   const { error } = await supabaseAdmin
     .from('patient_reminders')
     .insert({
@@ -234,13 +232,32 @@ async function logReminder(patientId: string, type: string, message: string, acc
       status: 'sent',
       sent_at: new Date().toISOString(),
       account_id: accountId,
+      reminder_category: category,
     });
   if (error) console.error('Error logging reminder:', error);
 }
 
+async function logFailedReminder(patientId: string, type: string, errorMsg: string, accountId: string | null, category: string) {
+  const { error } = await supabaseAdmin
+    .from('patient_reminders')
+    .insert({
+      patient_id: patientId,
+      reminder_type: type,
+      message: `FAILED: ${errorMsg}`,
+      status: 'failed',
+      sent_at: new Date().toISOString(),
+      account_id: accountId,
+      reminder_category: category,
+    });
+  if (error) console.error('Error logging failed reminder:', error);
+}
+
+// ──────────────── SMS / WHATSAPP VIA TWILIO ────────────────
 async function sendSMS(phoneNumber: string, message: string) {
   const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
   const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+  if (!twilioAccountSid || !twilioAuthToken) throw new Error('Twilio credentials not configured');
+
   const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`, {
     method: 'POST',
     headers: {
@@ -261,6 +278,8 @@ async function sendSMS(phoneNumber: string, message: string) {
 async function sendWhatsApp(phoneNumber: string, message: string) {
   const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
   const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+  if (!twilioAccountSid || !twilioAuthToken) throw new Error('Twilio credentials not configured');
+
   const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`, {
     method: 'POST',
     headers: {
@@ -276,4 +295,12 @@ async function sendWhatsApp(phoneNumber: string, message: string) {
   const data = await response.json();
   if (!response.ok) throw new Error(`WhatsApp failed: ${data.message || 'Unknown error'}`);
   return data;
+}
+
+// ──────────────── HELPERS ────────────────
+function jsonResponse(body: any, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 }

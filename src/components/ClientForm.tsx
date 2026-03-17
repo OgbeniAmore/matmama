@@ -28,7 +28,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Client, Service } from "@/types";
+import { Client, Service, PreferredChannel } from "@/types";
+import { Phone, MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const services: [Service, ...Service[]] = [
@@ -51,6 +52,7 @@ export const clientFormSchema = z.object({
   edd: z.date().optional(),
   lasraaId: z.string().max(50).optional(),
   ninId: z.string().max(20).optional(),
+  preferredChannel: z.enum(["sms", "whatsapp"]).default("sms"),
 }).refine((data) => {
   if (data.service === "Routine Immunization") {
     return data.childName && data.childName.trim().length > 0 && data.childDob;
@@ -103,6 +105,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           edd: clientToEdit.edd,
           lasraaId: clientToEdit.lasraa_id || "",
           ninId: clientToEdit.nin_id || "",
+          preferredChannel: (clientToEdit.preferred_channel || "sms") as "sms" | "whatsapp",
         });
       } else {
         form.reset({
@@ -117,6 +120,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           edd: undefined,
           lasraaId: "",
           ninId: "",
+          preferredChannel: "sms" as const,
         });
       }
     }
@@ -342,6 +346,41 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
             <p className="text-xs text-muted-foreground">
               Provide LASRAA ID or NIN for cross-facility identification. A system ID will be auto-generated if neither is provided.
             </p>
+
+            <FormField
+              control={form.control}
+              name="preferredChannel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Reminder Channel</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select channel" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="sms">
+                        <span className="flex items-center gap-2">
+                          <Phone className="h-3.5 w-3.5" />
+                          SMS
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="whatsapp">
+                        <span className="flex items-center gap-2">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          WhatsApp
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

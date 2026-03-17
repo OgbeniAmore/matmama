@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, addDays, isAfter, isBefore } from "date-fns";
-import { Bell, CheckCircle, XCircle, Clock, CalendarClock, TrendingUp } from "lucide-react";
+import { Bell, CheckCircle, XCircle, Clock, CalendarClock, TrendingUp, Phone, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ReminderStats {
@@ -21,6 +21,7 @@ interface UpcomingClient {
   service: string;
   dueDate: Date;
   daysUntil: number;
+  preferredChannel: string;
 }
 
 const fetchReminderStats = async (): Promise<ReminderStats> => {
@@ -50,7 +51,7 @@ const fetchUpcomingReminders = async (): Promise<UpcomingClient[]> => {
 
   const { data, error } = await supabase
     .from("clients")
-    .select("id, name, service, due_date, status")
+    .select("id, name, service, due_date, status, preferred_channel")
     .in("status", ["On Track", "Defaulting"])
     .gte("due_date", now.toISOString())
     .lte("due_date", threeDaysOut.toISOString())
@@ -69,6 +70,7 @@ const fetchUpcomingReminders = async (): Promise<UpcomingClient[]> => {
       service: c.service,
       dueDate,
       daysUntil,
+      preferredChannel: c.preferred_channel || 'sms',
     };
   });
 };
@@ -210,7 +212,11 @@ export function ReminderStatsWidget() {
                   className="flex items-center justify-between gap-2 text-sm w-full rounded-md px-2 py-1.5 -mx-2 hover:bg-muted transition-colors text-left"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Bell className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    {client.preferredChannel === 'whatsapp' ? (
+                      <MessageSquare className="h-3.5 w-3.5 text-[hsl(142,70%,45%)] shrink-0" />
+                    ) : (
+                      <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    )}
                     <span className="font-medium truncate">{client.name}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">

@@ -158,6 +158,7 @@ export type Database = {
           lasraa_id: string | null
           name: string
           nin_id: string | null
+          preferred_channel: string
           service: string
           status: string
           system_id: string | null
@@ -179,6 +180,7 @@ export type Database = {
           lasraa_id?: string | null
           name: string
           nin_id?: string | null
+          preferred_channel?: string
           service: string
           status?: string
           system_id?: string | null
@@ -200,6 +202,7 @@ export type Database = {
           lasraa_id?: string | null
           name?: string
           nin_id?: string | null
+          preferred_channel?: string
           service?: string
           status?: string
           system_id?: string | null
@@ -466,7 +469,9 @@ export type Database = {
           id: string
           message: string
           patient_id: string
+          reminder_category: string
           reminder_type: string
+          scheduled_for: string | null
           sent_at: string
           status: string
         }
@@ -476,7 +481,9 @@ export type Database = {
           id?: string
           message: string
           patient_id: string
+          reminder_category?: string
           reminder_type: string
+          scheduled_for?: string | null
           sent_at?: string
           status?: string
         }
@@ -486,7 +493,9 @@ export type Database = {
           id?: string
           message?: string
           patient_id?: string
+          reminder_category?: string
           reminder_type?: string
+          scheduled_for?: string | null
           sent_at?: string
           status?: string
         }

@@ -136,6 +136,9 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
               <h3 className="text-sm font-medium text-muted-foreground">Contact</h3>
               <p className="col-start-2">{client.contact}</p>
 
+              <h3 className="text-sm font-medium text-muted-foreground">Reminder Channel</h3>
+              <p className="col-start-2 capitalize">{client.preferred_channel || "SMS"}</p>
+
               {client.lasraa_id && (
                 <>
                   <h3 className="text-sm font-medium text-muted-foreground">LASRAA ID</h3>

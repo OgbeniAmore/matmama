@@ -81,6 +81,7 @@ export const saveClient = async ({
     lasraa_id: data.lasraaId || null,
     nin_id: data.ninId || null,
     system_id: systemId,
+    preferred_channel: data.preferredChannel || 'sms',
   };
 
   if (clientId) {

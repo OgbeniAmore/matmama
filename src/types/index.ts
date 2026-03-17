@@ -2,6 +2,8 @@
 export type Service = "Routine Immunization" | "Family Planning" | "Ante Natal Care";
 export type Status = "On Track" | "Defaulting" | "Completed";
 
+export type PreferredChannel = "sms" | "whatsapp";
+
 export interface Client {
   id: string;
   name: string;
@@ -20,6 +22,7 @@ export interface Client {
   lasraa_id?: string;
   nin_id?: string;
   system_id?: string;
+  preferred_channel?: PreferredChannel;
 }
 
 export interface TransferRequest {

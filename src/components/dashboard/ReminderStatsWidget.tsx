@@ -212,7 +212,11 @@ export function ReminderStatsWidget() {
                   className="flex items-center justify-between gap-2 text-sm w-full rounded-md px-2 py-1.5 -mx-2 hover:bg-muted transition-colors text-left"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Bell className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    {client.preferredChannel === 'whatsapp' ? (
+                      <MessageSquare className="h-3.5 w-3.5 text-[hsl(142,70%,45%)] shrink-0" />
+                    ) : (
+                      <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    )}
                     <span className="font-medium truncate">{client.name}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">

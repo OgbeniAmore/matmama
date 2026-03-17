@@ -70,6 +70,7 @@ const fetchUpcomingReminders = async (): Promise<UpcomingClient[]> => {
       service: c.service,
       dueDate,
       daysUntil,
+      preferredChannel: c.preferred_channel || 'sms',
     };
   });
 };

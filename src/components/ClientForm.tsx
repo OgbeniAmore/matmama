@@ -105,6 +105,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           edd: clientToEdit.edd,
           lasraaId: clientToEdit.lasraa_id || "",
           ninId: clientToEdit.nin_id || "",
+          preferredChannel: (clientToEdit.preferred_channel || "sms") as "sms" | "whatsapp",
         });
       } else {
         form.reset({

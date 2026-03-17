@@ -28,7 +28,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Client, Service } from "@/types";
+import { Client, Service, PreferredChannel } from "@/types";
+import { Phone, MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const services: [Service, ...Service[]] = [

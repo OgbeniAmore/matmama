@@ -349,6 +349,41 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
 
             <FormField
               control={form.control}
+              name="preferredChannel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Reminder Channel</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select channel" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="sms">
+                        <span className="flex items-center gap-2">
+                          <Phone className="h-3.5 w-3.5" />
+                          SMS
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="whatsapp">
+                        <span className="flex items-center gap-2">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          WhatsApp
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="service"
               render={({ field }) => (
                 <FormItem>

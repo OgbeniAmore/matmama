@@ -664,6 +664,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_detect_defaulters: { Args: never; Returns: number }
       get_user_account_id: { Args: { _user_id: string }; Returns: string }
       get_user_facility_id: { Args: { _user_id: string }; Returns: string }
       has_any_role: {

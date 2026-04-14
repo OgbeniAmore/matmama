@@ -42,7 +42,7 @@ const ReminderHistory = () => {
       </div>
 
       {/* Summary cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 lg:grid-cols-6">
         <SummaryCard
           title="Total Sent"
           value={isLoading ? null : reminders.length}
@@ -103,10 +103,11 @@ const ReminderHistory = () => {
               <TableRow>
                 <TableHead>Client</TableHead>
                 <TableHead>Service</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Channel</TableHead>
                 <TableHead className="hidden md:table-cell">Message</TableHead>
                 <TableHead>Sent At</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Delivery</TableHead>
+                <TableHead>Retries</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,7 +123,7 @@ const ReminderHistory = () => {
                 ))
               ) : reminders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     No reminders have been sent yet.
                   </TableCell>
                 </TableRow>

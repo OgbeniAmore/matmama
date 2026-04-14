@@ -20,23 +20,18 @@ Deno.serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    // Verify the user
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
     }
 
-    const userId = claimsData.claims.sub;
-
-    // Use service role to search across all facilities
+    const userId = user.id;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Verify user has appropriate role
     const { data: hasRole } = await adminClient.rpc('has_any_role', {
       _user_id: userId,
       _roles: ['facility_officer', 'program_manager', 'system_admin'],
@@ -48,23 +43,23 @@ Deno.serve(async (req) => {
 
     const { searchId } = await req.json();
     if (!searchId || typeof searchId !== 'string' || searchId.trim().length < 3) {
-      return new Response(JSON.stringify({ error: 'Search ID must be at least 3 characters' }), { status: 400, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: 'Search term must be at least 3 characters' }), { status: 400, headers: corsHeaders });
     }
 
-    const sanitizedId = searchId.trim();
+    const sanitizedTerm = searchId.trim();
 
-    // Search by LASRAA ID, NIN, system_id, or client ID
+    // Search by exact ID match OR partial name match (case-insensitive)
     const { data: clients, error: searchError } = await adminClient
       .from('clients')
       .select('id, name, service, status, facility_id, account_id, lasraa_id, nin_id, system_id, contact')
-      .or(`lasraa_id.eq.${sanitizedId},nin_id.eq.${sanitizedId},system_id.eq.${sanitizedId},id.eq.${sanitizedId}`);
+      .or(`lasraa_id.eq.${sanitizedTerm},nin_id.eq.${sanitizedTerm},system_id.eq.${sanitizedTerm},id.eq.${sanitizedTerm},name.ilike.%${sanitizedTerm}%`)
+      .limit(50);
 
     if (searchError) {
       console.error('Search error:', searchError);
       return new Response(JSON.stringify({ error: 'Search failed' }), { status: 500, headers: corsHeaders });
     }
 
-    // Enrich with facility name
     const facilityIds = [...new Set(clients?.map(c => c.facility_id).filter(Boolean))];
     let facilitiesMap: Record<string, string> = {};
     

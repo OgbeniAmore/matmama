@@ -111,7 +111,7 @@ const ClientSearch = () => {
       <div>
         <h1 className="text-3xl font-bold">Cross-Facility Client Search</h1>
         <p className="text-muted-foreground">
-          Search for clients across all facilities using their LASRAA ID, NIN, or System ID.
+          Search for clients across all facilities by name, LASRAA ID, NIN, or System ID.
         </p>
       </div>
 
@@ -119,13 +119,13 @@ const ClientSearch = () => {
         <CardHeader>
           <CardTitle className="text-lg">Search by Unique ID</CardTitle>
           <CardDescription>
-            Enter a LASRAA ID, NIN, System ID, or Client ID to find a client across facilities.
+            Enter a client name, LASRAA ID, NIN, System ID, or Client ID to find a client across facilities.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
             <Input
-              placeholder="Enter LASRAA ID, NIN, System ID, or Client ID..."
+              placeholder="Enter client name, LASRAA ID, NIN, System ID, or Client ID..."
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}

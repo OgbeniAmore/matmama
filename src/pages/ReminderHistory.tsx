@@ -75,6 +75,24 @@ const ReminderHistory = () => {
           }
           icon={<Bot className="h-4 w-4 text-muted-foreground" />}
         />
+        <SummaryCard
+          title="Delivered"
+          value={
+            isLoading
+              ? null
+              : reminders.filter((r) => r.delivery_status === "delivered").length
+          }
+          icon={<CheckCircle2 className="h-4 w-4 text-green-500" />}
+        />
+        <SummaryCard
+          title="Failed / Retrying"
+          value={
+            isLoading
+              ? null
+              : reminders.filter((r) => ["failed", "undelivered"].includes(r.delivery_status || "")).length
+          }
+          icon={<XCircle className="h-4 w-4 text-destructive" />}
+        />
       </div>
 
       {/* Table */}

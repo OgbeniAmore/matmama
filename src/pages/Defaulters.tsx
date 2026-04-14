@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Client } from "@/types";
 import GoogleMapModal from "@/components/GoogleMapModal";
 import { AIReminderDialog } from "@/components/AIReminderDialog";
@@ -9,12 +9,40 @@ import { DefaultersTable } from "@/components/defaulters/DefaultersTable";
 import { ViewClientSheet } from "@/components/ViewClientSheet";
 import { fetchDefaulters } from "@/queries/defaulters";
 import { Button } from "@/components/ui/button";
-import { Bot, X } from "lucide-react";
+import { Bot, X, ShieldCheck, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Defaulters = () => {
   const { data: defaulters = [], isLoading, error } = useQuery<Client[]>({
     queryKey: ["defaulters"],
     queryFn: fetchDefaulters,
+  });
+  const { role } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const isAdmin = role === "program_manager" || role === "system_admin";
+
+  const runCheckMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("auto_detect_defaulters" as any);
+      if (error) throw error;
+      return data as number;
+    },
+    onSuccess: (count) => {
+      toast({
+        title: "Defaulter Check Complete",
+        description: count > 0
+          ? `${count} client(s) marked as defaulting.`
+          : "No new defaulters found.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
   });
 
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -73,6 +101,17 @@ const Defaulters = () => {
           <h1 className="text-3xl font-bold">Defaulters</h1>
           <p className="text-muted-foreground">A list of clients who have defaulted on their schedule.</p>
         </div>
+        {isAdmin && (
+          <Button
+            variant="outline"
+            onClick={() => runCheckMutation.mutate()}
+            disabled={runCheckMutation.isPending}
+            className="gap-2"
+          >
+            {runCheckMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            Run Defaulter Check
+          </Button>
+        )}
       </div>
 
       {/* Bulk action bar */}

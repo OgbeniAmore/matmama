@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Client } from "@/types";
 import GoogleMapModal from "@/components/GoogleMapModal";
 import { AIReminderDialog } from "@/components/AIReminderDialog";
@@ -9,7 +9,10 @@ import { DefaultersTable } from "@/components/defaulters/DefaultersTable";
 import { ViewClientSheet } from "@/components/ViewClientSheet";
 import { fetchDefaulters } from "@/queries/defaulters";
 import { Button } from "@/components/ui/button";
-import { Bot, X } from "lucide-react";
+import { Bot, X, ShieldCheck, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Defaulters = () => {
   const { data: defaulters = [], isLoading, error } = useQuery<Client[]>({

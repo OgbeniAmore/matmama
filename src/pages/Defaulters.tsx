@@ -19,6 +19,31 @@ const Defaulters = () => {
     queryKey: ["defaulters"],
     queryFn: fetchDefaulters,
   });
+  const { role } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const isAdmin = role === "program_manager" || role === "system_admin";
+
+  const runCheckMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("auto_detect_defaulters" as any);
+      if (error) throw error;
+      return data as number;
+    },
+    onSuccess: (count) => {
+      toast({
+        title: "Defaulter Check Complete",
+        description: count > 0
+          ? `${count} client(s) marked as defaulting.`
+          : "No new defaulters found.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
 
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);

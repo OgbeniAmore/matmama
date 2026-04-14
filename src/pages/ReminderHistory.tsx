@@ -207,4 +207,23 @@ function SummaryCard({
   );
 }
 
+function DeliveryStatusBadge({ status }: { status?: string }) {
+  const s = status || "queued";
+  const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
+    queued: { variant: "outline", label: "Queued" },
+    sent: { variant: "secondary", label: "Sent" },
+    delivered: { variant: "default", label: "Delivered" },
+    failed: { variant: "destructive", label: "Failed" },
+    undelivered: { variant: "destructive", label: "Undelivered" },
+  };
+  const { variant, label } = config[s] || { variant: "outline" as const, label: s };
+  return (
+    <Badge variant={variant} className="capitalize">
+      {s === "delivered" && <CheckCircle2 className="h-3 w-3 mr-1" />}
+      {s === "failed" && <XCircle className="h-3 w-3 mr-1" />}
+      {label}
+    </Badge>
+  );
+}
+
 export default ReminderHistory;

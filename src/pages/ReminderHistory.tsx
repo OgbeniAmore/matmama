@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Phone, Clock, Bot } from "lucide-react";
+import { MessageSquare, Phone, Clock, Bot, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
 
 const ReminderHistory = () => {
   const {

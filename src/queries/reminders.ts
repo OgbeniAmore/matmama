@@ -9,6 +9,12 @@ export interface Reminder {
   sent_at: string;
   created_at: string;
   reminder_category?: string;
+  delivery_status?: string;
+  delivery_updated_at?: string;
+  retry_count?: number;
+  max_retries?: number;
+  error_detail?: string;
+  external_message_id?: string;
   client_name?: string;
   client_service?: string;
 }

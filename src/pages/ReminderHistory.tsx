@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Phone, Clock, Bot } from "lucide-react";
+import { MessageSquare, Phone, Clock, Bot, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
 
 const ReminderHistory = () => {
   const {
@@ -42,7 +42,7 @@ const ReminderHistory = () => {
       </div>
 
       {/* Summary cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 lg:grid-cols-6">
         <SummaryCard
           title="Total Sent"
           value={isLoading ? null : reminders.length}
@@ -75,6 +75,24 @@ const ReminderHistory = () => {
           }
           icon={<Bot className="h-4 w-4 text-muted-foreground" />}
         />
+        <SummaryCard
+          title="Delivered"
+          value={
+            isLoading
+              ? null
+              : reminders.filter((r) => r.delivery_status === "delivered").length
+          }
+          icon={<CheckCircle2 className="h-4 w-4 text-green-500" />}
+        />
+        <SummaryCard
+          title="Failed / Retrying"
+          value={
+            isLoading
+              ? null
+              : reminders.filter((r) => ["failed", "undelivered"].includes(r.delivery_status || "")).length
+          }
+          icon={<XCircle className="h-4 w-4 text-destructive" />}
+        />
       </div>
 
       {/* Table */}
@@ -85,17 +103,18 @@ const ReminderHistory = () => {
               <TableRow>
                 <TableHead>Client</TableHead>
                 <TableHead>Service</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Channel</TableHead>
                 <TableHead className="hidden md:table-cell">Message</TableHead>
                 <TableHead>Sent At</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Delivery</TableHead>
+                <TableHead>Retries</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
+                    {Array.from({ length: 7 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
@@ -104,7 +123,7 @@ const ReminderHistory = () => {
                 ))
               ) : reminders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     No reminders have been sent yet.
                   </TableCell>
                 </TableRow>
@@ -139,14 +158,17 @@ const ReminderHistory = () => {
                       {format(new Date(reminder.sent_at), "MMM d, yyyy h:mm a")}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          reminder.status === "sent" ? "default" : "destructive"
-                        }
-                        className="capitalize"
-                      >
-                        {reminder.status}
-                      </Badge>
+                      <DeliveryStatusBadge status={reminder.delivery_status} />
+                    </TableCell>
+                    <TableCell>
+                      {(reminder.retry_count || 0) > 0 ? (
+                        <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <RefreshCw className="h-3 w-3" />
+                          {reminder.retry_count}/{reminder.max_retries || 3}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -182,6 +204,25 @@ function SummaryCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function DeliveryStatusBadge({ status }: { status?: string }) {
+  const s = status || "queued";
+  const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
+    queued: { variant: "outline", label: "Queued" },
+    sent: { variant: "secondary", label: "Sent" },
+    delivered: { variant: "default", label: "Delivered" },
+    failed: { variant: "destructive", label: "Failed" },
+    undelivered: { variant: "destructive", label: "Undelivered" },
+  };
+  const { variant, label } = config[s] || { variant: "outline" as const, label: s };
+  return (
+    <Badge variant={variant} className="capitalize">
+      {s === "delivered" && <CheckCircle2 className="h-3 w-3 mr-1" />}
+      {s === "failed" && <XCircle className="h-3 w-3 mr-1" />}
+      {label}
+    </Badge>
   );
 }
 

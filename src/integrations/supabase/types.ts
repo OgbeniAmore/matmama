@@ -466,11 +466,17 @@ export type Database = {
         Row: {
           account_id: string | null
           created_at: string
+          delivery_status: string
+          delivery_updated_at: string | null
+          error_detail: string | null
+          external_message_id: string | null
           id: string
+          max_retries: number
           message: string
           patient_id: string
           reminder_category: string
           reminder_type: string
+          retry_count: number
           scheduled_for: string | null
           sent_at: string
           status: string
@@ -478,11 +484,17 @@ export type Database = {
         Insert: {
           account_id?: string | null
           created_at?: string
+          delivery_status?: string
+          delivery_updated_at?: string | null
+          error_detail?: string | null
+          external_message_id?: string | null
           id?: string
+          max_retries?: number
           message: string
           patient_id: string
           reminder_category?: string
           reminder_type: string
+          retry_count?: number
           scheduled_for?: string | null
           sent_at?: string
           status?: string
@@ -490,11 +502,17 @@ export type Database = {
         Update: {
           account_id?: string | null
           created_at?: string
+          delivery_status?: string
+          delivery_updated_at?: string | null
+          error_detail?: string | null
+          external_message_id?: string | null
           id?: string
+          max_retries?: number
           message?: string
           patient_id?: string
           reminder_category?: string
           reminder_type?: string
+          retry_count?: number
           scheduled_for?: string | null
           sent_at?: string
           status?: string

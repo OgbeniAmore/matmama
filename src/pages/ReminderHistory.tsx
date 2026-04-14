@@ -114,7 +114,7 @@ const ReminderHistory = () => {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
+                    {Array.from({ length: 7 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
@@ -158,14 +158,17 @@ const ReminderHistory = () => {
                       {format(new Date(reminder.sent_at), "MMM d, yyyy h:mm a")}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          reminder.status === "sent" ? "default" : "destructive"
-                        }
-                        className="capitalize"
-                      >
-                        {reminder.status}
-                      </Badge>
+                      <DeliveryStatusBadge status={reminder.delivery_status} />
+                    </TableCell>
+                    <TableCell>
+                      {(reminder.retry_count || 0) > 0 ? (
+                        <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <RefreshCw className="h-3 w-3" />
+                          {reminder.retry_count}/{reminder.max_retries || 3}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

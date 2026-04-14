@@ -101,6 +101,17 @@ const Defaulters = () => {
           <h1 className="text-3xl font-bold">Defaulters</h1>
           <p className="text-muted-foreground">A list of clients who have defaulted on their schedule.</p>
         </div>
+        {isAdmin && (
+          <Button
+            variant="outline"
+            onClick={() => runCheckMutation.mutate()}
+            disabled={runCheckMutation.isPending}
+            className="gap-2"
+          >
+            {runCheckMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            Run Defaulter Check
+          </Button>
+        )}
       </div>
 
       {/* Bulk action bar */}

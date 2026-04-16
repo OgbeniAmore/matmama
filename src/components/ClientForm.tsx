@@ -96,6 +96,16 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
 
   const watchedService = form.watch("service");
 
+  const watchedLmp = form.watch("lmp");
+
+  const ancPreview = (() => {
+    if (watchedService !== "Ante Natal Care" || !watchedLmp) return null;
+    const edd = calculateEddFromLmp(watchedLmp);
+    const ga = calculateGestationalAge(watchedLmp);
+    const trimester = calculateTrimester(ga);
+    return { edd, ga, trimester };
+  })();
+
   useEffect(() => {
     if (open) {
       if (isEditMode && clientToEdit) {
@@ -109,6 +119,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           childDob: clientToEdit.childDob,
           trimester: clientToEdit.trimester || undefined,
           edd: clientToEdit.edd,
+          lmp: clientToEdit.lmp,
           lasraaId: clientToEdit.lasraa_id || "",
           ninId: clientToEdit.nin_id || "",
           preferredChannel: (clientToEdit.preferred_channel || "sms") as "sms" | "whatsapp",
@@ -124,6 +135,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           childDob: undefined,
           trimester: undefined,
           edd: undefined,
+          lmp: undefined,
           lasraaId: "",
           ninId: "",
           preferredChannel: "sms" as const,
@@ -133,6 +145,15 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
   }, [clientToEdit, open, form, isEditMode]);
 
   const onSubmit = (data: ClientFormValues) => {
+    // For ANC, derive EDD and trimester from LMP so downstream code keeps working.
+    if (data.service === "Ante Natal Care" && data.lmp) {
+      const edd = calculateEddFromLmp(data.lmp);
+      const ga = calculateGestationalAge(data.lmp);
+      data.edd = edd;
+      data.trimester = calculateTrimester(ga);
+      // Default the dueDate to EDD if not set
+      if (!data.dueDate) data.dueDate = edd;
+    }
     onSave(data);
     onFinished();
   };

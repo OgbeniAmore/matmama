@@ -17,6 +17,7 @@ export interface Client {
   childDob?: Date;
   trimester?: number;
   edd?: Date;
+  lmp?: Date;
   account_id?: string;
   facility_id?: string;
   lasraa_id?: string;

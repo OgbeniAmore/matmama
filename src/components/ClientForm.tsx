@@ -242,36 +242,10 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
               <>
                 <FormField
                   control={form.control}
-                  name="trimester"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trimester *</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select trimester" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">First Trimester (1-12 weeks)</SelectItem>
-                          <SelectItem value="2">Second Trimester (13-26 weeks)</SelectItem>
-                          <SelectItem value="3">Third Trimester (27-40 weeks)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="edd"
+                  name="lmp"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Estimated Due Date (EDD) *</FormLabel>
+                      <FormLabel>Last Menstrual Period (LMP) *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -286,7 +260,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                               {field.value ? (
                                 format(field.value, "PPP")
                               ) : (
-                                <span>Pick estimated due date</span>
+                                <span>Pick first day of last menstrual period</span>
                               )}
                             </Button>
                           </FormControl>
@@ -297,8 +271,8 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
-                            className="pointer-events-auto"
-                            disabled={(date) => date < new Date()}
+                            className="p-3 pointer-events-auto"
+                            disabled={(date) => date > new Date() || date < subMonths(new Date(), 10)}
                           />
                         </PopoverContent>
                       </Popover>
@@ -306,6 +280,30 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                     </FormItem>
                   )}
                 />
+
+                {ancPreview && (
+                  <div className="rounded-lg border bg-muted/40 p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Baby className="h-4 w-4 text-primary" />
+                      Pregnancy Summary (auto-calculated)
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                      <span className="text-muted-foreground">EDD (Naegele's rule)</span>
+                      <span className="font-medium">{format(ancPreview.edd, "PPP")}</span>
+                      <span className="text-muted-foreground">Gestational age</span>
+                      <span className="font-medium">{ancPreview.ga} week{ancPreview.ga === 1 ? "" : "s"}</span>
+                      <span className="text-muted-foreground">Trimester</span>
+                      <span className="font-medium">
+                        {ancPreview.trimester === 1 && "First (1–12 weeks)"}
+                        {ancPreview.trimester === 2 && "Second (13–26 weeks)"}
+                        {ancPreview.trimester === 3 && "Third (27–40 weeks)"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-1 border-t">
+                      8 ANC visits will be scheduled automatically (WHO recommendation).
+                    </p>
+                  </div>
+                )}
               </>
             )}
 

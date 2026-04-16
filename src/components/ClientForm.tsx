@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, subMonths } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,8 +29,13 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Client, Service, PreferredChannel } from "@/types";
-import { Phone, MessageSquare } from "lucide-react";
+import { Phone, MessageSquare, Baby } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  calculateEddFromLmp,
+  calculateGestationalAge,
+  calculateTrimester,
+} from "@/utils/ancUtils";
 
 const services: [Service, ...Service[]] = [
   "Routine Immunization",
@@ -50,6 +55,7 @@ export const clientFormSchema = z.object({
   childDob: z.date().optional(),
   trimester: z.coerce.number().min(1).max(3).optional(),
   edd: z.date().optional(),
+  lmp: z.date().optional(),
   lasraaId: z.string().max(50).optional(),
   ninId: z.string().max(20).optional(),
   preferredChannel: z.enum(["sms", "whatsapp"]).default("sms"),
@@ -63,12 +69,12 @@ export const clientFormSchema = z.object({
   path: ["childName"],
 }).refine((data) => {
   if (data.service === "Ante Natal Care") {
-    return data.trimester && data.edd;
+    return !!data.lmp;
   }
   return true;
 }, {
-  message: "Trimester and EDD are required for Ante Natal Care",
-  path: ["trimester"],
+  message: "LMP (Last Menstrual Period) is required for Ante Natal Care",
+  path: ["lmp"],
 });
 
 export type ClientFormValues = z.infer<typeof clientFormSchema>;

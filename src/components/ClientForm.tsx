@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, subMonths } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,8 +29,13 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Client, Service, PreferredChannel } from "@/types";
-import { Phone, MessageSquare } from "lucide-react";
+import { Phone, MessageSquare, Baby } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  calculateEddFromLmp,
+  calculateGestationalAge,
+  calculateTrimester,
+} from "@/utils/ancUtils";
 
 const services: [Service, ...Service[]] = [
   "Routine Immunization",
@@ -50,6 +55,7 @@ export const clientFormSchema = z.object({
   childDob: z.date().optional(),
   trimester: z.coerce.number().min(1).max(3).optional(),
   edd: z.date().optional(),
+  lmp: z.date().optional(),
   lasraaId: z.string().max(50).optional(),
   ninId: z.string().max(20).optional(),
   preferredChannel: z.enum(["sms", "whatsapp"]).default("sms"),
@@ -63,12 +69,12 @@ export const clientFormSchema = z.object({
   path: ["childName"],
 }).refine((data) => {
   if (data.service === "Ante Natal Care") {
-    return data.trimester && data.edd;
+    return !!data.lmp;
   }
   return true;
 }, {
-  message: "Trimester and EDD are required for Ante Natal Care",
-  path: ["trimester"],
+  message: "LMP (Last Menstrual Period) is required for Ante Natal Care",
+  path: ["lmp"],
 });
 
 export type ClientFormValues = z.infer<typeof clientFormSchema>;
@@ -90,6 +96,16 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
 
   const watchedService = form.watch("service");
 
+  const watchedLmp = form.watch("lmp");
+
+  const ancPreview = (() => {
+    if (watchedService !== "Ante Natal Care" || !watchedLmp) return null;
+    const edd = calculateEddFromLmp(watchedLmp);
+    const ga = calculateGestationalAge(watchedLmp);
+    const trimester = calculateTrimester(ga);
+    return { edd, ga, trimester };
+  })();
+
   useEffect(() => {
     if (open) {
       if (isEditMode && clientToEdit) {
@@ -103,6 +119,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           childDob: clientToEdit.childDob,
           trimester: clientToEdit.trimester || undefined,
           edd: clientToEdit.edd,
+          lmp: clientToEdit.lmp,
           lasraaId: clientToEdit.lasraa_id || "",
           ninId: clientToEdit.nin_id || "",
           preferredChannel: (clientToEdit.preferred_channel || "sms") as "sms" | "whatsapp",
@@ -118,6 +135,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           childDob: undefined,
           trimester: undefined,
           edd: undefined,
+          lmp: undefined,
           lasraaId: "",
           ninId: "",
           preferredChannel: "sms" as const,
@@ -127,6 +145,15 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
   }, [clientToEdit, open, form, isEditMode]);
 
   const onSubmit = (data: ClientFormValues) => {
+    // For ANC, derive EDD and trimester from LMP so downstream code keeps working.
+    if (data.service === "Ante Natal Care" && data.lmp) {
+      const edd = calculateEddFromLmp(data.lmp);
+      const ga = calculateGestationalAge(data.lmp);
+      data.edd = edd;
+      data.trimester = calculateTrimester(ga);
+      // Default the dueDate to EDD if not set
+      if (!data.dueDate) data.dueDate = edd;
+    }
     onSave(data);
     onFinished();
   };
@@ -215,36 +242,10 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
               <>
                 <FormField
                   control={form.control}
-                  name="trimester"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trimester *</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select trimester" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">First Trimester (1-12 weeks)</SelectItem>
-                          <SelectItem value="2">Second Trimester (13-26 weeks)</SelectItem>
-                          <SelectItem value="3">Third Trimester (27-40 weeks)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="edd"
+                  name="lmp"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Estimated Due Date (EDD) *</FormLabel>
+                      <FormLabel>Last Menstrual Period (LMP) *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -259,7 +260,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                               {field.value ? (
                                 format(field.value, "PPP")
                               ) : (
-                                <span>Pick estimated due date</span>
+                                <span>Pick first day of last menstrual period</span>
                               )}
                             </Button>
                           </FormControl>
@@ -270,8 +271,8 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
-                            className="pointer-events-auto"
-                            disabled={(date) => date < new Date()}
+                            className="p-3 pointer-events-auto"
+                            disabled={(date) => date > new Date() || date < subMonths(new Date(), 10)}
                           />
                         </PopoverContent>
                       </Popover>
@@ -279,6 +280,30 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                     </FormItem>
                   )}
                 />
+
+                {ancPreview && (
+                  <div className="rounded-lg border bg-muted/40 p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Baby className="h-4 w-4 text-primary" />
+                      Pregnancy Summary (auto-calculated)
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                      <span className="text-muted-foreground">EDD (Naegele's rule)</span>
+                      <span className="font-medium">{format(ancPreview.edd, "PPP")}</span>
+                      <span className="text-muted-foreground">Gestational age</span>
+                      <span className="font-medium">{ancPreview.ga} week{ancPreview.ga === 1 ? "" : "s"}</span>
+                      <span className="text-muted-foreground">Trimester</span>
+                      <span className="font-medium">
+                        {ancPreview.trimester === 1 && "First (1–12 weeks)"}
+                        {ancPreview.trimester === 2 && "Second (13–26 weeks)"}
+                        {ancPreview.trimester === 3 && "Third (27–40 weeks)"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-1 border-t">
+                      8 ANC visits will be scheduled automatically (WHO recommendation).
+                    </p>
+                  </div>
+                )}
               </>
             )}
 

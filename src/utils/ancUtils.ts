@@ -1,6 +1,31 @@
 
-import { addWeeks, subWeeks } from "date-fns";
+import { addDays, differenceInWeeks, subWeeks } from "date-fns";
 import { ANC_SCHEDULE, AncVisit } from "@/types/anc";
+
+/**
+ * Naegele's rule: EDD = LMP + 280 days (40 weeks)
+ */
+export const calculateEddFromLmp = (lmp: Date): Date => {
+  return addDays(lmp, 280);
+};
+
+/**
+ * Calculate current gestational age in completed weeks based on LMP.
+ */
+export const calculateGestationalAge = (lmp: Date): number => {
+  const weeks = differenceInWeeks(new Date(), lmp);
+  return Math.max(0, weeks);
+};
+
+/**
+ * Determine trimester from gestational age in weeks.
+ * 1st: <13w, 2nd: 13–26w, 3rd: 27w+
+ */
+export const calculateTrimester = (weeks: number): 1 | 2 | 3 => {
+  if (weeks < 13) return 1;
+  if (weeks < 27) return 2;
+  return 3;
+};
 
 /**
  * Generates an ANC visit schedule based on the Expected Date of Delivery (EDD).

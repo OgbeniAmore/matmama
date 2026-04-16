@@ -103,6 +103,18 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
 
               {client.service === "Ante Natal Care" && (
                 <>
+                  {client.lmp && (
+                    <>
+                      <h3 className="text-sm font-medium text-muted-foreground">LMP (Last Menstrual Period)</h3>
+                      <p className="col-start-2">{format(client.lmp, "PPP")}</p>
+
+                      <h3 className="text-sm font-medium text-muted-foreground">Gestational Age</h3>
+                      <p className="col-start-2">
+                        {Math.max(0, Math.floor((Date.now() - client.lmp.getTime()) / (1000 * 60 * 60 * 24 * 7)))} weeks
+                      </p>
+                    </>
+                  )}
+
                   {client.trimester && (
                     <>
                       <h3 className="text-sm font-medium text-muted-foreground">Trimester</h3>
@@ -120,6 +132,9 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
                       <p className="col-start-2">{format(client.edd, "PPP")}</p>
                     </>
                   )}
+
+                  <h3 className="text-sm font-medium text-muted-foreground">ANC Visits</h3>
+                  <p className="col-start-2">8 (WHO standard)</p>
                 </>
               )}
 

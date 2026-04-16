@@ -156,6 +156,7 @@ export type Database = {
           facility_id: string | null
           id: string
           lasraa_id: string | null
+          lmp: string | null
           name: string
           nin_id: string | null
           preferred_channel: string
@@ -178,6 +179,7 @@ export type Database = {
           facility_id?: string | null
           id: string
           lasraa_id?: string | null
+          lmp?: string | null
           name: string
           nin_id?: string | null
           preferred_channel?: string
@@ -200,6 +202,7 @@ export type Database = {
           facility_id?: string | null
           id?: string
           lasraa_id?: string | null
+          lmp?: string | null
           name?: string
           nin_id?: string | null
           preferred_channel?: string

@@ -98,13 +98,14 @@ serve(async (req) => {
 });
 
 // ──────────────── RETRY HANDLER ────────────────
-async function handleRetry(reminderId: string) {
+async function handleRetry(reminderId: string, callerAccountId: string) {
   console.log(`Processing retry for reminder ${reminderId}`);
 
   const { data: original, error: fetchErr } = await supabaseAdmin
     .from('patient_reminders')
     .select('*')
     .eq('id', reminderId)
+    .eq('account_id', callerAccountId)
     .single();
 
   if (fetchErr || !original) {
@@ -119,6 +120,7 @@ async function handleRetry(reminderId: string) {
     .from('clients')
     .select('*')
     .eq('id', original.patient_id)
+    .eq('account_id', callerAccountId)
     .single();
 
   if (!client) return jsonResponse({ error: 'Client not found' }, 404);

@@ -23,22 +23,45 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { patientId, reminderType, automated, retryOf } = body;
 
-    // --- RETRY MODE ---
-    if (retryOf) {
-      return await handleRetry(retryOf);
-    }
-
-    // --- AUTOMATED CRON MODE ---
+    // --- AUTOMATED CRON MODE: requires shared cron secret ---
     if (automated) {
+      const cronSecret = req.headers.get('x-cron-secret');
+      const expected = Deno.env.get('CRON_SECRET');
+      if (!expected || cronSecret !== expected) {
+        return jsonResponse({ error: 'Forbidden' }, 403);
+      }
       return await handleAutomatedReminders();
     }
 
-    // --- MANUAL SINGLE-CLIENT MODE ---
+    // --- AUTHENTICATED MODES (manual + retry) ---
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return jsonResponse({ error: 'Unauthorized' }, 401);
     }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+    const userId = userData.user.id;
 
+    // Resolve caller account for tenant scoping
+    const { data: callerProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('account_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    const callerAccountId = callerProfile?.account_id ?? null;
+    if (!callerAccountId) {
+      return jsonResponse({ error: 'Forbidden' }, 403);
+    }
+
+    // --- RETRY MODE ---
+    if (retryOf) {
+      return await handleRetry(retryOf, callerAccountId);
+    }
+
+    // --- MANUAL SINGLE-CLIENT MODE ---
     if (!patientId || !reminderType) {
       throw new Error('Missing required fields: patientId and reminderType');
     }
@@ -50,6 +73,7 @@ serve(async (req) => {
       .from('clients')
       .select('*')
       .eq('id', patientId)
+      .eq('account_id', callerAccountId)
       .single();
 
     if (clientError || !client) throw new Error('Client not found');
@@ -74,13 +98,14 @@ serve(async (req) => {
 });
 
 // ──────────────── RETRY HANDLER ────────────────
-async function handleRetry(reminderId: string) {
+async function handleRetry(reminderId: string, callerAccountId: string) {
   console.log(`Processing retry for reminder ${reminderId}`);
 
   const { data: original, error: fetchErr } = await supabaseAdmin
     .from('patient_reminders')
     .select('*')
     .eq('id', reminderId)
+    .eq('account_id', callerAccountId)
     .single();
 
   if (fetchErr || !original) {
@@ -95,6 +120,7 @@ async function handleRetry(reminderId: string) {
     .from('clients')
     .select('*')
     .eq('id', original.patient_id)
+    .eq('account_id', callerAccountId)
     .single();
 
   if (!client) return jsonResponse({ error: 'Client not found' }, 404);

@@ -32,6 +32,14 @@ Deno.serve(async (req) => {
     const userId = user.id;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+    // Get caller's account for cross-tenant PII redaction
+    const { data: callerProfile } = await adminClient
+      .from('profiles')
+      .select('account_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    const callerAccountId = callerProfile?.account_id ?? null;
+
     const { data: hasRole } = await adminClient.rpc('has_any_role', {
       _user_id: userId,
       _roles: ['facility_officer', 'program_manager', 'system_admin'],
@@ -74,19 +82,23 @@ Deno.serve(async (req) => {
       }
     }
 
-    const results = (clients || []).map(c => ({
-      id: c.id,
-      name: c.name,
-      service: c.service,
-      status: c.status,
-      contact: c.contact,
-      facility_id: c.facility_id,
-      account_id: c.account_id,
-      facility_name: facilitiesMap[c.facility_id] || 'Unknown',
-      lasraa_id: c.lasraa_id,
-      nin_id: c.nin_id,
-      system_id: c.system_id,
-    }));
+    // Redact PII (contact phone) for clients outside the caller's account
+    const results = (clients || []).map(c => {
+      const sameAccount = callerAccountId && c.account_id === callerAccountId;
+      return {
+        id: c.id,
+        name: c.name,
+        service: c.service,
+        status: c.status,
+        contact: sameAccount ? c.contact : '[Redacted]',
+        facility_id: c.facility_id,
+        account_id: c.account_id,
+        facility_name: facilitiesMap[c.facility_id] || 'Unknown',
+        lasraa_id: c.lasraa_id,
+        nin_id: c.nin_id,
+        system_id: c.system_id,
+      };
+    });
 
     return new Response(JSON.stringify({ clients: results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

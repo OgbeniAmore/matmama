@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { Bot, Loader2, MessageCircle, Send, X, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getPageContext, getSuggestionsForRole } from "./chatbotContext";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -43,6 +45,7 @@ const ROLE_GREETINGS: Record<string, string> = {
 
 export function ChatbotWidget() {
   const { role, profile } = useAuth();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [language, setLanguage] = useState("auto");
   const [input, setInput] = useState("");
@@ -53,6 +56,8 @@ export function ChatbotWidget() {
   const userName = profile?.first_name || undefined;
   const roleLabel = role ? ROLE_LABELS[role] : "Guest";
   const greeting = role ? ROLE_GREETINGS[role] : "Ask me anything about Matmama.";
+  const pageContext = useMemo(() => getPageContext(location.pathname), [location.pathname]);
+  const suggestions = useMemo(() => getSuggestionsForRole(role), [role]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -60,10 +65,10 @@ export function ChatbotWidget() {
     }
   }, [messages, isLoading]);
 
-  const send = async () => {
-    const text = input.trim();
+  const send = async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || isLoading) return;
-    setInput("");
+    if (!overrideText) setInput("");
     const userMsg: Msg = { role: "user", content: text };
     const next = [...messages, userMsg];
     setMessages(next);
@@ -96,6 +101,7 @@ export function ChatbotWidget() {
           role,
           language,
           userName,
+          pageContext,
         }),
       });
 
@@ -207,11 +213,34 @@ export function ChatbotWidget() {
           <ScrollArea className="flex-1">
             <div ref={scrollRef} className="p-3 space-y-3">
               {messages.length === 0 && (
-                <div className="rounded-lg bg-muted/50 p-3 text-sm">
-                  <p className="font-medium mb-1">
-                    👋 Hi{userName ? ` ${userName}` : ""}!
-                  </p>
-                  <p className="text-muted-foreground text-xs">{greeting}</p>
+                <div className="space-y-3">
+                  <div className="rounded-lg bg-muted/50 p-3 text-sm">
+                    <p className="font-medium mb-1">
+                      👋 Hi{userName ? ` ${userName}` : ""}!
+                    </p>
+                    <p className="text-muted-foreground text-xs mb-1">{greeting}</p>
+                    <p className="text-muted-foreground text-[11px]">
+                      📍 You're on <span className="font-medium text-foreground">{pageContext.name}</span>
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                      <Sparkles className="h-3 w-3" /> Try asking
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {suggestions.map((s) => (
+                        <button
+                          key={s.label}
+                          type="button"
+                          onClick={() => send(s.prompt)}
+                          disabled={isLoading}
+                          className="rounded-full border bg-background hover:bg-accent hover:text-accent-foreground px-3 py-1 text-xs transition-colors disabled:opacity-50"
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
               {messages.map((m, i) => (

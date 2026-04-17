@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, role, language, userName } = await req.json();
+    const { messages, role, language, userName, pageContext } = await req.json();
 
     if (!Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "messages must be an array" }), {
@@ -64,10 +64,18 @@ Deno.serve(async (req) => {
         ? `Always respond in ${language}, regardless of the language of the question.`
         : `Detect the user's language from their message and respond in the same language. Default to English.`;
 
+    const pageBlock = pageContext?.name
+      ? `\nCURRENT PAGE CONTEXT:
+The user is currently viewing the "${pageContext.name}" page (${pageContext.path}).
+${pageContext.description}
+When the user asks vague questions like "how does this work?", "what is this page?", or "what can I do here?", assume they mean THIS page and explain it concretely.`
+      : "";
+
     const systemPrompt = `You are Mat, a friendly AI assistant for the Matmama healthcare platform.
 ${PLATFORM_OVERVIEW}
 
 ${roleGuide}
+${pageBlock}
 
 ${userName ? `The user's name is ${userName}. Greet them by name on the first turn only.` : ""}
 

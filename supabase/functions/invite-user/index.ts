@@ -143,7 +143,8 @@ serve(async (req) => {
       });
 
       if (createError || !newUser.user) {
-        return new Response(JSON.stringify({ error: createError?.message || "Failed to create user" }), {
+        console.error("createUser error:", createError);
+        return new Response(JSON.stringify({ error: "Failed to create user" }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -184,7 +185,7 @@ serve(async (req) => {
     );
   } catch (err) {
     console.error("invite-user error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "An internal error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

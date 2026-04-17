@@ -69,7 +69,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in send-ai-reminder function:', error);
-    return jsonResponse({ success: false, error: error.message }, 500);
+    return jsonResponse({ success: false, error: 'An internal error occurred' }, 500);
   }
 });
 
@@ -128,7 +128,7 @@ async function handleRetry(reminderId: string) {
       })
       .eq('id', reminderId);
 
-    return jsonResponse({ error: err.message }, 500);
+    return jsonResponse({ error: 'Failed to send reminder' }, 500);
   }
 }
 

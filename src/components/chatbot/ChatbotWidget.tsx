@@ -101,6 +101,7 @@ export function ChatbotWidget() {
           role,
           language,
           userName,
+          pageContext,
         }),
       });
 
@@ -212,11 +213,34 @@ export function ChatbotWidget() {
           <ScrollArea className="flex-1">
             <div ref={scrollRef} className="p-3 space-y-3">
               {messages.length === 0 && (
-                <div className="rounded-lg bg-muted/50 p-3 text-sm">
-                  <p className="font-medium mb-1">
-                    👋 Hi{userName ? ` ${userName}` : ""}!
-                  </p>
-                  <p className="text-muted-foreground text-xs">{greeting}</p>
+                <div className="space-y-3">
+                  <div className="rounded-lg bg-muted/50 p-3 text-sm">
+                    <p className="font-medium mb-1">
+                      👋 Hi{userName ? ` ${userName}` : ""}!
+                    </p>
+                    <p className="text-muted-foreground text-xs mb-1">{greeting}</p>
+                    <p className="text-muted-foreground text-[11px]">
+                      📍 You're on <span className="font-medium text-foreground">{pageContext.name}</span>
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                      <Sparkles className="h-3 w-3" /> Try asking
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {suggestions.map((s) => (
+                        <button
+                          key={s.label}
+                          type="button"
+                          onClick={() => send(s.prompt)}
+                          disabled={isLoading}
+                          className="rounded-full border bg-background hover:bg-accent hover:text-accent-foreground px-3 py-1 text-xs transition-colors disabled:opacity-50"
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
               {messages.map((m, i) => (

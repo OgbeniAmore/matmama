@@ -15,6 +15,8 @@ import {
 import { User, HeartPulse } from "lucide-react";
 import { NotificationBell } from "./NotificationBell";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 
 const roleLabels: Record<string, string> = {
   system_admin: "System Admin",
@@ -46,6 +48,7 @@ export function MainLayout() {
 
             <div className="flex-1" />
 
+            <ThemeToggle />
             <NotificationBell />
 
             {/* Role badge - all screens */}
@@ -88,6 +91,8 @@ export function MainLayout() {
         </div>
         {/* Mobile bottom navigation */}
         <BottomNav />
+        {/* AI Assistant chatbot */}
+        <ChatbotWidget />
       </div>
     </SidebarProvider>
   );

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { Bot, Loader2, MessageCircle, Send, X, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getPageContext, getSuggestionsForRole } from "./chatbotContext";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -43,6 +45,7 @@ const ROLE_GREETINGS: Record<string, string> = {
 
 export function ChatbotWidget() {
   const { role, profile } = useAuth();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [language, setLanguage] = useState("auto");
   const [input, setInput] = useState("");
@@ -53,6 +56,8 @@ export function ChatbotWidget() {
   const userName = profile?.first_name || undefined;
   const roleLabel = role ? ROLE_LABELS[role] : "Guest";
   const greeting = role ? ROLE_GREETINGS[role] : "Ask me anything about Matmama.";
+  const pageContext = useMemo(() => getPageContext(location.pathname), [location.pathname]);
+  const suggestions = useMemo(() => getSuggestionsForRole(role), [role]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -60,10 +65,10 @@ export function ChatbotWidget() {
     }
   }, [messages, isLoading]);
 
-  const send = async () => {
-    const text = input.trim();
+  const send = async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || isLoading) return;
-    setInput("");
+    if (!overrideText) setInput("");
     const userMsg: Msg = { role: "user", content: text };
     const next = [...messages, userMsg];
     setMessages(next);

@@ -17,6 +17,7 @@ import ReminderHistory from "./pages/ReminderHistory";
 import AuditLog from "./pages/AuditLog";
 import TeamPage from "./pages/Team";
 import FacilitiesPage from "./pages/Facilities";
+import FacilityDetail from "./pages/FacilityDetail";
 import ClientSearch from "./pages/ClientSearch";
 import TransfersPage from "./pages/Transfers";
 import NotificationPreferences from "./pages/NotificationPreferences";
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/audit-log" element={<AuditLog />} />
                 <Route path="/team" element={<TeamPage />} />
                 <Route path="/facilities" element={<FacilitiesPage />} />
+                <Route path="/facilities/:id" element={<FacilityDetail />} />
                 <Route path="/client-search" element={<ClientSearch />} />
                 <Route path="/transfers" element={<TransfersPage />} />
                 <Route path="/profile" element={<ProfilePage />} />

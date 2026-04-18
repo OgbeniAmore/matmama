@@ -1,12 +1,22 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Building2, Plus, Shield, MapPin } from "lucide-react";
 import { FacilityDialog } from "@/components/facilities/FacilityDialog";
+
+function deriveStatus(staffCount: number, clientCount: number) {
+  if (staffCount === 0) return { label: "No staff", variant: "destructive" as const };
+  if (clientCount > 0 && clientCount / staffCount > 100)
+    return { label: "At capacity", variant: "secondary" as const };
+  if (staffCount < 2) return { label: "Low staff", variant: "secondary" as const };
+  return { label: "Active", variant: "default" as const };
+}
 
 type Facility = {
   id: string;
@@ -149,6 +159,7 @@ export default function FacilitiesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="hidden sm:table-cell">Ward</TableHead>
                     <TableHead className="hidden md:table-cell">LGA</TableHead>
                     <TableHead className="text-center">Staff</TableHead>
@@ -157,41 +168,50 @@ export default function FacilitiesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {facilities.map((facility) => (
-                    <TableRow key={facility.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{facility.name}</p>
+                  {facilities.map((facility) => {
+                    const staffCount = memberCounts[facility.id] || 0;
+                    const clientCount = clientCounts[facility.id] || 0;
+                    const status = deriveStatus(staffCount, clientCount);
+                    return (
+                      <TableRow key={facility.id}>
+                        <TableCell>
+                          <Link
+                            to={`/facilities/${facility.id}`}
+                            className="font-medium hover:underline text-primary"
+                          >
+                            {facility.name}
+                          </Link>
                           {facility.address && (
                             <p className="text-xs text-muted-foreground sm:hidden truncate max-w-[180px]">
                               {facility.address}
                             </p>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        {facility.ward || <span className="text-muted-foreground text-xs">—</span>}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {facility.local_government || <span className="text-muted-foreground text-xs">—</span>}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {memberCounts[facility.id] || 0}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {clientCounts[facility.id] || 0}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => { setEditFacility(facility); setDialogOpen(true); }}
-                        >
-                          Edit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={status.variant} className="text-xs">
+                            {status.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {facility.ward || <span className="text-muted-foreground text-xs">—</span>}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {facility.local_government || <span className="text-muted-foreground text-xs">—</span>}
+                        </TableCell>
+                        <TableCell className="text-center">{staffCount}</TableCell>
+                        <TableCell className="text-center">{clientCount}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => { setEditFacility(facility); setDialogOpen(true); }}
+                          >
+                            Edit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

@@ -10,6 +10,7 @@ import { UserPlus, Shield, Building2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { InviteUserDialog } from "@/components/team/InviteUserDialog";
 import { EditMemberDialog } from "@/components/team/EditMemberDialog";
+import { PendingInvitations } from "@/components/team/PendingInvitations";
 
 const roleLabels: Record<string, string> = {
   system_admin: "System Admin",
@@ -232,6 +233,15 @@ export default function TeamPage() {
           )}
         </CardContent>
       </Card>
+
+      <PendingInvitations
+        invitations={invitations as any}
+        facilities={facilities}
+        onRevoked={() => {
+          queryClient.invalidateQueries({ queryKey: ["invitations"] });
+          queryClient.invalidateQueries({ queryKey: ["team-members"] });
+        }}
+      />
 
       <InviteUserDialog
         open={inviteOpen}

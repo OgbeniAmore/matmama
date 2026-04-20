@@ -57,7 +57,19 @@ export function InviteUserDialog({ open, onOpenChange, facilities, onSuccess }: 
 
       if (error) throw error;
 
-      toast.success(`User ${email} invited successfully`);
+      if (data?.emailSent) {
+        toast.success(`Invitation email sent to ${email}`, {
+          description: "They'll receive their temporary password shortly.",
+        });
+      } else if (data?.tempPassword) {
+        toast.success(`User created for ${email}`, {
+          description: `Email delivery unavailable. Share this temp password manually: ${data.tempPassword}`,
+          duration: 20000,
+        });
+      } else {
+        toast.success(data?.message || `${email} added to team`);
+      }
+
       setEmail("");
       setRole("facility_officer");
       setFacilityId("");

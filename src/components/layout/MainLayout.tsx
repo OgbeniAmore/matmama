@@ -12,11 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, HeartPulse } from "lucide-react";
+import { User } from "lucide-react";
 import { NotificationBell } from "./NotificationBell";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
+import { Logo } from "@/components/Logo";
 
 const roleLabels: Record<string, string> = {
   system_admin: "System Admin",
@@ -41,9 +42,8 @@ export function MainLayout() {
             <SidebarTrigger className="hidden md:block lg:hidden" />
 
             {/* Mobile logo */}
-            <div className="flex items-center gap-2 md:hidden">
-              <HeartPulse className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg">Matmama</span>
+            <div className="flex items-center md:hidden">
+              <Logo className="h-8 w-auto" />
             </div>
 
             <div className="flex-1" />

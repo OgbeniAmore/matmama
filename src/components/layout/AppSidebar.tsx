@@ -10,9 +10,10 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, HeartPulse, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck, ArrowRightLeft } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck, ArrowRightLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import { Logo } from "@/components/Logo";
 
 const roleLabels: Record<string, string> = {
   system_admin: "System Admin",
@@ -44,11 +45,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b justify-between">
-        <div className="flex items-center gap-2">
-          <HeartPulse className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold group-data-[collapsible=icon]:opacity-0 transition-opacity duration-200">
-            Matmama
-          </h1>
+        <div className="flex items-center min-w-0">
+          <Logo className="h-9 w-auto group-data-[collapsible=icon]:hidden" />
+          <Logo className="h-8 w-8 hidden group-data-[collapsible=icon]:block" />
         </div>
         <div className="hidden lg:block">
           <SidebarTrigger />

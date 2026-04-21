@@ -11,8 +11,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { LAGOS_LGAS } from "@/lib/lagos-lgas";
 
 interface FacilityDialogProps {
   open: boolean;
@@ -23,6 +31,7 @@ interface FacilityDialogProps {
     address: string | null;
     ward: string | null;
     local_government: string | null;
+    lga?: string | null;
   } | null;
   onSuccess: () => void;
 }
@@ -32,7 +41,7 @@ export function FacilityDialog({ open, onOpenChange, facility, onSuccess }: Faci
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [ward, setWard] = useState("");
-  const [localGovernment, setLocalGovernment] = useState("");
+  const [lga, setLga] = useState("");
   const [loading, setLoading] = useState(false);
 
   const isEditing = !!facility;
@@ -42,12 +51,12 @@ export function FacilityDialog({ open, onOpenChange, facility, onSuccess }: Faci
       setName(facility.name);
       setAddress(facility.address || "");
       setWard(facility.ward || "");
-      setLocalGovernment(facility.local_government || "");
+      setLga(facility.lga || facility.local_government || "");
     } else {
       setName("");
       setAddress("");
       setWard("");
-      setLocalGovernment("");
+      setLga("");
     }
   }, [facility, open]);
 
@@ -66,7 +75,8 @@ export function FacilityDialog({ open, onOpenChange, facility, onSuccess }: Faci
             name: name.trim(),
             address: address.trim() || null,
             ward: ward.trim() || null,
-            local_government: localGovernment.trim() || null,
+            local_government: lga || null,
+            lga: lga || null,
           })
           .eq("id", facility.id);
         if (error) throw error;
@@ -78,7 +88,8 @@ export function FacilityDialog({ open, onOpenChange, facility, onSuccess }: Faci
             name: name.trim(),
             address: address.trim() || null,
             ward: ward.trim() || null,
-            local_government: localGovernment.trim() || null,
+            local_government: lga || null,
+            lga: lga || null,
             account_id: accountId!,
           });
         if (error) throw error;
@@ -128,13 +139,17 @@ export function FacilityDialog({ open, onOpenChange, facility, onSuccess }: Faci
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="facility-lga">Local Government</Label>
-              <Input
-                id="facility-lga"
-                placeholder="LGA"
-                value={localGovernment}
-                onChange={(e) => setLocalGovernment(e.target.value)}
-              />
+              <Label>LGA</Label>
+              <Select value={lga} onValueChange={setLga}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select LGA" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LAGOS_LGAS.map((l) => (
+                    <SelectItem key={l} value={l}>{l}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

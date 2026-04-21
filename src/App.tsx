@@ -22,6 +22,7 @@ import ClientSearch from "./pages/ClientSearch";
 import TransfersPage from "./pages/Transfers";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import ResetPassword from "./pages/ResetPassword";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/reminders" element={<ReminderHistory />} />
                 <Route path="/audit-log" element={<AuditLog />} />
                 <Route path="/team" element={<TeamPage />} />
+                <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/facilities" element={<FacilitiesPage />} />
                 <Route path="/facilities/:id" element={<FacilityDetail />} />
                 <Route path="/client-search" element={<ClientSearch />} />

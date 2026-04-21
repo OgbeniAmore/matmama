@@ -11,6 +11,7 @@ export type Profile = {
   facility_id: string | null;
   first_name: string | null;
   last_name: string | null;
+  lga: string | null;
 };
 
 type AuthContextType = {
@@ -20,6 +21,7 @@ type AuthContextType = {
   role: UserRole | null;
   accountId: string | null;
   facilityId: string | null;
+  lga: string | null;
   signOut: () => void;
   loading: boolean;
 };
@@ -155,6 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       role,
       accountId: profile?.account_id ?? null,
       facilityId: profile?.facility_id ?? null,
+      lga: profile?.lga ?? null,
       signOut,
       loading,
     }}>

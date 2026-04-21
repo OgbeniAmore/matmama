@@ -256,6 +256,7 @@ export type Database = {
           address: string | null
           created_at: string
           id: string
+          lga: string | null
           local_government: string | null
           name: string
           updated_at: string
@@ -266,6 +267,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           id?: string
+          lga?: string | null
           local_government?: string | null
           name: string
           updated_at?: string
@@ -276,6 +278,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           id?: string
+          lga?: string | null
           local_government?: string | null
           name?: string
           updated_at?: string
@@ -545,6 +548,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          lga: string | null
           updated_at: string
           user_id: string
         }
@@ -555,6 +559,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          lga?: string | null
           updated_at?: string
           user_id: string
         }
@@ -565,6 +570,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          lga?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -688,6 +694,7 @@ export type Database = {
       auto_detect_defaulters: { Args: never; Returns: number }
       get_user_account_id: { Args: { _user_id: string }; Returns: string }
       get_user_facility_id: { Args: { _user_id: string }; Returns: string }
+      get_user_lga: { Args: { _user_id: string }; Returns: string }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]

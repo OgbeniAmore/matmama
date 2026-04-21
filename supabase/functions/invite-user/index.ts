@@ -162,10 +162,31 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, role, facility_id } = body;
+    const { email, role, facility_id, lga } = body;
 
     if (!email || !role) {
       return new Response(JSON.stringify({ error: "email and role are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // System Admin only check for inviting system_admin or unrestricted PM placement
+    const callerIsAdmin = callerRole.role === "system_admin";
+    if (role === "system_admin" && !callerIsAdmin) {
+      return new Response(JSON.stringify({ error: "Only system admins can invite system admins" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (role === "program_manager" && !callerIsAdmin) {
+      return new Response(JSON.stringify({ error: "Only system admins can invite program managers" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (role === "program_manager" && !lga) {
+      return new Response(JSON.stringify({ error: "An LGA assignment is required for Program Managers" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -196,15 +217,18 @@ serve(async (req) => {
         .maybeSingle();
 
       if (profileCheck) {
-        // Update role + facility instead
+        // Update role + facility + lga instead
         await supabaseAdmin
           .from("user_roles")
           .upsert({ user_id: userId, role }, { onConflict: "user_id" });
 
-        if (facility_id) {
+        const updates: Record<string, unknown> = {};
+        if (facility_id !== undefined) updates.facility_id = facility_id;
+        if (lga !== undefined) updates.lga = lga;
+        if (Object.keys(updates).length > 0) {
           await supabaseAdmin
             .from("profiles")
-            .update({ facility_id })
+            .update(updates)
             .eq("user_id", userId)
             .eq("account_id", accountId);
         }
@@ -226,6 +250,7 @@ serve(async (req) => {
         user_id: userId,
         account_id: accountId,
         facility_id: facility_id || null,
+        lga: lga || null,
       });
 
       await supabaseAdmin
@@ -255,6 +280,7 @@ serve(async (req) => {
         user_id: userId,
         account_id: accountId,
         facility_id: facility_id || null,
+        lga: lga || null,
       });
 
       await supabaseAdmin.from("user_roles").insert({

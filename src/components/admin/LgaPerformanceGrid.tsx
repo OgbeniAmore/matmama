@@ -114,6 +114,15 @@ export function LgaPerformanceGrid({ data, isLoading }: LgaPerformanceGridProps)
                         <p className="text-[10px] text-muted-foreground">Defaulting</p>
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full h-7 text-xs gap-1 mt-1"
+                      onClick={() => setReassign({ lga: row.lga, pm: row.programManager })}
+                    >
+                      <UserCog className="h-3.5 w-3.5" />
+                      {hasPm ? "Reassign PM" : "Assign PM"}
+                    </Button>
                   </CardContent>
                 </Card>
               );
@@ -121,6 +130,15 @@ export function LgaPerformanceGrid({ data, isLoading }: LgaPerformanceGridProps)
           </div>
         )}
       </CardContent>
+
+      {reassign && (
+        <ReassignPmDialog
+          open={!!reassign}
+          onOpenChange={(o) => !o && setReassign(null)}
+          lga={reassign.lga}
+          currentPmName={reassign.pm}
+        />
+      )}
     </Card>
   );
 }

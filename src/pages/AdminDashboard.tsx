@@ -136,6 +136,8 @@ export default function AdminDashboard() {
 
       <AdminStats stats={data?.stats} isLoading={isLoading} />
 
+      <LgaTrendChart />
+
       <LgaPerformanceGrid data={data?.lgaStats} isLoading={isLoading} />
 
       <AdminTeamSection

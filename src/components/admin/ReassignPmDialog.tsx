@@ -80,15 +80,14 @@ export function ReassignPmDialog({ open, onOpenChange, lga, currentPmName }: Pro
     }
     setSaving(true);
     try {
+      const previousPmIds = current.map((c) => c.user_id);
+
       // 1. Clear any existing PM(s) currently assigned to this LGA
-      if (current.length > 0) {
+      if (previousPmIds.length > 0) {
         const { error: clearErr } = await supabase
           .from("profiles")
           .update({ lga: null })
-          .in(
-            "user_id",
-            current.map((c) => c.user_id),
-          );
+          .in("user_id", previousPmIds);
         if (clearErr) throw clearErr;
       }
 
@@ -98,6 +97,23 @@ export function ReassignPmDialog({ open, onOpenChange, lga, currentPmName }: Pro
         .update({ lga })
         .eq("user_id", selected);
       if (assignErr) throw assignErr;
+
+      // 3. Record audit-log entry (server-side captures auth.uid())
+      const newPm = (candidates ?? []).find((c) => c.user_id === selected);
+      const { error: auditErr } = await supabase.rpc("log_user_audit_event", {
+        _action: "REASSIGN_PROGRAM_MANAGER",
+        _table_name: "profiles",
+        _record_id: selected,
+        _new_data: {
+          lga,
+          previous_pm_ids: previousPmIds,
+          previous_pm_names: current.map(fullName),
+          new_pm_id: selected,
+          new_pm_name: newPm ? fullName(newPm) : null,
+          previous_lga_of_new_pm: newPm?.lga ?? null,
+        },
+      });
+      if (auditErr) console.warn("Audit log failed:", auditErr.message);
 
       toast.success(`Program Manager assigned to ${lga}`);
       qc.invalidateQueries({ queryKey: ["admin-overview"] });

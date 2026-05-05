@@ -24,7 +24,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { LAGOS_LGAS } from "@/lib/lagos-lgas";
 
 const chartConfig = {
@@ -119,12 +120,36 @@ export function LgaTrendChart() {
       }
       const rate = total > 0 ? Math.round((defaulting / total) * 1000) / 10 : 0;
       return {
+        date: d.date,
         label: d.label,
         newClients: newPerDay.get(d.date) ?? 0,
         defaulterRate: rate,
       };
     });
   }, [data, lgaFilter]);
+
+  const handleExportCsv = () => {
+    const header = ["Date", "LGA", "New Clients", "Defaulter Rate (%)"];
+    const lgaLabel = lgaFilter === "all" ? "All LGAs" : lgaFilter;
+    const escape = (v: string) =>
+      /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+    const rows = chartData.map((r) =>
+      [r.date, lgaLabel, String(r.newClients), String(r.defaulterRate)]
+        .map(escape)
+        .join(","),
+    );
+    const csv = [header.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safeLga = lgaLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    a.download = `trends-30d-${safeLga}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Card>
@@ -133,17 +158,29 @@ export function LgaTrendChart() {
           <TrendingUp className="h-5 w-5 text-primary" />
           30-Day Trends
         </CardTitle>
-        <Select value={lgaFilter} onValueChange={setLgaFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="LGA" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All LGAs</SelectItem>
-            {LAGOS_LGAS.map((l) => (
-              <SelectItem key={l} value={l}>{l}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={lgaFilter} onValueChange={setLgaFilter}>
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="LGA" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All LGAs</SelectItem>
+              {LAGOS_LGAS.map((l) => (
+                <SelectItem key={l} value={l}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1"
+            onClick={handleExportCsv}
+            disabled={isLoading || chartData.length === 0}
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">CSV</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (

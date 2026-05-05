@@ -24,7 +24,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { LAGOS_LGAS } from "@/lib/lagos-lgas";
 
 const chartConfig = {

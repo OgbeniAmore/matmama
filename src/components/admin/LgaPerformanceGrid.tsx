@@ -1,8 +1,18 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LAGOS_LGAS } from "@/lib/lagos-lgas";
-import { Building2, Users, AlertTriangle, UserCheck, UserX } from "lucide-react";
+import {
+  Building2,
+  Users,
+  AlertTriangle,
+  UserCheck,
+  UserX,
+  UserCog,
+} from "lucide-react";
+import { ReassignPmDialog } from "./ReassignPmDialog";
 
 export interface LgaStat {
   lga: string;
@@ -18,6 +28,7 @@ interface LgaPerformanceGridProps {
 }
 
 export function LgaPerformanceGrid({ data, isLoading }: LgaPerformanceGridProps) {
+  const [reassign, setReassign] = useState<{ lga: string; pm: string | null } | null>(null);
   // Always render all 20 LGAs, merging in stats where available
   const map = new Map(data?.map((d) => [d.lga, d]) ?? []);
   const rows = LAGOS_LGAS.map(

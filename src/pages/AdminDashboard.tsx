@@ -8,6 +8,7 @@ import { AdminStats } from "@/components/admin/AdminStats";
 import { LgaPerformanceGrid, LgaStat } from "@/components/admin/LgaPerformanceGrid";
 import { AdminTeamSection, AdminTeamMember } from "@/components/admin/AdminTeamSection";
 import { InviteUserDialog } from "@/components/team/InviteUserDialog";
+import { LgaTrendChart } from "@/components/admin/LgaTrendChart";
 
 export default function AdminDashboard() {
   const { role } = useAuth();

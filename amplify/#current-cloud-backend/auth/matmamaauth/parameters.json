@@ -1,0 +1,26 @@
+{
+  "resourceName": "matmamaauth",
+  "authSelections": "identityPoolAndUserPool",
+  "useDefault": "manual",
+  "usernameAttributes": [
+    "EMAIL"
+  ],
+  "signupAttributes": [
+    "EMAIL"
+  ],
+  "requiredAttributes": [],
+  "passwordProtectionSettings": {
+    "passwordPolicyMinLength": 8,
+    "passwordPolicyCharacters": []
+  },
+  "mfaConfiguration": "OFF",
+  "mfaTypes": [],
+  "smsAuthenticationMessage": "Your authentication code is {####}",
+  "emailVerificationSubject": "Your verification code",
+  "emailVerificationMessage": "Your authentication code is {####}",
+  "emailSettings": {
+    "emailVerificationSubject": "Your verification code",
+    "emailVerificationMessage": "Your verification code is {####}"
+  },
+  "serviceName": "Cognito"
+}

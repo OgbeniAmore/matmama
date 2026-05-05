@@ -1,0 +1,12 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-matmama-dev-authRole",
+      "UnauthRoleName": "amplify-matmama-dev-unauthRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-matmama-dev-123456-deployment",
+      "UnauthRoleArn": "",
+      "AuthRoleArn": ""
+    }
+  }
+}

@@ -64,6 +64,23 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/ce3d16fb-efa8-4d3f-bbb0-451d92d7f996) and click on Share -> Publish.
 
+## Amplify Authentication setup
+
+This branch includes an Amplify backend skeleton and Cognito auth configuration.
+
+To finish the local setup and test it in Amplify Sandbox:
+
+```sh
+cd <YOUR_PROJECT_ROOT>
+npm create amplify@latest
+# or, if Amplify CLI is already installed:
+amplify init
+amplify add auth
+npx ampx sandbox
+```
+
+After customizing `amplify/backend/auth/matmamaauth/resource.ts`, commit and push the branch to trigger CI/CD.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!

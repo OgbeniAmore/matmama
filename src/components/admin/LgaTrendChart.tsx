@@ -158,17 +158,29 @@ export function LgaTrendChart() {
           <TrendingUp className="h-5 w-5 text-primary" />
           30-Day Trends
         </CardTitle>
-        <Select value={lgaFilter} onValueChange={setLgaFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="LGA" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All LGAs</SelectItem>
-            {LAGOS_LGAS.map((l) => (
-              <SelectItem key={l} value={l}>{l}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={lgaFilter} onValueChange={setLgaFilter}>
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="LGA" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All LGAs</SelectItem>
+              {LAGOS_LGAS.map((l) => (
+                <SelectItem key={l} value={l}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1"
+            onClick={handleExportCsv}
+            disabled={isLoading || chartData.length === 0}
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">CSV</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (

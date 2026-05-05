@@ -119,12 +119,36 @@ export function LgaTrendChart() {
       }
       const rate = total > 0 ? Math.round((defaulting / total) * 1000) / 10 : 0;
       return {
+        date: d.date,
         label: d.label,
         newClients: newPerDay.get(d.date) ?? 0,
         defaulterRate: rate,
       };
     });
   }, [data, lgaFilter]);
+
+  const handleExportCsv = () => {
+    const header = ["Date", "LGA", "New Clients", "Defaulter Rate (%)"];
+    const lgaLabel = lgaFilter === "all" ? "All LGAs" : lgaFilter;
+    const escape = (v: string) =>
+      /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+    const rows = chartData.map((r) =>
+      [r.date, lgaLabel, String(r.newClients), String(r.defaulterRate)]
+        .map(escape)
+        .join(","),
+    );
+    const csv = [header.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safeLga = lgaLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    a.download = `trends-30d-${safeLga}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Card>

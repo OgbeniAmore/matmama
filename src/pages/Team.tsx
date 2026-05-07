@@ -46,15 +46,16 @@ export default function TeamPage() {
 
   const isManager = role === "program_manager" || role === "system_admin";
 
-  const isSystemAdmin = role === "system_admin";
+  // Program managers and system admins query without account scope; RLS narrows PMs to their LGA.
+  const skipAccountFilter = role === "system_admin" || role === "program_manager";
 
   const { data: members = [], isLoading } = useQuery({
-    queryKey: ["team-members", accountId, isSystemAdmin],
+    queryKey: ["team-members", accountId, skipAccountFilter],
     queryFn: async () => {
       let pq = supabase
         .from("profiles")
         .select("user_id, first_name, last_name, facility_id");
-      if (!isSystemAdmin) pq = pq.eq("account_id", accountId!);
+      if (!skipAccountFilter) pq = pq.eq("account_id", accountId!);
       const { data: profiles, error } = await pq;
 
       if (error) throw error;
@@ -89,12 +90,11 @@ export default function TeamPage() {
   });
 
   const { data: facilities = [] } = useQuery({
-    queryKey: ["facilities", accountId],
+    queryKey: ["facilities", accountId, skipAccountFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("facilities")
-        .select("id, name")
-        .eq("account_id", accountId!);
+      let q = supabase.from("facilities").select("id, name").order("name");
+      if (!skipAccountFilter) q = q.eq("account_id", accountId!);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },

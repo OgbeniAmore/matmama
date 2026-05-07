@@ -34,16 +34,17 @@ export default function FacilitiesPage() {
   const [editFacility, setEditFacility] = useState<Facility | null>(null);
 
   const isManager = role === "program_manager" || role === "system_admin";
-  const isSystemAdmin = role === "system_admin";
+  // Program managers and system admins see across accounts; RLS scopes PMs to their LGA.
+  const skipAccountFilter = role === "system_admin" || role === "program_manager";
 
   const { data: facilities = [], isLoading } = useQuery({
-    queryKey: ["facilities-page", accountId, isSystemAdmin],
+    queryKey: ["facilities-page", accountId, skipAccountFilter],
     queryFn: async () => {
       let query = supabase
         .from("facilities")
         .select("id, name, address, ward, local_government, created_at")
         .order("name");
-      if (!isSystemAdmin) query = query.eq("account_id", accountId!);
+      if (!skipAccountFilter) query = query.eq("account_id", accountId!);
       const { data, error } = await query;
       if (error) throw error;
       return data as Facility[];
@@ -53,13 +54,13 @@ export default function FacilitiesPage() {
 
   // Count team members per facility
   const { data: memberCounts = {} } = useQuery({
-    queryKey: ["facility-member-counts", accountId, isSystemAdmin],
+    queryKey: ["facility-member-counts", accountId, skipAccountFilter],
     queryFn: async () => {
       let query = supabase
         .from("profiles")
         .select("facility_id")
         .not("facility_id", "is", null);
-      if (!isSystemAdmin) query = query.eq("account_id", accountId!);
+      if (!skipAccountFilter) query = query.eq("account_id", accountId!);
       const { data, error } = await query;
       if (error) throw error;
       const counts: Record<string, number> = {};
@@ -72,13 +73,13 @@ export default function FacilitiesPage() {
   });
 
   const { data: clientCounts = {} } = useQuery({
-    queryKey: ["facility-client-counts", accountId, isSystemAdmin],
+    queryKey: ["facility-client-counts", accountId, skipAccountFilter],
     queryFn: async () => {
       let query = supabase
         .from("clients")
         .select("facility_id")
         .not("facility_id", "is", null);
-      if (!isSystemAdmin) query = query.eq("account_id", accountId!);
+      if (!skipAccountFilter) query = query.eq("account_id", accountId!);
       const { data, error } = await query;
       if (error) throw error;
       const counts: Record<string, number> = {};

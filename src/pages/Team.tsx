@@ -46,13 +46,16 @@ export default function TeamPage() {
 
   const isManager = role === "program_manager" || role === "system_admin";
 
+  const isSystemAdmin = role === "system_admin";
+
   const { data: members = [], isLoading } = useQuery({
-    queryKey: ["team-members", accountId],
+    queryKey: ["team-members", accountId, isSystemAdmin],
     queryFn: async () => {
-      const { data: profiles, error } = await supabase
+      let pq = supabase
         .from("profiles")
-        .select("user_id, first_name, last_name, facility_id")
-        .eq("account_id", accountId!);
+        .select("user_id, first_name, last_name, facility_id");
+      if (!isSystemAdmin) pq = pq.eq("account_id", accountId!);
+      const { data: profiles, error } = await pq;
 
       if (error) throw error;
 
@@ -61,7 +64,9 @@ export default function TeamPage() {
       const facilityIds = [...new Set(profiles.map((p) => p.facility_id).filter(Boolean))];
 
       const [rolesRes, facilitiesRes] = await Promise.all([
-        supabase.from("user_roles").select("user_id, role").in("user_id", userIds),
+        userIds.length > 0
+          ? supabase.from("user_roles").select("user_id, role").in("user_id", userIds)
+          : Promise.resolve({ data: [], error: null }),
         facilityIds.length > 0
           ? supabase.from("facilities").select("id, name").in("id", facilityIds)
           : Promise.resolve({ data: [], error: null }),

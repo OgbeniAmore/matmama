@@ -34,15 +34,17 @@ export default function FacilitiesPage() {
   const [editFacility, setEditFacility] = useState<Facility | null>(null);
 
   const isManager = role === "program_manager" || role === "system_admin";
+  const isSystemAdmin = role === "system_admin";
 
   const { data: facilities = [], isLoading } = useQuery({
-    queryKey: ["facilities-page", accountId],
+    queryKey: ["facilities-page", accountId, isSystemAdmin],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("facilities")
         .select("id, name, address, ward, local_government, created_at")
-        .eq("account_id", accountId!)
         .order("name");
+      if (!isSystemAdmin) query = query.eq("account_id", accountId!);
+      const { data, error } = await query;
       if (error) throw error;
       return data as Facility[];
     },
@@ -51,13 +53,14 @@ export default function FacilitiesPage() {
 
   // Count team members per facility
   const { data: memberCounts = {} } = useQuery({
-    queryKey: ["facility-member-counts", accountId],
+    queryKey: ["facility-member-counts", accountId, isSystemAdmin],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("profiles")
         .select("facility_id")
-        .eq("account_id", accountId!)
         .not("facility_id", "is", null);
+      if (!isSystemAdmin) query = query.eq("account_id", accountId!);
+      const { data, error } = await query;
       if (error) throw error;
       const counts: Record<string, number> = {};
       data.forEach((p) => {
@@ -69,13 +72,14 @@ export default function FacilitiesPage() {
   });
 
   const { data: clientCounts = {} } = useQuery({
-    queryKey: ["facility-client-counts", accountId],
+    queryKey: ["facility-client-counts", accountId, isSystemAdmin],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("clients")
         .select("facility_id")
-        .eq("account_id", accountId!)
         .not("facility_id", "is", null);
+      if (!isSystemAdmin) query = query.eq("account_id", accountId!);
+      const { data, error } = await query;
       if (error) throw error;
       const counts: Record<string, number> = {};
       data.forEach((c) => {

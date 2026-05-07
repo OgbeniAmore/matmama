@@ -46,15 +46,16 @@ export default function TeamPage() {
 
   const isManager = role === "program_manager" || role === "system_admin";
 
-  const isSystemAdmin = role === "system_admin";
+  // Program managers and system admins query without account scope; RLS narrows PMs to their LGA.
+  const skipAccountFilter = role === "system_admin" || role === "program_manager";
 
   const { data: members = [], isLoading } = useQuery({
-    queryKey: ["team-members", accountId, isSystemAdmin],
+    queryKey: ["team-members", accountId, skipAccountFilter],
     queryFn: async () => {
       let pq = supabase
         .from("profiles")
         .select("user_id, first_name, last_name, facility_id");
-      if (!isSystemAdmin) pq = pq.eq("account_id", accountId!);
+      if (!skipAccountFilter) pq = pq.eq("account_id", accountId!);
       const { data: profiles, error } = await pq;
 
       if (error) throw error;

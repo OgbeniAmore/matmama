@@ -90,12 +90,11 @@ export default function TeamPage() {
   });
 
   const { data: facilities = [] } = useQuery({
-    queryKey: ["facilities", accountId],
+    queryKey: ["facilities", accountId, skipAccountFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("facilities")
-        .select("id, name")
-        .eq("account_id", accountId!);
+      let q = supabase.from("facilities").select("id, name").order("name");
+      if (!skipAccountFilter) q = q.eq("account_id", accountId!);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },

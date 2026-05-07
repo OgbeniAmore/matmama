@@ -78,14 +78,23 @@ export function LgaTrendChart() {
 
   const chartData = useMemo(() => {
     if (!data) return [];
-    const days: { date: string; label: string }[] = [];
+    // Build 30 UTC day windows so date keys are consistent regardless of timezone.
+    const days: { date: string; label: string; startMs: number; endMs: number }[] = [];
+    const todayUtc = new Date();
+    todayUtc.setUTCHours(0, 0, 0, 0);
     for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setHours(0, 0, 0, 0);
-      d.setDate(d.getDate() - i);
+      const d = new Date(todayUtc.getTime() - i * 24 * 60 * 60 * 1000);
+      const startMs = d.getTime();
+      const endMs = startMs + 24 * 60 * 60 * 1000 - 1;
       days.push({
         date: formatDateKey(d),
-        label: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        label: d.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          timeZone: "UTC",
+        }),
+        startMs,
+        endMs,
       });
     }
 
@@ -95,28 +104,28 @@ export function LgaTrendChart() {
       return data.facilityLga.get(facilityId) === lgaFilter;
     };
 
-    // New clients per day (from recent)
+    // New clients per UTC day (filtered by LGA)
     const newPerDay = new Map<string, number>();
     for (const c of data.recent) {
       if (!matchesLga(c.facility_id)) continue;
       const key = (c.created_at ?? "").slice(0, 10);
+      if (!key) continue;
       newPerDay.set(key, (newPerDay.get(key) ?? 0) + 1);
     }
 
-    // Defaulter rate per day: of clients existing on that day (created <= day),
-    // share whose due_date < day.
+    // Defaulter rate per day: of clients existing on that day (created <= day end),
+    // share whose due_date < day end.
     const scoped = data.all.filter((c) => matchesLga(c.facility_id));
 
     return days.map((d) => {
-      const dayEnd = new Date(d.date + "T23:59:59.999Z").getTime();
       let total = 0;
       let defaulting = 0;
       for (const c of scoped) {
         const created = c.created_at ? new Date(c.created_at).getTime() : 0;
-        if (created > dayEnd) continue;
+        if (created > d.endMs) continue;
         total += 1;
         const due = c.due_date ? new Date(c.due_date).getTime() : null;
-        if (due !== null && due < dayEnd) defaulting += 1;
+        if (due !== null && due < d.endMs) defaulting += 1;
       }
       const rate = total > 0 ? Math.round((defaulting / total) * 1000) / 10 : 0;
       return {
@@ -129,12 +138,12 @@ export function LgaTrendChart() {
   }, [data, lgaFilter]);
 
   const handleExportCsv = () => {
-    const header = ["Date", "LGA", "New Clients", "Defaulter Rate (%)"];
+    const header = ["Date (UTC)", "LGA", "New Clients", "Defaulter Rate (%)"];
     const lgaLabel = lgaFilter === "all" ? "All LGAs" : lgaFilter;
     const escape = (v: string) =>
       /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
     const rows = chartData.map((r) =>
-      [r.date, lgaLabel, String(r.newClients), String(r.defaulterRate)]
+      [r.date, lgaLabel, String(r.newClients), r.defaulterRate.toFixed(1)]
         .map(escape)
         .join(","),
     );

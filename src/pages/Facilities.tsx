@@ -35,6 +35,8 @@ export default function FacilitiesPage() {
 
   const isManager = role === "program_manager" || role === "system_admin";
   const isSystemAdmin = role === "system_admin";
+  // Program managers and system admins should see across accounts; RLS scopes PMs to their LGA.
+  const skipAccountFilter = isSystemAdmin || role === "program_manager";
 
   const { data: facilities = [], isLoading } = useQuery({
     queryKey: ["facilities-page", accountId, isSystemAdmin],

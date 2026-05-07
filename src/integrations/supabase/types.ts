@@ -718,6 +718,10 @@ export type Database = {
         }
         Returns: string
       }
+      reassign_program_manager: {
+        Args: { _lga: string; _new_pm_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:

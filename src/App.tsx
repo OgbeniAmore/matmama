@@ -23,6 +23,7 @@ import TransfersPage from "./pages/Transfers";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
+import SmsTemplates from "./pages/SmsTemplates";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
                 <Route path="/transfers" element={<TransfersPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/notification-preferences" element={<NotificationPreferences />} />
+                <Route path="/sms-templates" element={<SmsTemplates />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

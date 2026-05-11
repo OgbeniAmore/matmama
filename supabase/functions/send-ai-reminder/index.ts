@@ -330,28 +330,43 @@ async function logFailedReminder(patientId: string, type: string, errorMsg: stri
   if (error) console.error('Error logging failed reminder:', error);
 }
 
-// ──────────────── SMS / WHATSAPP VIA TWILIO ────────────────
-async function sendSMS(phoneNumber: string, message: string): Promise<{ messageSid: string }> {
-  const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
-  const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
-  if (!twilioAccountSid || !twilioAuthToken) throw new Error('Twilio credentials not configured');
+// ──────────────── SMS VIA TERMII ────────────────
+function normalizeForTermii(phoneNumber: string): string {
+  // Termii expects international format without leading "+"
+  let n = (phoneNumber || '').replace(/[\s\-()]/g, '');
+  if (n.startsWith('+')) n = n.slice(1);
+  // Convert local Nigerian format (0XXXXXXXXXX) to 234XXXXXXXXXX
+  if (n.startsWith('0') && n.length === 11) n = '234' + n.slice(1);
+  return n;
+}
 
-  const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`, {
+async function sendSMS(phoneNumber: string, message: string): Promise<{ messageSid: string }> {
+  const termiiApiKey = Deno.env.get('TERMII_API_KEY');
+  const termiiSenderId = Deno.env.get('TERMII_SENDER_ID');
+  if (!termiiApiKey) throw new Error('TERMII_API_KEY is not configured');
+  if (!termiiSenderId) throw new Error('TERMII_SENDER_ID is not configured');
+
+  const to = normalizeForTermii(phoneNumber);
+
+  const response = await fetch('https://v3.api.termii.com/api/sms/send', {
     method: 'POST',
-    headers: {
-      'Authorization': `Basic ${btoa(`${twilioAccountSid}:${twilioAuthToken}`)}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      To: phoneNumber,
-      From: Deno.env.get('TWILIO_PHONE_NUMBER') || '+1234567890',
-      Body: message,
-      StatusCallback: statusCallbackUrl,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      to,
+      from: termiiSenderId,
+      sm: message,
+      type: 'plain',
+      channel: 'generic',
+      api_key: termiiApiKey,
     }),
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(`SMS failed: ${data.message || 'Unknown error'}`);
-  return { messageSid: data.sid };
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || (data.code && data.code !== 'ok')) {
+    const err = data.message || data.code || `HTTP ${response.status}`;
+    throw new Error(`Termii SMS failed: ${err}`);
+  }
+  return { messageSid: data.message_id || data.messageId || crypto.randomUUID() };
 }
 
 async function sendWhatsApp(phoneNumber: string, message: string): Promise<{ messageSid: string }> {

@@ -71,7 +71,7 @@ ${pageContext.description}
 When the user asks vague questions like "how does this work?", "what is this page?", or "what can I do here?", assume they mean THIS page and explain it concretely.`
       : "";
 
-    const systemPrompt = `You are Mat, a friendly AI assistant for the Matmama healthcare platform.
+    const systemPrompt = `You are Thelma, a friendly AI assistant for the Matmama healthcare platform.
 ${PLATFORM_OVERVIEW}
 
 ${roleGuide}

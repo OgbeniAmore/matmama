@@ -239,8 +239,50 @@ async function sendByChannel(channel: string, phoneNumber: string, message: stri
   }
 }
 
-// ──────────────── AI MESSAGE GENERATION ────────────────
+// ──────────────── MESSAGE GENERATION (template first, AI fallback) ────────────────
+function renderTemplate(body: string, client: any, facilityName?: string): string {
+  const dueDate = client.due_date ? new Date(client.due_date).toLocaleDateString() : '';
+  const map: Record<string, string> = {
+    '{name}': client.name || '',
+    '{service}': client.service || '',
+    '{due_date}': dueDate,
+    '{child_name}': client.child_name || '',
+    '{trimester}': client.trimester ? String(client.trimester) : '',
+    '{facility}': facilityName || 'your facility',
+  };
+  return body.replace(/\{name\}|\{service\}|\{due_date\}|\{child_name\}|\{trimester\}|\{facility\}/g, (m) => map[m] ?? '');
+}
+
+async function getTemplate(accountId: string | null, service: string, category: string): Promise<string | null> {
+  if (!accountId) return null;
+  const { data, error } = await supabaseAdmin
+    .from('sms_templates')
+    .select('body, enabled')
+    .eq('account_id', accountId)
+    .eq('service', service)
+    .eq('category', category)
+    .maybeSingle();
+  if (error || !data || !data.enabled || !data.body?.trim()) return null;
+  return data.body;
+}
+
 async function generateMessage(client: any, type: 'upcoming' | 'defaulter' | 'manual'): Promise<string> {
+  // 1. Try configured template for this account/service/category
+  const template = await getTemplate(client.account_id, client.service, type);
+  if (template) {
+    let facilityName: string | undefined;
+    if (client.facility_id) {
+      const { data: fac } = await supabaseAdmin
+        .from('facilities')
+        .select('name')
+        .eq('id', client.facility_id)
+        .maybeSingle();
+      facilityName = fac?.name;
+    }
+    return renderTemplate(template, client, facilityName);
+  }
+
+  // 2. Fallback to AI generation
   const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
   if (!openaiApiKey) throw new Error('OPENAI_API_KEY is not configured');
 

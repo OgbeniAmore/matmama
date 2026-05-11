@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Bot, Loader2, MessageCircle, Send, X, Sparkles } from "lucide-react";
+import { Loader2, MessageCircle, Send, X, Sparkles } from "lucide-react";
+import thelmaAvatar from "@/assets/thelma-avatar.jpeg";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,11 +189,13 @@ export function ChatbotWidget() {
         >
           {/* Header */}
           <div className="flex items-center gap-2 border-b px-3 py-2 bg-muted/40">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-              <Bot className="h-4 w-4 text-primary" />
-            </div>
+            <img
+              src={thelmaAvatar}
+              alt="Thelma"
+              className="h-8 w-8 rounded-full object-cover"
+            />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold leading-tight">Mat — Your Assistant</p>
+              <p className="text-sm font-semibold leading-tight">Thelma — Your Assistant</p>
               <p className="text-xs text-muted-foreground truncate">Helping {roleLabel}s</p>
             </div>
             <Select value={language} onValueChange={setLanguage}>
@@ -290,7 +293,7 @@ export function ChatbotWidget() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask anything about Matmama…"
+              placeholder="Ask Thelma anything about Matmama…"
               disabled={isLoading}
               className="text-sm"
             />

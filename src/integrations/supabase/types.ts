@@ -591,6 +591,45 @@ export type Database = {
           },
         ]
       }
+      sms_templates: {
+        Row: {
+          account_id: string
+          body: string
+          category: string
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          id: string
+          service: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          account_id: string
+          body: string
+          category: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          service: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          account_id?: string
+          body?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          service?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       transfer_requests: {
         Row: {
           approved_by: string | null

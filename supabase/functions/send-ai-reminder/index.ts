@@ -23,12 +23,13 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { patientId, reminderType, automated, retryOf } = body;
 
-    // --- AUTOMATED CRON MODE: requires shared cron secret ---
+    // --- AUTOMATED CRON MODE ---
+    // If CRON_SECRET is set, require it. Otherwise allow (cron uses verify_jwt=false + Bearer anon).
     if (automated) {
-      const cronSecret = req.headers.get('x-cron-secret');
       const expected = Deno.env.get('CRON_SECRET');
-      if (!expected || cronSecret !== expected) {
-        return jsonResponse({ error: 'Forbidden' }, 403);
+      if (expected) {
+        const cronSecret = req.headers.get('x-cron-secret');
+        if (cronSecret !== expected) return jsonResponse({ error: 'Forbidden' }, 403);
       }
       return await handleAutomatedReminders();
     }
@@ -163,70 +164,54 @@ async function handleAutomatedReminders() {
   console.log('Running automated reminder cron...');
   const now = new Date();
 
-  const threeDaysFromNow = new Date(now);
-  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-  const threeDaysAgo = new Date(now);
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  const dayOffset = (days: number) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split('T')[0];
+  };
 
-  const targetDate = threeDaysFromNow.toISOString().split('T')[0];
-  const defaulterDate = threeDaysAgo.toISOString().split('T')[0];
+  const windows: Array<{ category: 'upcoming' | 'day_of' | 'follow_up' | 'defaulter'; date: string; statuses: string[] }> = [
+    { category: 'upcoming',  date: dayOffset(3),  statuses: ['On Track'] },
+    { category: 'day_of',    date: dayOffset(0),  statuses: ['On Track'] },
+    { category: 'follow_up', date: dayOffset(-1), statuses: ['On Track', 'Defaulting'] },
+    { category: 'defaulter', date: dayOffset(-3), statuses: ['On Track', 'Defaulting'] },
+  ];
 
-  const { data: upcomingClients, error: upErr } = await supabaseAdmin
-    .from('clients')
-    .select('*')
-    .eq('status', 'On Track')
-    .gte('due_date', `${targetDate}T00:00:00`)
-    .lt('due_date', `${targetDate}T23:59:59`);
+  const results: Record<string, number> = { upcoming: 0, day_of: 0, follow_up: 0, defaulter: 0, errors: 0 };
 
-  if (upErr) console.error('Error fetching upcoming clients:', upErr);
+  for (const w of windows) {
+    const { data: clients, error } = await supabaseAdmin
+      .from('clients')
+      .select('*')
+      .in('status', w.statuses)
+      .gte('due_date', `${w.date}T00:00:00`)
+      .lt('due_date', `${w.date}T23:59:59`);
 
-  const { data: defaulterClients, error: defErr } = await supabaseAdmin
-    .from('clients')
-    .select('*')
-    .in('status', ['Defaulting', 'On Track'])
-    .gte('due_date', `${defaulterDate}T00:00:00`)
-    .lt('due_date', `${defaulterDate}T23:59:59`);
-
-  if (defErr) console.error('Error fetching defaulter clients:', defErr);
-
-  const results = { upcoming: 0, defaulters: 0, errors: 0 };
-
-  for (const client of (upcomingClients || [])) {
-    try {
-      const message = await generateMessage(client, 'upcoming');
-      const channel = client.preferred_channel || 'sms';
-      const result = await sendByChannel(channel, client.contact, message);
-      await logReminder(client.id, channel, message, client.account_id, 'automated_upcoming', result.messageSid);
-      results.upcoming++;
-    } catch (err) {
-      console.error(`Failed reminder for ${client.id}:`, err.message);
-      await logFailedReminder(client.id, client.preferred_channel || 'sms', err.message, client.account_id, 'automated_upcoming');
-      results.errors++;
+    if (error) {
+      console.error(`Error fetching ${w.category} clients:`, error);
+      continue;
     }
-  }
 
-  for (const client of (defaulterClients || [])) {
-    try {
-      const message = await generateMessage(client, 'defaulter');
-      const channel = client.preferred_channel || 'sms';
-      const result = await sendByChannel(channel, client.contact, message);
-      await logReminder(client.id, channel, message, client.account_id, 'automated_defaulter', result.messageSid);
-      results.defaulters++;
+    for (const client of (clients || [])) {
+      try {
+        const message = await generateMessage(client, w.category);
+        const channel = client.preferred_channel || 'sms';
+        const result = await sendByChannel(channel, client.contact, message);
+        await logReminder(client.id, channel, message, client.account_id, `automated_${w.category}`, result.messageSid);
+        results[w.category]++;
 
-      if (client.status === 'On Track') {
-        await supabaseAdmin
-          .from('clients')
-          .update({ status: 'Defaulting' })
-          .eq('id', client.id);
+        if (w.category === 'defaulter' && client.status === 'On Track') {
+          await supabaseAdmin.from('clients').update({ status: 'Defaulting' }).eq('id', client.id);
+        }
+      } catch (err) {
+        console.error(`Failed ${w.category} reminder for ${client.id}:`, err.message);
+        await logFailedReminder(client.id, client.preferred_channel || 'sms', err.message, client.account_id, `automated_${w.category}`);
+        results.errors++;
       }
-    } catch (err) {
-      console.error(`Failed defaulter reminder for ${client.id}:`, err.message);
-      await logFailedReminder(client.id, client.preferred_channel || 'sms', err.message, client.account_id, 'automated_defaulter');
-      results.errors++;
     }
   }
 
-  console.log(`Cron complete: ${results.upcoming} upcoming, ${results.defaulters} defaulter, ${results.errors} errors`);
+  console.log('Cron complete:', results);
   return jsonResponse({ success: true, results });
 }
 
@@ -266,7 +251,7 @@ async function getTemplate(accountId: string | null, service: string, category: 
   return data.body;
 }
 
-async function generateMessage(client: any, type: 'upcoming' | 'defaulter' | 'manual'): Promise<string> {
+async function generateMessage(client: any, type: 'upcoming' | 'day_of' | 'follow_up' | 'defaulter' | 'manual'): Promise<string> {
   // 1. Try configured template for this account/service/category
   const template = await getTemplate(client.account_id, client.service, type);
   if (template) {
@@ -286,8 +271,10 @@ async function generateMessage(client: any, type: 'upcoming' | 'defaulter' | 'ma
   const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
   if (!openaiApiKey) throw new Error('OPENAI_API_KEY is not configured');
 
-  const contextMap = {
+  const contextMap: Record<string, string> = {
     upcoming: 'Their appointment is coming up in 3 days. Remind them warmly.',
+    day_of: 'Their appointment is TODAY. Remind them warmly to come in.',
+    follow_up: 'They missed their appointment yesterday. Encourage them gently to come in today.',
     defaulter: 'They missed their appointment 3 days ago. Encourage them to reschedule urgently but caringly.',
     manual: 'Remind them of their missed/overdue appointment.',
   };

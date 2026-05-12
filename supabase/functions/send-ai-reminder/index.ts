@@ -23,12 +23,13 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { patientId, reminderType, automated, retryOf } = body;
 
-    // --- AUTOMATED CRON MODE: requires shared cron secret ---
+    // --- AUTOMATED CRON MODE ---
+    // If CRON_SECRET is set, require it. Otherwise allow (cron uses verify_jwt=false + Bearer anon).
     if (automated) {
-      const cronSecret = req.headers.get('x-cron-secret');
       const expected = Deno.env.get('CRON_SECRET');
-      if (!expected || cronSecret !== expected) {
-        return jsonResponse({ error: 'Forbidden' }, 403);
+      if (expected) {
+        const cronSecret = req.headers.get('x-cron-secret');
+        if (cronSecret !== expected) return jsonResponse({ error: 'Forbidden' }, 403);
       }
       return await handleAutomatedReminders();
     }

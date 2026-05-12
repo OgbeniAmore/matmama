@@ -25,18 +25,30 @@ const PLACEHOLDERS = ["{name}", "{service}", "{due_date}", "{child_name}", "{tri
 const DEFAULTS: Record<string, string> = {
   "Routine Immunization|upcoming":
     "Hi {name}, this is a friendly reminder that {child_name}'s immunization is due on {due_date}. Please visit {facility}.",
+  "Routine Immunization|day_of":
+    "Hi {name}, today is {child_name}'s immunization day at {facility}. Please come in. Thank you.",
+  "Routine Immunization|follow_up":
+    "Hi {name}, we missed you yesterday for {child_name}'s immunization. Please visit {facility} today if possible.",
   "Routine Immunization|defaulter":
     "Hi {name}, {child_name} missed their immunization on {due_date}. Please visit {facility} as soon as possible.",
   "Routine Immunization|manual":
     "Hi {name}, please bring {child_name} for their immunization at {facility}. Thank you.",
   "Family Planning|upcoming":
     "Hi {name}, your family planning appointment is on {due_date} at {facility}. We look forward to seeing you.",
+  "Family Planning|day_of":
+    "Hi {name}, today is your family planning appointment at {facility}. See you soon.",
+  "Family Planning|follow_up":
+    "Hi {name}, we missed you yesterday for your family planning visit. Please come to {facility} today.",
   "Family Planning|defaulter":
     "Hi {name}, you missed your family planning visit on {due_date}. Please reschedule with {facility} soon.",
   "Family Planning|manual":
     "Hi {name}, this is a reminder for your family planning visit at {facility}.",
   "Ante Natal Care|upcoming":
     "Hi {name}, your antenatal visit (trimester {trimester}) is on {due_date} at {facility}. Stay safe.",
+  "Ante Natal Care|day_of":
+    "Hi {name}, today is your antenatal visit at {facility}. Please come in. Stay safe.",
+  "Ante Natal Care|follow_up":
+    "Hi {name}, we missed you yesterday at {facility} for your antenatal visit. Please come in today.",
   "Ante Natal Care|defaulter":
     "Hi {name}, you missed your antenatal visit on {due_date}. Please come to {facility} as soon as possible.",
   "Ante Natal Care|manual":

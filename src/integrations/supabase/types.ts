@@ -477,8 +477,11 @@ export type Database = {
           error_detail: string | null
           external_message_id: string | null
           id: string
+          idempotency_key: string | null
+          last_attempted_at: string | null
           max_retries: number
           message: string
+          next_retry_at: string | null
           patient_id: string
           reminder_category: string
           reminder_type: string
@@ -495,8 +498,11 @@ export type Database = {
           error_detail?: string | null
           external_message_id?: string | null
           id?: string
+          idempotency_key?: string | null
+          last_attempted_at?: string | null
           max_retries?: number
           message: string
+          next_retry_at?: string | null
           patient_id: string
           reminder_category?: string
           reminder_type: string
@@ -513,8 +519,11 @@ export type Database = {
           error_detail?: string | null
           external_message_id?: string | null
           id?: string
+          idempotency_key?: string | null
+          last_attempted_at?: string | null
           max_retries?: number
           message?: string
+          next_retry_at?: string | null
           patient_id?: string
           reminder_category?: string
           reminder_type?: string

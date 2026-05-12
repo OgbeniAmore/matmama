@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck, ArrowRightLeft, ShieldCheck, MessageSquareText } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck, ArrowRightLeft, ShieldCheck, MessageSquareText, Activity } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/Logo";
@@ -34,6 +34,11 @@ export function AppSidebar() {
     { href: "/transfers", label: "Transfers", icon: ArrowRightLeft },
     { href: "/reminders", label: "Reminders", icon: History },
   ];
+
+  // Facility officers, PMs, and admins can see SMS run analytics
+  if (role === 'facility_officer' || role === 'program_manager' || role === 'system_admin') {
+    navItems.push({ href: "/sms-runs", label: "SMS Runs", icon: Activity });
+  }
 
   // System Admin oversight dashboard
   if (role === 'system_admin') {

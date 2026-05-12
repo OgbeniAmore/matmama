@@ -13,8 +13,10 @@ import { Loader2 } from "lucide-react";
 
 const SERVICES = ["Routine Immunization", "Family Planning", "Ante Natal Care"] as const;
 const CATEGORIES = [
-  { key: "upcoming", label: "Upcoming visit", help: "Sent ~3 days before a scheduled visit." },
-  { key: "defaulter", label: "Defaulter follow-up", help: "Sent when a client has missed a visit." },
+  { key: "upcoming", label: "Upcoming visit (T-3 days)", help: "Sent automatically 3 days before a scheduled visit." },
+  { key: "day_of", label: "Day of visit", help: "Sent automatically on the day of the scheduled visit." },
+  { key: "follow_up", label: "Day after visit", help: "Sent automatically the day after the scheduled visit." },
+  { key: "defaulter", label: "Defaulter follow-up", help: "Sent when a client has missed a visit by 3+ days." },
   { key: "manual", label: "Manual reminder", help: "Used when staff send a reminder by hand." },
 ] as const;
 

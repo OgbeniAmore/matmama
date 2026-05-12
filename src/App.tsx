@@ -24,6 +24,7 @@ import NotificationPreferences from "./pages/NotificationPreferences";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import SmsTemplates from "./pages/SmsTemplates";
+import SmsRuns from "./pages/SmsRuns";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/notification-preferences" element={<NotificationPreferences />} />
                 <Route path="/sms-templates" element={<SmsTemplates />} />
+                <Route path="/sms-runs" element={<SmsRuns />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

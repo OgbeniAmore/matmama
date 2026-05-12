@@ -251,7 +251,7 @@ async function getTemplate(accountId: string | null, service: string, category: 
   return data.body;
 }
 
-async function generateMessage(client: any, type: 'upcoming' | 'defaulter' | 'manual'): Promise<string> {
+async function generateMessage(client: any, type: 'upcoming' | 'day_of' | 'follow_up' | 'defaulter' | 'manual'): Promise<string> {
   // 1. Try configured template for this account/service/category
   const template = await getTemplate(client.account_id, client.service, type);
   if (template) {
@@ -271,8 +271,10 @@ async function generateMessage(client: any, type: 'upcoming' | 'defaulter' | 'ma
   const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
   if (!openaiApiKey) throw new Error('OPENAI_API_KEY is not configured');
 
-  const contextMap = {
+  const contextMap: Record<string, string> = {
     upcoming: 'Their appointment is coming up in 3 days. Remind them warmly.',
+    day_of: 'Their appointment is TODAY. Remind them warmly to come in.',
+    follow_up: 'They missed their appointment yesterday. Encourage them gently to come in today.',
     defaulter: 'They missed their appointment 3 days ago. Encourage them to reschedule urgently but caringly.',
     manual: 'Remind them of their missed/overdue appointment.',
   };

@@ -17,21 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const lagosLgasAndLcdas = [
-  "Agege","Agbado/Oke-Odo","Agboyi-Ketu","Ajeromi-Ifelodun","Alimosho",
-  "Amuwo-Odofin","Apapa","Apapa-Iganmu","Ayobo-Ipaja","Badagry",
-  "Badagry West","Bariga","Coker-Aguda","Egbe-Idimu","Ejigbo",
-  "Epe","Eredo","Eti-Osa","Eti-Osa East","Iba",
-  "Ibeju-Lekki","Ifako-Ijaiye","Ifelodun","Igando-Ikotun","Igbogbo-Baiyeku",
-  "Ijede","Ikeja","Ikorodu","Ikorodu North","Ikorodu West",
-  "Ikosi-Ejinrin","Ikosi-Isheri","Ikoyi-Obalende","Imota","Iru Victoria Island",
-  "Isolo","Itire-Ikate","Kosofe","Lagos Island","Lagos Island East",
-  "Lagos Mainland","Lekki","Mosan-Okunola","Mushin","Odi-Olowo/Ojuwoye",
-  "Ojo","Ojodu","Ojokoro","Olorunda","Onigbongbo",
-  "Oriade","Orile Agege","Oshodi-Isolo","Oto-Awori","Shomolu",
-  "Surulere","Yaba",
-];
+import { LAGOS_LGAS } from "@/lib/lagos-lgas";
+import { LAGOS_WARDS } from "@/lib/lagos-wards";
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0;

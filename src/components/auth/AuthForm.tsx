@@ -19,6 +19,9 @@ import {
 } from "@/components/ui/select";
 import { LAGOS_LGAS } from "@/lib/lagos-lgas";
 import { LAGOS_WARDS } from "@/lib/lagos-wards";
+import { LAGOS_PHCS } from "@/lib/lagos-phcs";
+
+const OTHER_PHC = "__other__";
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0;

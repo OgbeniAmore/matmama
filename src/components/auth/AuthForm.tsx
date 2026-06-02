@@ -286,7 +286,7 @@ export default function AuthForm() {
             <div className="space-y-2">
               <Label htmlFor="localGovernment">Local Government</Label>
               <Select
-                onValueChange={(v) => { setLocalGovernment(v); setWard(''); }}
+                onValueChange={(v) => { setLocalGovernment(v); setWard(''); setFacility(''); setFacilitySelect(''); }}
                 value={localGovernment}
               >
                 <SelectTrigger id="localGovernment">

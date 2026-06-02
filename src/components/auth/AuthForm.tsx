@@ -17,21 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const lagosLgasAndLcdas = [
-  "Agege","Agbado/Oke-Odo","Agboyi-Ketu","Ajeromi-Ifelodun","Alimosho",
-  "Amuwo-Odofin","Apapa","Apapa-Iganmu","Ayobo-Ipaja","Badagry",
-  "Badagry West","Bariga","Coker-Aguda","Egbe-Idimu","Ejigbo",
-  "Epe","Eredo","Eti-Osa","Eti-Osa East","Iba",
-  "Ibeju-Lekki","Ifako-Ijaiye","Ifelodun","Igando-Ikotun","Igbogbo-Baiyeku",
-  "Ijede","Ikeja","Ikorodu","Ikorodu North","Ikorodu West",
-  "Ikosi-Ejinrin","Ikosi-Isheri","Ikoyi-Obalende","Imota","Iru Victoria Island",
-  "Isolo","Itire-Ikate","Kosofe","Lagos Island","Lagos Island East",
-  "Lagos Mainland","Lekki","Mosan-Okunola","Mushin","Odi-Olowo/Ojuwoye",
-  "Ojo","Ojodu","Ojokoro","Olorunda","Onigbongbo",
-  "Oriade","Orile Agege","Oshodi-Isolo","Oto-Awori","Shomolu",
-  "Surulere","Yaba",
-];
+import { LAGOS_LGAS } from "@/lib/lagos-lgas";
+import { LAGOS_WARDS } from "@/lib/lagos-wards";
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -294,12 +281,15 @@ export default function AuthForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="localGovernment">Local Government</Label>
-              <Select onValueChange={setLocalGovernment} value={localGovernment}>
+              <Select
+                onValueChange={(v) => { setLocalGovernment(v); setWard(''); }}
+                value={localGovernment}
+              >
                 <SelectTrigger id="localGovernment">
                   <SelectValue placeholder="Select a local government" />
                 </SelectTrigger>
                 <SelectContent>
-                  {lagosLgasAndLcdas.map((lg) => (
+                  {LAGOS_LGAS.map((lg) => (
                     <SelectItem key={lg} value={lg}>{lg}</SelectItem>
                   ))}
                 </SelectContent>
@@ -307,7 +297,20 @@ export default function AuthForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="ward">Ward</Label>
-              <Input id="ward" type="text" value={ward} onChange={(e) => setWard(e.target.value)} placeholder="e.g. Oregun" />
+              <Select
+                onValueChange={setWard}
+                value={ward}
+                disabled={!localGovernment}
+              >
+                <SelectTrigger id="ward">
+                  <SelectValue placeholder={localGovernment ? "Select a ward" : "Select an LGA first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(LAGOS_WARDS[localGovernment] ?? []).map((w) => (
+                    <SelectItem key={w} value={w}>{w}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="facility">Facility</Label>

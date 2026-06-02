@@ -1,3 +1,7 @@
+/**
+ * Wards per Lagos State LGA. Used in signup and facility forms so users
+ * can pick a ward that belongs to the selected LGA instead of typing it.
+ */
 export const LAGOS_WARDS: Record<string, readonly string[]> = {
   "Agege": [
     "ATOBAJE",

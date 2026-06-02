@@ -302,7 +302,7 @@ export default function AuthForm() {
             <div className="space-y-2">
               <Label htmlFor="ward">Ward</Label>
               <Select
-                onValueChange={setWard}
+                onValueChange={(v) => { setWard(v); setFacility(''); setFacilitySelect(''); }}
                 value={ward}
                 disabled={!localGovernment}
               >
@@ -317,8 +317,38 @@ export default function AuthForm() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="facility">Facility</Label>
-              <Input id="facility" type="text" value={facility} onChange={(e) => setFacility(e.target.value)} placeholder="e.g. Oregun General Hospital" />
+              <Label htmlFor="facility">Primary Health Centre (PHC)</Label>
+              <Select
+                value={facilitySelect}
+                onValueChange={(v) => {
+                  setFacilitySelect(v);
+                  setFacility(v === OTHER_PHC ? '' : v);
+                }}
+                disabled={!localGovernment}
+              >
+                <SelectTrigger id="facility">
+                  <SelectValue placeholder={localGovernment ? "Select a PHC" : "Select an LGA first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(() => {
+                    const wards = LAGOS_PHCS[localGovernment] ?? {};
+                    const list = ward ? (wards[ward] ?? []) : Object.values(wards).flat();
+                    return list.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ));
+                  })()}
+                  <SelectItem value={OTHER_PHC}>Other (not listed)</SelectItem>
+                </SelectContent>
+              </Select>
+              {facilitySelect === OTHER_PHC && (
+                <Input
+                  type="text"
+                  value={facility}
+                  onChange={(e) => setFacility(e.target.value)}
+                  placeholder="Enter PHC / facility name"
+                  className="mt-2"
+                />
+              )}
             </div>
           </div>
         </>

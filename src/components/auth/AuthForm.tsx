@@ -147,6 +147,7 @@ export default function AuthForm() {
         setLocalGovernment('');
         setWard('');
         setFacility('');
+        setFacilitySelect('');
         setIsSignUp(false);
       }
     } else {

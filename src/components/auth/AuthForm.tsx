@@ -281,12 +281,15 @@ export default function AuthForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="localGovernment">Local Government</Label>
-              <Select onValueChange={setLocalGovernment} value={localGovernment}>
+              <Select
+                onValueChange={(v) => { setLocalGovernment(v); setWard(''); }}
+                value={localGovernment}
+              >
                 <SelectTrigger id="localGovernment">
                   <SelectValue placeholder="Select a local government" />
                 </SelectTrigger>
                 <SelectContent>
-                  {lagosLgasAndLcdas.map((lg) => (
+                  {LAGOS_LGAS.map((lg) => (
                     <SelectItem key={lg} value={lg}>{lg}</SelectItem>
                   ))}
                 </SelectContent>
@@ -294,7 +297,20 @@ export default function AuthForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="ward">Ward</Label>
-              <Input id="ward" type="text" value={ward} onChange={(e) => setWard(e.target.value)} placeholder="e.g. Oregun" />
+              <Select
+                onValueChange={setWard}
+                value={ward}
+                disabled={!localGovernment}
+              >
+                <SelectTrigger id="ward">
+                  <SelectValue placeholder={localGovernment ? "Select a ward" : "Select an LGA first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(LAGOS_WARDS[localGovernment] ?? []).map((w) => (
+                    <SelectItem key={w} value={w}>{w}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="facility">Facility</Label>

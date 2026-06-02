@@ -71,6 +71,7 @@ export default function AuthForm() {
   const [localGovernment, setLocalGovernment] = useState('');
   const [ward, setWard] = useState('');
   const [facility, setFacility] = useState('');
+  const [facilitySelect, setFacilitySelect] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 

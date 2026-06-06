@@ -25,6 +25,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import SmsTemplates from "./pages/SmsTemplates";
 import SmsRuns from "./pages/SmsRuns";
+import AdminPhcs from "./pages/AdminPhcs";
 
 const queryClient = new QueryClient();
 

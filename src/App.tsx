@@ -57,6 +57,7 @@ const App = () => (
                 <Route path="/notification-preferences" element={<NotificationPreferences />} />
                 <Route path="/sms-templates" element={<SmsTemplates />} />
                 <Route path="/sms-runs" element={<SmsRuns />} />
+                <Route path="/admin/phcs" element={<AdminPhcs />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

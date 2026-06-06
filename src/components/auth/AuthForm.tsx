@@ -333,12 +333,31 @@ export default function AuthForm() {
                 <SelectContent>
                   {(() => {
                     const wards = LAGOS_PHCS[localGovernment] ?? {};
-                    const list = ward ? (wards[ward] ?? []) : Object.values(wards).flat();
-                    return list.map((p) => (
-                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    const wardKeys = ward
+                      ? (wards[ward] ? [ward] : [])
+                      : Object.keys(wards).sort();
+                    if (wardKeys.length === 0) {
+                      return (
+                        <div className="px-2 py-2 text-xs text-muted-foreground">
+                          No PHCs listed for this {ward ? "ward" : "LGA"} yet.
+                        </div>
+                      );
+                    }
+                    return wardKeys.map((w) => (
+                      <SelectGroup key={w}>
+                        <SelectLabel className="text-xs uppercase text-muted-foreground">
+                          PHC {w}
+                        </SelectLabel>
+                        {(wards[w] ?? []).map((p) => (
+                          <SelectItem key={`${w}:${p}`} value={p}>{p}</SelectItem>
+                        ))}
+                      </SelectGroup>
                     ));
                   })()}
-                  <SelectItem value={OTHER_PHC}>Other (not listed)</SelectItem>
+                  <SelectGroup>
+                    <SelectLabel className="text-xs uppercase text-muted-foreground">Not listed</SelectLabel>
+                    <SelectItem value={OTHER_PHC}>Other (not listed)</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               {facilitySelect === OTHER_PHC && (

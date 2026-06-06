@@ -47,9 +47,13 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
         })
         .eq("id", visitId);
       if (error) throw error;
+      const { error: rpcError } = await supabase.rpc("resync_client_status" as any, { _client_id: clientId });
+      if (rpcError) console.warn("resync_client_status failed:", rpcError);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["anc-visits", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["defaulters"] });
       toast.success("ANC visit marked as completed");
     },
     onError: (error) => {
@@ -68,9 +72,13 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
         })
         .eq("id", visitId);
       if (error) throw error;
+      const { error: rpcError } = await supabase.rpc("resync_client_status" as any, { _client_id: clientId });
+      if (rpcError) console.warn("resync_client_status failed:", rpcError);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["anc-visits", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["defaulters"] });
       toast.success("Visit status reverted to pending");
     },
     onError: (error) => {

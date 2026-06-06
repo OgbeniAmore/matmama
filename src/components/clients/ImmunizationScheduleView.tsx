@@ -47,9 +47,13 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
         })
         .eq("id", recordId);
       if (error) throw error;
+      const { error: rpcError } = await supabase.rpc("resync_client_status" as any, { _client_id: clientId });
+      if (rpcError) console.warn("resync_client_status failed:", rpcError);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["immunization-records", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["defaulters"] });
       toast.success("Vaccine marked as administered");
     },
     onError: (error) => {
@@ -68,9 +72,13 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
         })
         .eq("id", recordId);
       if (error) throw error;
+      const { error: rpcError } = await supabase.rpc("resync_client_status" as any, { _client_id: clientId });
+      if (rpcError) console.warn("resync_client_status failed:", rpcError);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["immunization-records", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["defaulters"] });
       toast.success("Vaccine status reverted to pending");
     },
     onError: (error) => {

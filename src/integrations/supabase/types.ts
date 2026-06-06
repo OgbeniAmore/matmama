@@ -549,6 +549,39 @@ export type Database = {
           },
         ]
       }
+      phcs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          lga: string
+          name: string
+          notes: string | null
+          updated_at: string
+          ward: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lga: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+          ward: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lga?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          ward?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_id: string
@@ -740,6 +773,7 @@ export type Database = {
     }
     Functions: {
       auto_detect_defaulters: { Args: never; Returns: number }
+      auto_resync_clients: { Args: never; Returns: number }
       get_user_account_id: { Args: { _user_id: string }; Returns: string }
       get_user_facility_id: { Args: { _user_id: string }; Returns: string }
       get_user_lga: { Args: { _user_id: string }; Returns: string }
@@ -770,6 +804,7 @@ export type Database = {
         Args: { _lga: string; _new_pm_id: string }
         Returns: Json
       }
+      resync_client_status: { Args: { _client_id: string }; Returns: undefined }
     }
     Enums: {
       app_role:

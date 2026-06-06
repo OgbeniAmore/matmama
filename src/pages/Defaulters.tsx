@@ -121,15 +121,26 @@ const Defaulters = () => {
           <p className="text-muted-foreground">A list of clients who have defaulted on their schedule.</p>
         </div>
         {isAdmin && (
-          <Button
-            variant="outline"
-            onClick={() => runCheckMutation.mutate()}
-            disabled={runCheckMutation.isPending}
-            className="gap-2"
-          >
-            {runCheckMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-            Run Defaulter Check
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => resyncMutation.mutate()}
+              disabled={resyncMutation.isPending}
+              className="gap-2"
+            >
+              {resyncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+              Resync Statuses
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => runCheckMutation.mutate()}
+              disabled={runCheckMutation.isPending}
+              className="gap-2"
+            >
+              {runCheckMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+              Run Defaulter Check
+            </Button>
+          </div>
         )}
       </div>
 

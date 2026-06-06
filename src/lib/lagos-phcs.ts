@@ -1,854 +1,852 @@
 /**
- * Lagos PHCs grouped by LGA and Ward.
- * Source: LIST-OF-PHCCs-4.xlsx (Lagos State PHCC list).
+ * Lagos PHCs grouped by LGA and ward (UPPERCASE keys matching LAGOS_WARDS).
+ * Source: LIST-OF-PHCCs-4.xlsx.
  */
 export const LAGOS_PHCS: Record<string, Record<string, string[]>> = {
   "Agege": {
-    "Isale Oja": [
-      "Dopemu PHC",
-      "Iloro PHC"
+    "ISALE OJA": [
+      "DOPEMU PHC",
+      "ILORO PHC"
     ],
-    "Keke": [
-      "Sango PHC"
+    "KEKE": [
+      "SANGO PHC"
     ],
-    "Kwakwa Uku": [
-      "Kwakwa Uku PHC"
+    "KWAKWA UKU": [
+      "KWAKWA UKU PHC"
     ],
-    "Orile": [
-      "Powerline PHC",
-      "Soretire PHC"
+    "ORILE": [
+      "POWERLINE PHC",
+      "SORETIRE PHC"
     ],
-    "Oyewole": [
-      "Odunmbaku PHC"
+    "OYEWOLE": [
+      "ODUNMBAKU PHC"
     ],
-    "Papa Ashafa": [
-      "Papa Ashafa H/post"
+    "PAPA ASHAFA": [
+      "PAPA ASHAFA H/POST"
     ],
-    "Sango": [
-      "Ajegunle H/post"
+    "SANGO": [
+      "AJEGUNLE H/POST"
     ]
   },
   "Ajeromi-Ifelodun": {
-    "Ajegunle": [
-      "Ajegunle PHC"
+    "AJEGUNLE": [
+      "AJEGUNLE PHC"
     ],
-    "Amukoko": [
-      "Amukoko PHC"
+    "AMUKOKO": [
+      "AMUKOKO PHC"
     ],
-    "Ibafon": [
-      "Ibafon PHC"
+    "IBAFON": [
+      "IBAFON PHC"
     ],
-    "Layeni Okoya": [
-      "Layeni PHC"
+    "LAYENI OKOYA": [
+      "LAYENI PHC"
     ],
-    "Oluwa/akere": [
-      "Akere PHC"
+    "OLUWA/AKERE": [
+      "AKERE PHC"
     ],
-    "Tolu": [
-      "Tolu PHC"
+    "TOLU": [
+      "TOLU PHC"
     ]
   },
   "Alimosho": {
-    "Abaranje/okurebe": [
-      "Okerube PHC"
+    "ABARANJE/OKUREBE": [
+      "OKERUBE PHC"
     ],
-    "Abesan II": [
-      "Akinyele PHC"
+    "ABESAN II": [
+      "AKINYELE PHC"
     ],
-    "Aboru": [
-      "Aboru PHC",
-      "Bola Ahmed Tinubu Comprehensive PHC",
-      "Oggundimu PHC"
+    "ABORU": [
+      "ABORU PHC",
+      "BOLA AHMED TINUBU COMPREHENSIVE PHC",
+      "OgGUNDIMU PHC."
     ],
-    "Agbelekale": [
-      "Agbelekale PHC"
+    "AGBELEKALE": [
+      "AGBELEKALE PHC."
     ],
-    "Ajasa/amikanle": [
-      "Amikanle PHC",
-      "Ikola PHC",
-      "Meiran PHC",
-      "Olota PHC",
-      "Surulere PHC"
+    "AJASA/AMIKANLE": [
+      "AMIKANLE PHC",
+      "IKOLA PHC",
+      "MEIRAN PHC",
+      "OLOTA PHC",
+      "SURULERE PHC."
     ],
-    "Alabata": [
-      "Akowonjo PHC"
+    "ALABATA": [
+      "AKOWONJO PHC"
     ],
-    "Alabgado/alakuko": [
-      "Agbado PHC"
+    "ALABGADO/ALAKUKO": [
+      "AGBADO PHC"
     ],
-    "Ayobo": [
-      "Ayobo PHC",
-      "Ishefun PHC"
+    "AYOBO": [
+      "AYOBO PHC",
+      "ISHEFUN PHC."
     ],
-    "Bada": [
-      "Bada/balogun PHC",
-      "Cele/ Apata PHC ."
+    "BADA": [
+      "BADA/BALOGUN PHC.",
+      "CELE/ APATA PHC ."
     ],
-    "Baruwa": [
-      "Baruwa PHC"
+    "BARUWA": [
+      "BARUWA PHC"
     ],
-    "Egan": [
-      "Egan PHC",
-      "Odo Isuti Health Post"
+    "EGAN": [
+      "EGAN PHC",
+      "ODO ISUTI HEALTH POST"
     ],
-    "Egbe-agodo": [
-      "Egbe Agodo PHC"
+    "EGBE-AGODO": [
+      "EGBE AGODO PHC"
     ],
-    "Idimu": [
-      "Helen Aderonke Memorial PHC"
+    "IDIMU": [
+      "HELEN ADERONKE MEMORIAL PHC"
     ],
-    "Ijegun": [
-      "Ijegun PHC"
+    "IJEGUN": [
+      "IJEGUN PHC"
     ],
-    "Ikotun": [
-      "Ikotun PHC ( Elf Foundation Phc)"
+    "IKOTUN": [
+      "IKOTUN PHC ( ELF foundation PHC)"
     ],
-    "Ipaja": [
-      "Ipaja PHC"
+    "IPAJA": [
+      "IPAJA PHC"
     ],
-    "Isheri-olofin": [
-      "Isheri-olofin PHC",
-      "Ogbomosotedo H/post"
+    "ISHERI-OLOFIN": [
+      "ISHERI-OLOFIN PHC.",
+      "OGBOMOSOTEDO H/POST"
     ],
-    "Isheri-oshun": [
-      "Isheri-oshun PHC"
+    "ISHERI-OSHUN": [
+      "ISHERI-OSHUN PHC"
     ],
-    "Mosan Akinogun": [
-      "Akinogun PHC",
-      "Kokumo H/post"
+    "MOSAN AKINOGUN": [
+      "AKINOGUN PHC",
+      "KOKUMO H/POST"
     ],
-    "Oguntade Bameke": [
-      "Orisunbare PHC"
+    "OGUNTADE BAMEKE": [
+      "ORISUNBARE PHC"
     ],
-    "Oki": [
-      "Oki PHC"
+    "OKI": [
+      "OKI PHC."
     ],
-    "Okunola": [
-      "Rauf Aregbesola PHC"
+    "OKUNOLA": [
+      "RAUF AREGBESOLA PHC"
     ],
-    "Omituntun": [
-      "Ipinlerere PHC"
+    "OMITUNTUN": [
+      "IPINLERERE PHC"
     ]
   },
   "Amuwo-Odofin": {
-    "Ado Soba": [
-      "Bola Ahmed Tinubu PHC (adosoba Phc)"
+    "ADO SOBA": [
+      "BOLA AHMED TINUBU PHC (ADOSOBA PHC)"
     ],
-    "Agboju": [
-      "Agboju PHC"
+    "AGBOJU": [
+      "AGBOJU PHC"
     ],
-    "Ekoakete": [
-      "Mile 2 PHC"
+    "EKOAKETE": [
+      "MILE 2 PHC"
     ],
-    "Ibeshe": [
-      "Ibeshe PHC"
+    "IBESHE": [
+      "IBESHE PHC"
     ],
-    "Ijegun": [
-      "Ijegun PHC",
-      "Satellite PHC"
+    "IJEGUN": [
+      "IJEGUN PHC.",
+      "SATELLITE PHC"
     ],
-    "Irede": [
-      "Irede Hp."
+    "IREDE": [
+      "IREDE HP."
     ],
-    "Kirikiri": [
-      "Kirikiri Hp"
+    "KIRIKIRI": [
+      "KIRIKIRI HP"
     ],
-    "Orire": [
-      "Festac PHC"
+    "ORIRE": [
+      "FESTAC PHC"
     ],
-    "Tomaro Ward": [
-      "Igbologun PHC"
+    "TOMARO WARD": [
+      "IGBOLOGUN PHC"
     ],
-    "Tomaro/ilado": [
-      "Sagbokoji PHC",
-      "Tomaro Health Post"
+    "TOMARO/ILADO": [
+      "SAGBOKOJI PHC",
+      "TOMARO HEALTH POST"
     ]
   },
   "Apapa": {
-    "Abraham Adesanya": [
-      "Nanti PHC"
+    "ABRAHAM ADESANYA": [
+      "NANTI PHC"
     ],
-    "Alafia": [
-      "Sari PHC"
+    "ALAFIA": [
+      "SARI PHC"
     ],
-    "Apapa": [
-      "Oluwole PHC"
+    "APAPA": [
+      "OLUWOLE PHC"
     ],
-    "Gaskiya": [
-      "Olojowon PHC"
+    "GASKIYA": [
+      "OLOJOWON PHC"
     ],
-    "Ijora": [
-      "Ijora Oloye PHC"
+    "IJORA": [
+      "IJORA OLOYE PHC"
     ],
-    "Marine Beach": [
-      "Marine Beach Health Post"
+    "MARINE BEACH": [
+      "MARINE BEACH HEALTH POST"
     ],
-    "Sari": [
-      "Zion PHC"
+    "SARI": [
+      "ZION PHC"
     ]
   },
   "Badagry": {
-    "Adaragun Mowo": [
-      "Mowo PHC"
+    "ADARAGUN MOWO": [
+      "MOWO PHC"
     ],
-    "Ajara Topa": [
-      "Topa Hp"
+    "AJARA TOPA": [
+      "TOPA HP"
     ],
-    "Ajara Vetho": [
-      "Ajara PHC"
+    "AJARA VETHO": [
+      "AJARA PHC"
     ],
-    "Ajido": [
-      "Ajido PHC",
-      "Wilbros PHC"
+    "AJIDO": [
+      "AJIDO PHC",
+      "WILBROS PHC"
     ],
-    "Akoro": [
-      "Sakpo PHC"
+    "AKORO": [
+      "SAKPO PHC"
     ],
-    "Apa": [
-      "Apa PHC"
+    "APA": [
+      "APA PHC"
     ],
-    "Araromi Ale": [
-      "Morogbo PHC"
+    "ARAROMI ALE": [
+      "MOROGBO PHC"
     ],
-    "Awhajingbon": [
-      "Gberefu PHC",
-      "Marina PHC"
+    "AWHAJINGBON": [
+      "GBEREFU PHC",
+      "MARINA PHC"
     ],
-    "Gbetrome": [
-      "Seme PHC"
+    "GBETROME": [
+      "SEME PHC"
     ],
-    "Ibereko": [
-      "Ibereko PHC"
+    "IBEREKO": [
+      "IBEREKO PHC"
     ],
-    "Ikoga": [
-      "Iragbo/iragan PHC",
-      "Pota PHC"
+    "IKOGA": [
+      "IRAGBO/IRAGAN PHC",
+      "POTA PHC"
     ],
-    "Ilogbo": [
-      "Ilogbo PHC",
-      "Isamole PHC"
+    "ILOGBO": [
+      "ILOGBO PHC",
+      "ISAMOLE PHC"
     ],
-    "Iworo Gbanko": [
-      "Ilado PHC"
+    "IWORO GBANKO": [
+      "ILADO PHC"
     ],
-    "Kweme": [
-      "Farasime PHC"
+    "KWEME": [
+      "FARASIME PHC"
     ],
-    "Topo Idale": [
-      "Topo/idale PHC"
+    "TOPO IDALE": [
+      "TOPO/IDALE PHC"
     ],
-    "Wesere": [
-      "Igbogbele PHC"
+    "WESERE": [
+      "IGBOGBELE PHC"
     ]
   },
   "Epe": {
-    "Agbowa I": [
-      "Agbowa PHC"
+    "AGBOWA I": [
+      "AGBOWA PHC"
     ],
-    "Agbowa II": [
-      "Ikosi Beach PHC"
+    "AGBOWA II": [
+      "IKOSI BEACH PHC"
     ],
-    "Ajebo- Orugbo": [
-      "Ajebo PHC",
-      "Orugbo PHC"
+    "AJEBO- ORUGBO": [
+      "AJEBO PHC",
+      "ORUGBO PHC"
     ],
-    "Bado": [
-      "Epe PHC"
+    "BADO": [
+      "EPE PHC"
     ],
-    "Ibowon": [
-      "Ibowon PHC"
+    "IBOWON": [
+      "IBOWON PHC"
     ],
-    "Ifesowapo": [
-      "Igbodu Hp",
-      "Itoikin PHC"
+    "IFESOWAPO": [
+      "IGBODU HP",
+      "ITOIKIN PHC"
     ],
-    "Ilara": [
-      "Igbonla PHC",
-      "Ilara PHC"
+    "ILARA": [
+      "IGBONLA PHC",
+      "ILARA PHC"
     ],
-    "Isale Agoro": [
-      "Afuye PHC"
+    "ISALE AGORO": [
+      "AFUYE PHC"
     ],
-    "Ketu Ejirin": [
-      "Ejinrin PHC"
+    "KETU EJIRIN": [
+      "EJINRIN PHC"
     ],
-    "Odomola": [
-      "Odomola PHC"
+    "ODOMOLA": [
+      "ODOMOLA PHC"
     ],
-    "Odoragunshin": [
-      "Eredo PHC",
-      "Mojoda PHC"
+    "ODORAGUNSHIN": [
+      "EREDO PHC",
+      "MOJODA PHC"
     ],
-    "Owu/ Otta": [
-      "Odo Ayandelu PHC",
-      "Otta Ikosi PHC",
-      "Owu PHC"
+    "OWU/ OTTA": [
+      "ODO AYANDELU PHC",
+      "OTTA IKOSI PHC",
+      "OWU PHC"
     ],
-    "Papa": [
-      "Papa PHC"
+    "PAPA": [
+      "PAPA PHC"
     ],
-    "Sagidan": [
-      "Sagidan PHC"
+    "SAGIDAN": [
+      "SAGIDAN PHC"
     ]
   },
   "Eti-Osa": {
-    "1004 Aboyade": [
-      "Oriyanrin PHC"
+    "1004 ABOYADE": [
+      "ORIYANRIN PHC"
     ],
-    "Addo Langbasa": [
-      "Addo PHC"
+    "ADDO LANGBASA": [
+      "ADDO PHC"
     ],
-    "Ajah": [
-      "Ajah PHC"
+    "AJAH": [
+      "AJAH PHC"
     ],
-    "Ajiran/osapa": [
-      "Ajiran Hp"
+    "AJIRAN/OSAPA": [
+      "AJIRAN HP"
     ],
-    "Apese": [
-      "Oniru PHC"
+    "APESE": [
+      "ONIRU PHC"
     ],
-    "Badore Okeira": [
-      "Badore PHC"
+    "BADORE OKEIRA": [
+      "BADORE PHC"
     ],
-    "Igboefon/maiyegun": [
-      "Gbara Maiyegun Hp",
-      "Igboefon PHC"
+    "IGBOEFON/MAIYEGUN": [
+      "GBARA MAIYEGUN HP",
+      "IGBOEFON PHC"
     ],
-    "Ijeh": [
-      "Ikoyi PHC"
+    "IJEH": [
+      "IKOYI PHC"
     ],
-    "Ikate Lekki": [
-      "Ikate PHC"
+    "IKATE LEKKI": [
+      "IKATE PHC"
     ],
-    "Ilasan Orile": [
-      "S.a Ilasan Ayeyemi PHC"
+    "ILASAN ORILE": [
+      "S.A ILASAN AYEYEMI PHC"
     ],
-    "Maroko": [
-      "Ikota PHC"
+    "MAROKO": [
+      "IKOTA PHC"
     ],
-    "Obalende": [
-      "Obalende PHC"
+    "OBALENDE": [
+      "OBALENDE PHC"
     ],
-    "Okunmopo/ogombo": [
-      "Ogombo Hp",
-      "Okunmopo PHC"
+    "OKUNMOPO/OGOMBO": [
+      "OGOMBO HP",
+      "OKUNMOPO PHC"
     ],
-    "Sangotedo": [
-      "Sangotedo PHC"
+    "SANGOTEDO": [
+      "SANGOTEDO PHC"
     ],
-    "Tarkwabay": [
-      "Tarkwabay Hp"
+    "TARKWABAY": [
+      "TARKWABAY HP"
     ]
   },
   "Ibeju-Lekki": {
-    "Ibeju I": [
-      "Ibeju PHC"
+    "IBEJU I": [
+      "IBEJU PHC"
     ],
-    "Ibeju II": [
-      "Ayeteju PHC",
-      "Oko-oba Hp"
+    "IBEJU II": [
+      "AYETEJU PHC",
+      "OKO-OBA HP"
     ],
-    "Ise Igbogun": [
-      "Aboreji PHC",
-      "Okun Ise PHC"
+    "ISE IGBOGUN": [
+      "ABOREJI PHC",
+      "OKUN ISE PHC"
     ],
-    "Iwerekun I": [
-      "Awoyaya PHC 1",
-      "Awoyaya PHC 2",
-      "Lakowe PHC"
+    "IWEREKUN I": [
+      "AWOYAYA PHC 1",
+      "AWOYAYA PHC 2",
+      "LAKOWE PHC"
     ],
-    "Iwerekun II": [
-      "Arapagi H/post",
-      "Bogije PHC",
-      "Otunla PHC"
+    "IWEREKUN II": [
+      "ARAPAGI H/POST",
+      "BOGIJE PHC",
+      "OTUNLA PHC"
     ],
-    "Lekki I": [
-      "Lekki PHC",
-      "Osoroko PHC"
+    "LEKKI I": [
+      "LEKKI PHC",
+      "OSOROKO PHC"
     ],
-    "Lekki II": [
-      "Idasho PHC",
-      "Idotun PHC",
-      "Magbon-segun PHC",
-      "Okunraye PHC"
+    "LEKKI II": [
+      "IDASHO PHC",
+      "IDOTUN PHC",
+      "MAGBON-SEGUN PHC",
+      "OKUNRAYE PHC"
     ],
-    "Orimedu I": [
-      "Orimedu PHC"
+    "ORIMEDU I": [
+      "ORIMEDU PHC"
     ],
-    "Orimedu II": [
-      "Iberekodo PHC"
+    "ORIMEDU II": [
+      "IBEREKODO PHC"
     ],
-    "Orimedu III": [
-      "Debojo PHC",
-      "Solu-alade PHC"
+    "ORIMEDU III": [
+      "DEBOJO PHC",
+      "SOLU-ALADE PHC"
     ],
-    "Sirinwon /igbekodoii": [
-      "Apakin PHC",
-      "Folu PHC",
-      "Igbo-olomi PHC"
+    "SIRINWON /IGBEKODOII": [
+      "APAKIN PHC",
+      "FOLU PHC",
+      "IGBO-OLOMI PHC"
     ],
-    "Sirinwon/igbekodo I": [
-      "Ideh PHC"
+    "SIRINWON/IGBEKODO I": [
+      "IDEH PHC"
     ]
   },
   "Ifako-Ijaiye": {
-    "Agbado Dalemo": [
-      "Abule Titun PHC"
+    "AGBADO DALEMO": [
+      "ABULE TITUN PHC"
     ],
-    "Agbado Ojokoro": [
-      "Agbado/kola PHC"
+    "AGBADO OJOKORO": [
+      "AGBADO/KOLA PHC"
     ],
-    "Ifako Coker": [
-      "Ifako PHC"
+    "IFAKO COKER": [
+      "IFAKO PHC"
     ],
-    "Ijaiye / Gbirinmi": [
-      "Adesola PHC",
-      "Isokan PHC"
+    "IJAIYE / GBIRINMI": [
+      "ADESOLA PHC",
+      "ISOKAN PHC"
     ],
-    "Ijaiye Ojokoro": [
-      "Ojokoro PHC"
+    "IJAIYE OJOKORO": [
+      "OJOKORO PHC"
     ],
-    "Ijaiye Oke Ira": [
-      "Aina Ajobo PHC"
+    "IJAIYE OKE IRA": [
+      "AINA AJOBO PHC"
     ],
-    "Iju Ishaga": [
-      "Iju PHC"
+    "IJU ISHAGA": [
+      "IJU PHC"
     ],
-    "Iju Obawole": [
-      "Obawole PHC"
+    "IJU OBAWOLE": [
+      "OBAWOLE PHC"
     ],
-    "Ilo Ajegunle": [
-      "Ilo Ajegunle PHC"
+    "ILO AJEGUNLE": [
+      "ILO AJEGUNLE PHC"
     ],
-    "Ogundimu": [
-      "Ogundimu PHC"
+    "OGUNDIMU": [
+      "OGUNDIMU PHC"
     ]
   },
   "Ikeja": {
-    "Aguda": [
-      "Aguda PHC"
+    "AGUDA": [
+      "AGUDA PHC"
     ],
-    "Akiode": [
-      "Akiode PHC"
+    "AKIODE": [
+      "AKIODE PHC"
     ],
-    "Alade": [
-      "Bola Ahmed Tinubu PHC (former Alade Phc)"
+    "ALADE": [
+      "BOLA AHMED TINUBU PHC (FORMER ALADE PHC)"
     ],
-    "Alausa": [
-      "Alausa PHC"
+    "ALAUSA": [
+      "ALAUSA PHC"
     ],
-    "Anifowoshe": [
-      "Ikeja PHC"
+    "ANIFOWOSHE": [
+      "IKEJA PHC"
     ],
-    "Gra": [
-      "Beko Ransome-kuti PHC"
+    "GRA": [
+      "BEKO RANSOME-KUTI PHC"
     ],
-    "Ogba": [
-      "Ogba PHC"
+    "OGBA": [
+      "OGBA PHC"
     ],
-    "Ojodu": [
-      "Ojodu PHC"
+    "OJODU": [
+      "OJODU PHC"
     ],
-    "Oke Ira Central": [
-      "Oke Ira Central PHC"
+    "OKE IRA CENTRAL": [
+      "OKE IRA CENTRAL PHC"
     ],
-    "Oke Ira Powerline": [
-      "Oke Ira Powerline PHC"
+    "OKE IRA POWERLINE": [
+      "OKE IRA POWERLINE PHC"
     ],
-    "Olusosun": [
-      "Olusosun PHC"
+    "OLUSOSUN": [
+      "OLUSOSUN PHC."
     ],
-    "Onigbongbo": [
-      "Onigbongbo PHC"
+    "ONIGBONGBO": [
+      "ONIGBONGBO PHC"
     ],
-    "Onilekere": [
-      "Onilekere PHC",
-      "Onipetesi Hp"
+    "ONILEKERE": [
+      "ONILEKERE PHC",
+      "ONIPETESI HP"
     ],
-    "Opebi": [
-      "Abule Onigbagbo PHC (former Opebi Phc)",
-      "Opebi PHC"
+    "OPEBI": [
+      "ABULE ONIGBAGBO PHC (FORMER OPEBI PHC)",
+      "OPEBI PHC"
     ],
-    "Oregun": [
-      "Oregun PHC"
+    "OREGUN": [
+      "OREGUN PHC"
     ],
-    "Seriki Aro": [
-      "Adeniyi Jones PHC"
+    "SERIKI ARO": [
+      "ADENIYI JONES PHC"
     ],
-    "Wasimi": [
-      "Wasimi PHC"
+    "WASIMI": [
+      "WASIMI PHC"
     ]
   },
   "Ikorodu": {
-    "Abosan": [
-      "Igbogbo PHC"
+    "ABOSAN": [
+      "IGBOGBO PHC"
     ],
-    "Agbala Lasunwon": [
-      "Lasunwon PHC"
+    "AGBALA LASUNWON": [
+      "LASUNWON PHC"
     ],
-    "Agura/ Gberigbe": [
-      "Agura PHC"
+    "AGURA/ GBERIGBE": [
+      "AGURA PHC"
     ],
-    "Aiyegbami": [
-      "Ijede PHC"
+    "AIYEGBAMI": [
+      "IJEDE PHC"
     ],
-    "Ajaguro": [
-      "Ori Okuta PHC"
+    "AJAGURO": [
+      "ORI OKUTA PHC"
     ],
-    "Atere": [
-      "Imota PHC"
+    "ATERE": [
+      "IMOTA PHC"
     ],
-    "Bayeku": [
-      "Bayeku PHC",
-      "Lajo H/post",
-      "Offin Health Post"
+    "BAYEKU": [
+      "BAYEKU PHC",
+      "LAJO H/POST",
+      "OFFIN HEALTH POST"
     ],
-    "Elepe": [
-      "Elepe PHC"
+    "ELEPE": [
+      "ELEPE PHC"
     ],
-    "Erikorodo": [
-      "Parafa PHC"
+    "ERIKORODO": [
+      "PARAFA PHC"
     ],
-    "Ibeshe": [
-      "Ibeshe PHC"
+    "IBESHE": [
+      "IBESHE PHC"
     ],
-    "Igbokuta": [
-      "Igbalu/igbokuta PHC"
+    "IGBOKUTA": [
+      "IGBALU/IGBOKUTA PHC"
     ],
-    "Ipakodo": [
-      "Ipakodo PHC"
+    "IPAKODO": [
+      "IPAKODO PHC"
     ],
-    "Isawo": [
-      "Igbo Olomu PHC"
+    "ISAWO": [
+      "IGBO OLOMU PHC"
     ],
-    "Isele": [
-      "Ikorodu/ita Elewa PHC"
+    "ISELE": [
+      "IKORODU/ITA ELEWA PHC"
     ],
-    "Isiu": [
-      "Isiu PHC"
+    "ISIU": [
+      "ISIU PHC"
     ],
-    "Itunmaja": [
-      "Ori Okuta PHC"
+    "ITUNMAJA": [
+      "ORI OKUTA PHC"
     ],
-    "Majidun": [
-      "Majidun PHC"
+    "MAJIDUN": [
+      "MAJIDUN PHC"
     ],
-    "Odongunyan": [
-      "Agbede PHC",
-      "Losi Oba PHC",
-      "Odo Nla PHC",
-      "Omolaiye PHC"
+    "ODONGUNYAN": [
+      "AGBEDE PHC",
+      "LOSI OBA PHC",
+      "ODO NLA PHC",
+      "OMOLAIYE PHC"
     ],
-    "Oke-eletu": [
-      "Abule Eko PHC",
-      "Oke Eletu PHC"
+    "OKE-ELETU": [
+      "ABULE EKO PHC",
+      "OKE ELETU PHC"
     ],
-    "Olori Eyita": [
-      "Emmanuel Oshinowo Chilcren Centre"
+    "OLORI EYITA": [
+      "EMMANUEL OSHINOWO CHILCREN CENTRE"
     ],
-    "Olorunda": [
-      "Olorunda PHC"
+    "OLORUNDA": [
+      "OLORUNDA PHC"
     ]
   },
   "Kosofe": {
-    "Agboyi 1": [
-      "Agboyi PHC"
+    "AGBOYI 1": [
+      "AGBOYI PHC"
     ],
-    "Agidi Osogun": [
-      "Alapere PHC"
+    "AGIDI OSOGUN": [
+      "ALAPERE PHC"
     ],
-    "Agiliti Maidan": [
-      "Maidan PHC"
+    "AGILITI MAIDAN": [
+      "MAIDAN PHC"
     ],
-    "Bamgbe Elebiju": [
-      "Ketu (mascara) PHC"
+    "BAMGBE ELEBIJU": [
+      "KETU (MASCARA) PHC"
     ],
-    "Idera": [
-      "Idera PHC"
+    "IDERA": [
+      "IDERA PHC"
     ],
-    "Ikosi Oke": [
-      "Ikosi PHC"
+    "IKOSI OKE": [
+      "IKOSI PHC"
     ],
-    "Isheri Olowora": [
-      "Isheri Olowora PHC (ikosi Isheri Mutual Plan)",
-      "Isheri PHC"
+    "ISHERI OLOWORA": [
+      "ISHERI OLOWORA PHC (IKOSI ISHERI MUTUAL PLAN)",
+      "ISHERI PHC"
     ],
-    "Mende": [
-      "Mende PHC"
+    "MENDE": [
+      "MENDE PHC"
     ],
-    "Odo Ogun/ajegunle": [
-      "Ajegunle PHC"
+    "ODO OGUN/AJEGUNLE": [
+      "AJEGUNLE PHC"
     ],
-    "Ogudu": [
-      "Ogudu PHC"
+    "OGUDU": [
+      "OGUDU PHC"
     ],
-    "Orile Oworo": [
-      "Oworo PHC"
+    "ORILE OWORO": [
+      "OWORO PHC"
     ]
   },
   "Lagos Island": {
-    "Alagba Obadina": [
-      "Ita-faji PHC"
+    "ALAGBA OBADINA": [
+      "ITA-FAJI PHC"
     ],
-    "Anikantamo": [
-      "Olushi Hp/anikantamo PHC"
+    "ANIKANTAMO": [
+      "OLUSHI HP/ANIKANTAMO PHC"
     ],
-    "Araromi": [
-      "Araromi PHC"
+    "ARAROMI": [
+      "ARAROMI PHC"
     ],
-    "Epetedo East": [
-      "Sura PHC"
+    "EPETEDO EAST": [
+      "SURA PHC"
     ],
-    "Epetedo West": [
-      "Phase 3 PHC"
+    "EPETEDO WEST": [
+      "PHASE 3 PHC"
     ],
-    "Idumoibo": [
-      "Oba Adeyinka Oyekan PHC"
+    "IDUMOIBO": [
+      "OBA ADEYINKA OYEKAN PHC"
     ],
-    "Idunganran Idumagbo": [
-      "Iga Iduganran PHC"
+    "IDUNGANRAN IDUMAGBO": [
+      "IGA IDUGANRAN PHC"
     ],
-    "Isale Gangan": [
-      "Onola PHC"
+    "ISALE GANGAN": [
+      "ONOLA PHC"
     ],
-    "Oke Arin Idumota": [
-      "Oke Arin PHC"
+    "OKE ARIN IDUMOTA": [
+      "OKE ARIN PHC"
     ],
-    "Oke Olowogbowo": [
-      "Olowogbowo PHC",
-      "Tajudeen Olusi/gorodomu PHC"
+    "OKE OLOWOGBOWO": [
+      "OLOWOGBOWO PHC",
+      "TAJUDEEN OLUSI/GORODOMU PHC"
     ],
-    "Oko Awo Agarawu": [
-      "Agarawu PHC",
-      "Oko Awo Youth Friendly Centre"
+    "OKO AWO AGARAWU": [
+      "AGARAWU PHC",
+      "OKO AWO YOUTH FRIENDLY CENTRE"
     ],
-    "Olosun Ojuoto": [
-      "City Hall/massey Hp"
+    "OLOSUN OJUOTO": [
+      "CITY HALL/MASSEY HP"
     ]
   },
   "Lagos Mainland": {
-    "Abule Ijesha": [
-      "Alli Daodu PHC"
+    "ABULE IJESHA": [
+      "ALLI DAODU PHC"
     ],
-    "Abule Oja": [
-      "Alhaji Kola Osho PHC"
+    "ABULE OJA": [
+      "ALHAJI KOLA OSHO PHC"
     ],
-    "Adekunle": [
-      "Aiyetoro PHC"
+    "ADEKUNLE": [
+      "AIYETORO PHC"
     ],
-    "Aloba Desalu": [
-      "Abule Nla PHC"
+    "ALOBA DESALU": [
+      "ABULE NLA PHC"
     ],
-    "Botanical Garden": [
-      "Otumara PHC"
+    "BOTANICAL GARDEN": [
+      "OTUMARA PHC"
     ],
-    "Freeman-glover": [
-      "Simpson PHC"
+    "FREEMAN-GLOVER": [
+      "SIMPSON PHC"
     ],
-    "Harvey": [
-      "Oba Salami PHC"
+    "HARVEY": [
+      "OBA SALAMI PHC"
     ],
-    "Ojo Oniyun": [
-      "Ondo St West PHC"
+    "OJO ONIYUN": [
+      "ONDO ST WEST PHC"
     ],
-    "Otto": [
-      "Otto PHC"
+    "OTTO": [
+      "OTTO PHC"
     ],
-    "Salami Bayewunmi": [
-      "Iwaya PHC"
+    "SALAMI BAYEWUNMI": [
+      "IWAYA PHC"
     ]
   },
   "Mushin": {
-    "Alafia / Adeoyo": [
-      "Isolo Raod PHC"
+    "ALAFIA / ADEOYO": [
+      "ISOLO RAOD PHC"
     ],
-    "Alakara": [
-      "Kajola PHC"
+    "ALAKARA": [
+      "KAJOLA PHC"
     ],
-    "Igbehinadun": [
-      "Ajeabo PHC"
+    "IGBEHINADUN": [
+      "AJEABO PHC"
     ],
-    "Ilupeju": [
-      "Coker PHC"
+    "ILUPEJU": [
+      "COKER PHC"
     ],
-    "Mosalasi/agoro": [
-      "Anikulapo PHC"
+    "MOSALASI/AGORO": [
+      "ANIKULAPO PHC"
     ],
-    "Odoeran-ogunlana": [
-      "Itire/ijesha PHC"
+    "ODOERAN-OGUNLANA": [
+      "ITIRE/IJESHA PHC"
     ],
-    "Oduselu Ola": [
-      "Alves PHC"
+    "ODUSELU OLA": [
+      "ALVES PHC"
     ],
-    "Ojuwoye": [
-      "Ayantuga PHC"
+    "OJUWOYE": [
+      "AYANTUGA PHC"
     ],
-    "Papa Ajao": [
-      "Palm Avenue PHC"
+    "PAPA AJAO": [
+      "PALM AVENUE PHC"
     ]
   },
   "Ojo": {
-    "Ajangbadi": [
-      "Afromedia PHC"
+    "AJANGBADI": [
+      "AFROMEDIA PHC"
     ],
-    "Egan": [
-      "Ishagira PHC"
+    "EGAN": [
+      "ISHAGIRA PHC"
     ],
-    "Etegbin": [
-      "Imude PHC"
+    "ETEGBIN": [
+      "IMUDE PHC"
     ],
-    "Iba": [
-      "Iba PHC",
-      "Ijagemo PHC",
-      "Ijedodo PHC"
+    "IBA": [
+      "IBA PHC",
+      "IJAGEMO PHC",
+      "IJEDODO PHC"
     ],
-    "Igbo-elerin/ishasi": [
-      "Ishasi PHC"
+    "IGBO-ELERIN/ISHASI": [
+      "ISHASI PHC"
     ],
-    "Ijanikin": [
-      "Ijanikin PHC"
+    "IJANIKIN": [
+      "IJANIKIN PHC"
     ],
-    "Ilogbo Elegba": [
-      "Oke Ijeun PHC",
-      "Shibiri PHC"
+    "ILOGBO ELEGBA": [
+      "OKE IJEUN PHC",
+      "SHIBIRI PHC"
     ],
-    "Ira": [
-      "Ira Health Post"
+    "IRA": [
+      "IRA HEALTH POST"
     ],
-    "Irewe": [
-      "Irewe PHC"
+    "IREWE": [
+      "IREWE PHC"
     ],
-    "Kemberi": [
-      "Kemberi PHC"
+    "KEMBERI": [
+      "KEMBERI PHC"
     ],
-    "Ojo": [
-      "Ojo PHC"
+    "OJO": [
+      "OJO PHC"
     ],
-    "Okokomaiko": [
-      "Okokomaiko PHC"
+    "OKOKOMAIKO": [
+      "OKOKOMAIKO PHC"
     ],
-    "Oto Awori": [
-      "Era PHC"
+    "OTO AWORI": [
+      "ERA PHC"
     ],
-    "Sabo": [
-      "Igbede PHC"
+    "SABO": [
+      "IGBEDE PHC"
     ]
   },
   "Oshodi-Isolo": {
-    "Aigbaka": [
-      "Dauda Ilo PHC"
+    "AIGBAKA": [
+      "DAUDA ILO PHC"
     ],
-    "Ailegun": [
-      "Ailegun PHC",
-      "Iyana Ejigbo PHC"
+    "AILEGUN": [
+      "AILEGUN PHC",
+      "IYANA EJIGBO PHC"
     ],
-    "Ajao Estate": [
-      "Ajao PHC"
+    "AJAO ESTATE": [
+      "AJAO PHC"
     ],
-    "Akinbaye": [
-      "Isolo PHC"
+    "AKINBAYE": [
+      "ISOLO PHC"
     ],
-    "Alagbeji": [
-      "Lsdpc Health PHC"
+    "ALAGBEJI": [
+      "LSDPC HEALTH PHC"
     ],
-    "Apena": [
-      "Apena PHC"
+    "APENA": [
+      "APENA PHC"
     ],
-    "Ewutuntun": [
-      "Ewutuntun PHC"
+    "EWUTUNTUN": [
+      "EWUTUNTUN PHC"
     ],
-    "Fadu": [
-      "Ejigbo PHC"
+    "FADU": [
+      "EJIGBO PHC"
     ],
-    "Ifoshi": [
-      "Ona Iwamimo PHC"
+    "IFOSHI": [
+      "ONA IWAMIMO PHC"
     ],
-    "Igbehin Adun": [
-      "Oshodi PHC"
+    "IGBEHIN ADUN": [
+      "OSHODI PHC"
     ],
-    "Ilasa": [
-      "Ilasa PHC"
+    "ILASA": [
+      "ILASA PHC"
     ],
-    "Ire-akari Ishaga": [
-      "Ishaga PHC"
+    "IRE-AKARI ISHAGA": [
+      "ISHAGA PHC"
     ],
-    "Mafoluku": [
-      "Ayo Ni PHC"
+    "MAFOLUKU": [
+      "AYO NI PHC"
     ],
-    "Oke Afa": [
-      "Jakande PHC"
+    "OKE AFA": [
+      "JAKANDE PHC"
     ],
-    "Okota": [
-      "Okota PHC"
+    "OKOTA": [
+      "OKOTA PHC"
     ],
-    "Oluyeye": [
-      "Ajibulu / Mafoluku PHC"
+    "OLUYEYE": [
+      "AJIBULU / MAFOLUKU PHC"
     ],
-    "Shogunle": [
-      "Shogunle PHC"
+    "SHOGUNLE": [
+      "SHOGUNLE PHC"
     ]
   },
   "Shomolu": {
-    "Aiyetoro Mafowoku": [
-      "Mafowoku PHC"
+    "AIYETORO MAFOWOKU": [
+      "MAFOWOKU PHC"
     ],
-    "Apelehin Ward": [
-      "Eva Adelaja PHC"
+    "APELEHIN WARD": [
+      "EVA ADELAJA PHC"
     ],
-    "Igbari": [
-      "Akoka PHC"
+    "IGBARI": [
+      "AKOKA PHC"
     ],
-    "Igbobi Fadeyi": [
-      "Ohekenu PHC"
+    "IGBOBI FADEYI": [
+      "OHEKENU PHC"
     ],
-    "Ijebu-tedo": [
-      "Wright PHC"
+    "IJEBU-TEDO": [
+      "WRIGHT PHC"
     ],
-    "Ilaje": [
-      "Ashogbon PHC"
+    "ILAJE": [
+      "ASHOGBON PHC"
     ],
-    "Okesuna Alase": [
-      "Bajulaiye PHC"
+    "OKESUNA ALASE": [
+      "BAJULAIYE PHC"
     ],
-    "Orile Somolu": [
-      "Akinwunmi Ambode PHC"
+    "ORILE SOMOLU": [
+      "AKINWUNMI AMBODE PHC"
     ],
-    "Owode Orile": [
-      "C.m.s PHC",
-      "Late Hon. Adewale Awokoya PHC (formerly Oloja Phc)"
+    "OWODE ORILE": [
+      "C.M.S PHC",
+      "LATE HON. ADEWALE AWOKOYA PHC (formerly OLOJA PHC)"
     ]
   },
   "Surulere": {
-    "Airways": [
-      "Airways PHC"
+    "AIRWAYS": [
+      "AIRWAYS PHC"
     ],
-    "Aralile": [
-      "Femi Gbajabiamila PHC"
+    "ARALILE": [
+      "FEMI GBAJABIAMILA PHC"
     ],
-    "Babatunde Ayilara": [
-      "Akerele PHC"
+    "BABATUNDE AYILARA": [
+      "AKERELE PHC"
     ],
-    "Iponri": [
-      "Iponri PHC"
+    "IPONRI": [
+      "IPONRI PHC"
     ],
-    "Jinadu Aiyetoro": [
-      "Coker/aguda PHC"
+    "JINADU AIYETORO": [
+      "COKER/AGUDA PHC"
     ],
-    "Muniru Baruwa": [
-      "Anjorin PHC"
+    "MUNIRU BARUWA": [
+      "ANJORIN PHC"
     ],
-    "Ogunsami Karonwi": [
-      "Ejire PHC"
+    "OGUNSAMI KARONWI": [
+      "EJIRE PHC"
     ],
-    "Osho": [
-      "Orile Iganmu PHC"
+    "OSHO": [
+      "ORILE IGANMU PHC"
     ],
-    "Sanusi": [
-      "Baruwa PHC"
+    "SANUSI": [
+      "BARUWA PHC"
     ]
   }
 };
 
-export function getPhcsForWard(lga: string, ward: string): string[] {
-  return LAGOS_PHCS[lga]?.[ward] ?? [];
-}
+export const OTHER_PHC = "__other__";

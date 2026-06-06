@@ -45,6 +45,25 @@ const Defaulters = () => {
     },
   });
 
+  const resyncMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("auto_resync_clients" as any);
+      if (error) throw error;
+      return data as number;
+    },
+    onSuccess: (count) => {
+      toast({
+        title: "Resync Complete",
+        description: `${count ?? 0} client(s) re-evaluated. Clients with future visits moved back to On Track.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [isAIReminderOpen, setIsAIReminderOpen] = useState(false);

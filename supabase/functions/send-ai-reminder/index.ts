@@ -11,7 +11,6 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-const statusCallbackUrl = `${supabaseUrl}/functions/v1/whatsapp-status-webhook`;
 
 // All windows resolved against Africa/Lagos local day boundaries.
 const LAGOS_TZ = 'Africa/Lagos';
@@ -405,32 +404,35 @@ async function sendSMS(phoneNumber: string, message: string): Promise<{ messageS
   return { messageSid: data.message_id || data.messageId || crypto.randomUUID() };
 }
 
-function normalizeForWhatsApp(phoneNumber: string): string {
+// ──────────────── WHATSAPP VIA WATI ────────────────
+function normalizeForWati(phoneNumber: string): string {
   let n = (phoneNumber || '').replace(/[\s\-()]/g, '');
-  if (n.startsWith('+')) return n;
+  if (n.startsWith('+')) n = n.slice(1);
   if (n.startsWith('0') && n.length === 11) n = '234' + n.slice(1);
-  if (!n.startsWith('+')) n = '+' + n;
-  return n;
+  return n; // WATI expects plain international number, e.g. 2348012345678
 }
 
 async function sendWhatsApp(phoneNumber: string, message: string): Promise<{ messageSid: string }> {
-  const sid = Deno.env.get('TWILIO_ACCOUNT_SID');
-  const tok = Deno.env.get('TWILIO_AUTH_TOKEN');
-  if (!sid || !tok) throw new Error('Twilio credentials not configured');
-  const to = normalizeForWhatsApp(phoneNumber);
-  const r = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+  const apiKey = Deno.env.get('WATI_API_KEY');
+  const instanceUrl = Deno.env.get('WATI_INSTANCE_URL')?.replace(/\/$/, '');
+  if (!apiKey || !instanceUrl) throw new Error('WATI credentials not configured (WATI_API_KEY, WATI_INSTANCE_URL)');
+
+  const to = normalizeForWati(phoneNumber);
+  const r = await fetch(`${instanceUrl}/api/v1/sendSessionMessage/${to}`, {
     method: 'POST',
-    headers: { 'Authorization': `Basic ${btoa(`${sid}:${tok}`)}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      To: `whatsapp:${to}`,
-      From: `whatsapp:${Deno.env.get('TWILIO_WHATSAPP_NUMBER') || '+14155238886'}`,
-      Body: message,
-      StatusCallback: statusCallbackUrl,
-    }),
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ messageText: message }),
   });
-  const data = await r.json();
-  if (!r.ok) throw new Error(`WhatsApp failed: ${data.message || 'Unknown error'}`);
-  return { messageSid: data.sid };
+
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || data.result === false) {
+    throw new Error(`WATI WhatsApp failed: ${data.error || data.message || `HTTP ${r.status}`}`);
+  }
+
+  return { messageSid: data.info?.whatsappMessageId || data.id || crypto.randomUUID() };
 }
 
 function jsonResponse(body: any, status = 200) {

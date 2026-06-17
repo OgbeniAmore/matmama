@@ -9,18 +9,27 @@ serve(async (req) => {
   }
 
   try {
-    // Twilio sends status callbacks as form-encoded POST
-    const formData = await req.formData();
-    const messageSid = formData.get('MessageSid') as string;
-    const messageStatus = formData.get('MessageStatus') as string;
-    const errorCode = formData.get('ErrorCode') as string | null;
-    const errorMessage = formData.get('ErrorMessage') as string | null;
+    // WATI sends JSON POST for all webhook events
+    const payload = await req.json().catch(() => null);
+    if (!payload) return new Response('Bad Request', { status: 400 });
+
+    // Only handle message status updates; ignore incoming message events
+    const eventType = (payload.type || payload.eventType || '').toLowerCase();
+    if (eventType && eventType !== 'messagestatusupdated') {
+      return new Response(JSON.stringify({ ok: true, ignored: true }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // WATI status update fields
+    const messageSid: string = payload.whatsappMessageId || payload.id || payload.messageId || '';
+    const messageStatus: string = (payload.status || '').toLowerCase();
 
     if (!messageSid || !messageStatus) {
       return new Response('Missing required fields', { status: 400 });
     }
 
-    console.log(`Delivery status update: ${messageSid} -> ${messageStatus}`);
+    console.log(`WATI delivery update: ${messageSid} -> ${messageStatus}`);
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -28,16 +37,15 @@ serve(async (req) => {
     );
 
     const statusMap: Record<string, string> = {
-      queued: 'queued',
       sent: 'sent',
       delivered: 'delivered',
       read: 'delivered',
       failed: 'failed',
-      undelivered: 'undelivered',
+      warning: 'undelivered', // outside 24h session window
     };
 
     const deliveryStatus = statusMap[messageStatus] ?? messageStatus;
-    const isFailed = ['failed', 'undelivered'].includes(messageStatus);
+    const isFailed = ['failed', 'warning'].includes(messageStatus);
 
     const updateData: Record<string, unknown> = {
       delivery_status: deliveryStatus,
@@ -46,7 +54,8 @@ serve(async (req) => {
 
     if (isFailed) {
       updateData.status = 'failed';
-      updateData.error_detail = errorMessage || `Error code: ${errorCode ?? 'unknown'}`;
+      updateData.error_detail = payload.error || payload.errorMessage ||
+        (messageStatus === 'warning' ? 'Sent outside 24h session window — template required' : 'Delivery failed');
     } else if (messageStatus === 'delivered' || messageStatus === 'read') {
       updateData.status = 'sent';
     }
@@ -61,8 +70,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
 
-    // If failed and retries remain, schedule next retry via next_retry_at.
-    // The hourly pg_cron worker (processRetries mode) picks these up automatically.
+    // Schedule retry via next_retry_at; hourly pg_cron worker picks it up
     if (isFailed) {
       const { data: reminder } = await supabaseAdmin
         .from('patient_reminders')
@@ -78,14 +86,12 @@ serve(async (req) => {
           .from('patient_reminders')
           .update({ next_retry_at: nextRetryAt })
           .eq('id', reminder.id);
-        console.log(`Retry ${attempt} scheduled for ${reminder.id} at ${nextRetryAt} (backoff ${backoffMin}m)`);
+        console.log(`Retry ${attempt} scheduled for ${reminder.id} at ${nextRetryAt}`);
       }
     }
 
-    // Twilio expects 200 with TwiML or empty body
-    return new Response('<Response></Response>', {
-      status: 200,
-      headers: { 'Content-Type': 'text/xml' },
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200, headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Webhook error:', error);

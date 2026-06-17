@@ -1,18 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type' },
+    });
   }
 
   try {
-    // Twilio sends status callbacks as form-encoded
+    // Twilio sends status callbacks as form-encoded POST
     const formData = await req.formData();
     const messageSid = formData.get('MessageSid') as string;
     const messageStatus = formData.get('MessageStatus') as string;
@@ -30,7 +27,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Map Twilio statuses to our delivery_status
     const statusMap: Record<string, string> = {
       queued: 'queued',
       sent: 'sent',
@@ -40,7 +36,7 @@ serve(async (req) => {
       undelivered: 'undelivered',
     };
 
-    const deliveryStatus = statusMap[messageStatus] || messageStatus;
+    const deliveryStatus = statusMap[messageStatus] ?? messageStatus;
     const isFailed = ['failed', 'undelivered'].includes(messageStatus);
 
     const updateData: Record<string, unknown> = {
@@ -50,7 +46,7 @@ serve(async (req) => {
 
     if (isFailed) {
       updateData.status = 'failed';
-      updateData.error_detail = errorMessage || `Error code: ${errorCode || 'unknown'}`;
+      updateData.error_detail = errorMessage || `Error code: ${errorCode ?? 'unknown'}`;
     } else if (messageStatus === 'delivered' || messageStatus === 'read') {
       updateData.status = 'sent';
     }
@@ -65,41 +61,28 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
 
-    // If failed and retries remaining, trigger retry
+    // If failed and retries remain, schedule next retry via next_retry_at.
+    // The hourly pg_cron worker (processRetries mode) picks these up automatically.
     if (isFailed) {
       const { data: reminder } = await supabaseAdmin
         .from('patient_reminders')
-        .select('id, patient_id, reminder_type, retry_count, max_retries, account_id')
+        .select('id, retry_count, max_retries')
         .eq('external_message_id', messageSid)
-        .single();
+        .maybeSingle();
 
-      if (reminder && reminder.retry_count < reminder.max_retries) {
-        console.log(`Scheduling retry ${reminder.retry_count + 1}/${reminder.max_retries} for ${reminder.patient_id}`);
-
-        // Invoke send-ai-reminder for retry
-        const retryResponse = await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-ai-reminder`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            },
-            body: JSON.stringify({
-              patientId: reminder.patient_id,
-              reminderType: reminder.reminder_type,
-              retryOf: reminder.id,
-            }),
-          }
-        );
-
-        if (!retryResponse.ok) {
-          console.error('Retry invocation failed:', await retryResponse.text());
-        }
+      if (reminder && (reminder.retry_count ?? 0) < (reminder.max_retries ?? 3)) {
+        const attempt = (reminder.retry_count ?? 0) + 1;
+        const backoffMin = Math.min(360, Math.pow(2, attempt));
+        const nextRetryAt = new Date(Date.now() + backoffMin * 60_000).toISOString();
+        await supabaseAdmin
+          .from('patient_reminders')
+          .update({ next_retry_at: nextRetryAt })
+          .eq('id', reminder.id);
+        console.log(`Retry ${attempt} scheduled for ${reminder.id} at ${nextRetryAt} (backoff ${backoffMin}m)`);
       }
     }
 
-    // Twilio expects 200 with empty body or TwiML
+    // Twilio expects 200 with TwiML or empty body
     return new Response('<Response></Response>', {
       status: 200,
       headers: { 'Content-Type': 'text/xml' },

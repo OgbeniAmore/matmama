@@ -405,15 +405,24 @@ async function sendSMS(phoneNumber: string, message: string): Promise<{ messageS
   return { messageSid: data.message_id || data.messageId || crypto.randomUUID() };
 }
 
+function normalizeForWhatsApp(phoneNumber: string): string {
+  let n = (phoneNumber || '').replace(/[\s\-()]/g, '');
+  if (n.startsWith('+')) return n;
+  if (n.startsWith('0') && n.length === 11) n = '234' + n.slice(1);
+  if (!n.startsWith('+')) n = '+' + n;
+  return n;
+}
+
 async function sendWhatsApp(phoneNumber: string, message: string): Promise<{ messageSid: string }> {
   const sid = Deno.env.get('TWILIO_ACCOUNT_SID');
   const tok = Deno.env.get('TWILIO_AUTH_TOKEN');
   if (!sid || !tok) throw new Error('Twilio credentials not configured');
+  const to = normalizeForWhatsApp(phoneNumber);
   const r = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
     method: 'POST',
     headers: { 'Authorization': `Basic ${btoa(`${sid}:${tok}`)}`, 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      To: `whatsapp:${phoneNumber}`,
+      To: `whatsapp:${to}`,
       From: `whatsapp:${Deno.env.get('TWILIO_WHATSAPP_NUMBER') || '+14155238886'}`,
       Body: message,
       StatusCallback: statusCallbackUrl,

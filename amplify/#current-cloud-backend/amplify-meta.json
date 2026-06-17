@@ -1,0 +1,15 @@
+{
+  "providers": {
+    "awscloudformation": {
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-matmama-dev-123456-deployment"
+    }
+  },
+  "auth": {
+    "matmamaauth": {
+      "service": "Cognito",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": []
+    }
+  }
+}

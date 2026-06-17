@@ -1,0 +1,176 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS CloudFormation template for the Amplify Cognito auth resource (current cloud backend)",
+  "Resources": {
+    "userPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "UserPoolName": { "Fn::Sub": "${AWS::StackName}-userpool" },
+        "AutoVerifiedAttributes": ["email"],
+        "UsernameAttributes": ["email"],
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 8,
+            "RequireLowercase": false,
+            "RequireUppercase": false,
+            "RequireNumbers": false,
+            "RequireSymbols": false
+          }
+        },
+        "SmsVerificationMessage": "Your authentication code is {####}",
+        "EmailVerificationSubject": "Your verification code",
+        "EmailVerificationMessage": "Your verification code is {####}",
+        "MfaConfiguration": "OFF"
+      }
+    },
+    "userPoolClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Properties": {
+        "ClientName": { "Fn::Sub": "${AWS::StackName}-userpool-client" },
+        "UserPoolId": { "Ref": "userPool" },
+        "GenerateSecret": false,
+        "RefreshTokenValidity": 30,
+        "AccessTokenValidity": 60,
+        "IdTokenValidity": 60,
+        "TokenValidityUnits": {
+          "RefreshToken": "days",
+          "AccessToken": "minutes",
+          "IdToken": "minutes"
+        },
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
+          "ALLOW_USER_PASSWORD_AUTH"
+        ]
+      }
+    },
+    "identityPool": {
+      "Type": "AWS::Cognito::IdentityPool",
+      "Properties": {
+        "IdentityPoolName": { "Fn::Sub": "${AWS::StackName}-identity-pool" },
+        "AllowUnauthenticatedIdentities": false,
+        "CognitoIdentityProviders": [
+          {
+            "ClientId": { "Ref": "userPoolClient" },
+            "ProviderName": { "Fn::GetAtt": ["userPool", "ProviderName"] },
+            "ServerSideTokenCheck": false
+          }
+        ]
+      }
+    },
+    "authenticatedRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::Sub": "${AWS::StackName}-authRole" },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "cognito-identity.amazonaws.com:aud": { "Ref": "identityPool" }
+                },
+                "ForAnyValue:StringLike": {
+                  "cognito-identity.amazonaws.com:amr": ["authenticated"]
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "authPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "mobileanalytics:PutEvents",
+                    "cognito-sync:*",
+                    "cognito-identity:*"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "unauthenticatedRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::Sub": "${AWS::StackName}-unauthRole" },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "cognito-identity.amazonaws.com:aud": { "Ref": "identityPool" }
+                },
+                "ForAnyValue:StringLike": {
+                  "cognito-identity.amazonaws.com:amr": ["unauthenticated"]
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "unauthPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "mobileanalytics:PutEvents",
+                    "cognito-sync:*",
+                    "cognito-identity:*"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "identityPoolRoleAttachment": {
+      "Type": "AWS::Cognito::IdentityPoolRoleAttachment",
+      "Properties": {
+        "IdentityPoolId": { "Ref": "identityPool" },
+        "Roles": {
+          "authenticated": { "Fn::GetAtt": ["authenticatedRole", "Arn"] },
+          "unauthenticated": { "Fn::GetAtt": ["unauthenticatedRole", "Arn"] }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "UserPoolId": {
+      "Value": { "Ref": "userPool" },
+      "Description": "Cognito User Pool Id"
+    },
+    "AppClientIDWeb": {
+      "Value": { "Ref": "userPoolClient" },
+      "Description": "Cognito App Client Id"
+    },
+    "IdentityPoolId": {
+      "Value": { "Ref": "identityPool" },
+      "Description": "Cognito Identity Pool Id"
+    }
+  }
+}

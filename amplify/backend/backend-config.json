@@ -1,0 +1,9 @@
+{
+  "auth": {
+    "matmamaauth": {
+      "service": "Cognito",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": []
+    }
+  }
+}

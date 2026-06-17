@@ -1,0 +1,10 @@
+
+{
+  "appId": "app.lovable.ce3d16fbefa84d3fbbb0451d92d7f996",
+  "appName": "family-focus-tracker",
+  "webDir": "dist",
+  "server": {
+    "url": "https://ce3d16fb-efa8-4d3f-bbb0-451d92d7f996.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}

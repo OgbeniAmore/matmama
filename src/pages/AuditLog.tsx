@@ -366,6 +366,11 @@ const AuditLog = () => {
                       {log.user_id ? (
                         <div>
                           <p>{userMap.get(log.user_id) ?? "Unknown"}</p>
+                          {designationMap.get(log.user_id) && (
+                            <p className="text-[10px] text-muted-foreground">
+                              {designationMap.get(log.user_id)}
+                            </p>
+                          )}
                           {role === "system_admin" && userRoleMap.get(log.user_id) && (
                             <p className="text-[10px] text-muted-foreground capitalize">
                               {userRoleMap.get(log.user_id)?.replace(/_/g, " ")}

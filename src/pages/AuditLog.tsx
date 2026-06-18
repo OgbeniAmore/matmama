@@ -81,16 +81,11 @@ const actionVariant = (action: string) => {
     default: return "outline" as const;
   }
 };
-    case "UPDATE": return "secondary" as const;
-    case "DELETE": return "destructive" as const;
-    case "LOGIN": return "outline" as const;
-    default: return "outline" as const;
-  }
-};
 
 const AuditLog = () => {
   const { role } = useAuth();
-  const canAccess = role === "program_manager" || role === "system_admin";
+  // Every authenticated role can view audit logs (RLS scopes to their account; admins see all)
+  const canAccess = !!role;
 
   const [actionFilter, setActionFilter] = useState("all");
   const [tableFilter, setTableFilter] = useState("all");

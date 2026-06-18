@@ -111,14 +111,32 @@ const AuditLog = () => {
     enabled: canAccess,
   });
 
+  const { data: roster = [] } = useQuery({
+    queryKey: ["audit-roster"],
+    queryFn: fetchRoster,
+    enabled: canAccess,
+  });
+
   const userMap = useMemo(() => {
     const m = new Map<string, string>();
+    // Roster name takes precedence (more authoritative for facility actions)
     for (const p of profiles) {
       const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "Unnamed";
       m.set(p.user_id, name);
     }
+    for (const r of roster) {
+      if (r.user_id) m.set(r.user_id, r.name);
+    }
     return m;
-  }, [profiles]);
+  }, [profiles, roster]);
+
+  const designationMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of roster) {
+      if (r.user_id) m.set(r.user_id, r.designation);
+    }
+    return m;
+  }, [roster]);
 
   const userRoleMap = useMemo(() => {
     return new Map(rolesData.map((r) => [r.user_id, r.role as string]));

@@ -63,9 +63,24 @@ const fetchRoles = async () => {
   return data ?? [];
 };
 
+const fetchRoster = async () => {
+  const { data, error } = await supabase
+    .from("facility_roster")
+    .select("user_id, name, designation")
+    .not("user_id", "is", null);
+  if (error) throw error;
+  return data ?? [];
+};
+
 const actionVariant = (action: string) => {
   switch (action) {
     case "INSERT": return "default" as const;
+    case "UPDATE": return "secondary" as const;
+    case "DELETE": return "destructive" as const;
+    case "LOGIN": return "outline" as const;
+    default: return "outline" as const;
+  }
+};
     case "UPDATE": return "secondary" as const;
     case "DELETE": return "destructive" as const;
     case "LOGIN": return "outline" as const;

@@ -63,6 +63,15 @@ const fetchRoles = async () => {
   return data ?? [];
 };
 
+const fetchRoster = async () => {
+  const { data, error } = await supabase
+    .from("facility_roster")
+    .select("user_id, name, designation")
+    .not("user_id", "is", null);
+  if (error) throw error;
+  return data ?? [];
+};
+
 const actionVariant = (action: string) => {
   switch (action) {
     case "INSERT": return "default" as const;
@@ -75,7 +84,8 @@ const actionVariant = (action: string) => {
 
 const AuditLog = () => {
   const { role } = useAuth();
-  const canAccess = role === "program_manager" || role === "system_admin";
+  // Every authenticated role can view audit logs (RLS scopes to their account; admins see all)
+  const canAccess = !!role;
 
   const [actionFilter, setActionFilter] = useState("all");
   const [tableFilter, setTableFilter] = useState("all");
@@ -101,14 +111,32 @@ const AuditLog = () => {
     enabled: canAccess,
   });
 
+  const { data: roster = [] } = useQuery({
+    queryKey: ["audit-roster"],
+    queryFn: fetchRoster,
+    enabled: canAccess,
+  });
+
   const userMap = useMemo(() => {
     const m = new Map<string, string>();
+    // Roster name takes precedence (more authoritative for facility actions)
     for (const p of profiles) {
       const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "Unnamed";
       m.set(p.user_id, name);
     }
+    for (const r of roster) {
+      if (r.user_id) m.set(r.user_id, r.name);
+    }
     return m;
-  }, [profiles]);
+  }, [profiles, roster]);
+
+  const designationMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of roster) {
+      if (r.user_id) m.set(r.user_id, r.designation);
+    }
+    return m;
+  }, [roster]);
 
   const userRoleMap = useMemo(() => {
     return new Map(rolesData.map((r) => [r.user_id, r.role as string]));
@@ -338,6 +366,11 @@ const AuditLog = () => {
                       {log.user_id ? (
                         <div>
                           <p>{userMap.get(log.user_id) ?? "Unknown"}</p>
+                          {designationMap.get(log.user_id) && (
+                            <p className="text-[10px] text-muted-foreground">
+                              {designationMap.get(log.user_id)}
+                            </p>
+                          )}
                           {role === "system_admin" && userRoleMap.get(log.user_id) && (
                             <p className="text-[10px] text-muted-foreground capitalize">
                               {userRoleMap.get(log.user_id)?.replace(/_/g, " ")}

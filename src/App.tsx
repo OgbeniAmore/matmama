@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import SmsTemplates from "./pages/SmsTemplates";
 import SmsRuns from "./pages/SmsRuns";
 import AdminPhcs from "./pages/AdminPhcs";
+import Roster from "./pages/Roster";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
                 <Route path="/sms-templates" element={<SmsTemplates />} />
                 <Route path="/sms-runs" element={<SmsRuns />} />
                 <Route path="/admin/phcs" element={<AdminPhcs />} />
+                <Route path="/roster" element={<Roster />} />
               </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

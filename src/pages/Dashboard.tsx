@@ -69,6 +69,20 @@ const Dashboard = () => {
     queryFn: fetchClients,
   });
 
+  const { data: facility } = useQuery({
+    queryKey: ["dashboard-facility", profile?.facility_id],
+    enabled: !!profile?.facility_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("facilities")
+        .select("name")
+        .eq("id", profile!.facility_id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   if (error) {
     return <div className="text-destructive p-4">Error loading dashboard: {error.message}</div>;
   }
@@ -103,7 +117,17 @@ const Dashboard = () => {
     },
   ].map(s => ({ ...s, total: s.onTrack + s.defaulting + s.completed }));
 
-  const greeting = profile?.first_name ? `Welcome, ${profile.first_name}!` : 'Welcome back!';
+  const standaloneRole = role === 'system_admin' || role === 'program_manager';
+  const phcName = facility?.name?.trim();
+  const ensurePhcSuffix = (n: string) =>
+    /\bphc\b|primary health (?:centre|center)/i.test(n) ? n : `${n} PHC`;
+  const greeting = standaloneRole
+    ? `Welcome, ${role === 'system_admin' ? 'System Admin' : 'Program Manager'}!`
+    : phcName
+      ? `Welcome, ${ensurePhcSuffix(phcName)}!`
+      : profile?.first_name
+        ? `Welcome, ${profile.first_name}!`
+        : 'Welcome back!';
 
   return (
     <div className="space-y-6">

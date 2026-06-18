@@ -294,6 +294,57 @@ export type Database = {
           },
         ]
       }
+      facility_roster: {
+        Row: {
+          account_id: string
+          active: boolean
+          created_at: string
+          designation: string
+          facility_id: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          account_id: string
+          active?: boolean
+          created_at?: string
+          designation: string
+          facility_id: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          active?: boolean
+          created_at?: string
+          designation?: string
+          facility_id?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_roster_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facility_roster_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       immunization_records: {
         Row: {
           account_id: string | null

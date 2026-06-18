@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck, ArrowRightLeft, ShieldCheck, MessageSquareText, Activity, Hospital } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck, ArrowRightLeft, ShieldCheck, MessageSquareText, Activity, Hospital, ClipboardList } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/Logo";
@@ -33,7 +33,13 @@ export function AppSidebar() {
     { href: "/client-search", label: "Client Search", icon: SearchCheck },
     { href: "/transfers", label: "Transfers", icon: ArrowRightLeft },
     { href: "/reminders", label: "Reminders", icon: History },
+    { href: "/audit-log", label: "Audit Log", icon: FileText },
   ];
+
+  // Roster: facility officers (their facility), PMs, and admins
+  if (role === 'facility_officer' || role === 'program_manager' || role === 'system_admin') {
+    navItems.push({ href: "/roster", label: "Roster", icon: ClipboardList });
+  }
 
   // Facility officers, PMs, and admins can see SMS run analytics
   if (role === 'facility_officer' || role === 'program_manager' || role === 'system_admin') {
@@ -51,7 +57,7 @@ export function AppSidebar() {
     navItems.push({ href: "/facilities", label: "Facilities", icon: Building2 });
     navItems.push({ href: "/admin/phcs", label: "PHC Management", icon: Hospital });
     navItems.push({ href: "/sms-templates", label: "SMS Templates", icon: MessageSquareText });
-    navItems.push({ href: "/audit-log", label: "Audit Log", icon: FileText });
+    
   }
 
   return (

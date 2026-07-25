@@ -42,7 +42,8 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/patients" element={<Navigate to="/clients" replace />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/defaulters" element={<Defaulters />} />

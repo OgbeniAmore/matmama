@@ -60,9 +60,10 @@ const App = () => (
                 <Route path="/sms-runs" element={<SmsRuns />} />
                 <Route path="/admin/phcs" element={<AdminPhcs />} />
                 <Route path="/roster" element={<Roster />} />
+                <Route path="*" element={<NotFound />} />
               </Route>
             </Route>
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Fallback for unauthenticated users hitting unknown routes */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

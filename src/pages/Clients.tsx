@@ -11,6 +11,7 @@ import { type ClientFormValues } from "@/components/ClientForm";
 import { ViewClientSheet } from "@/components/ViewClientSheet";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
 import {
   fetchClients,
   fetchEpiSchedule,

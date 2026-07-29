@@ -34,12 +34,14 @@ interface AuditEntry {
   record_id: string | null;
   created_at: string;
   user_id: string | null;
+  actor_name: string | null;
+  actor_designation: string | null;
 }
 
 const fetchAuditLogs = async (): Promise<AuditEntry[]> => {
   const { data, error } = await supabase
     .from("audit_logs")
-    .select("id, action, table_name, record_id, created_at, user_id")
+    .select("id, action, table_name, record_id, created_at, user_id, actor_name, actor_designation")
     .order("created_at", { ascending: false })
     .limit(1000);
 
@@ -313,7 +315,8 @@ const AuditLog = () => {
                 </p>
                 {log.user_id && (
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    by {userMap.get(log.user_id) ?? "Unknown"}
+                    by {log.actor_name ?? userMap.get(log.user_id) ?? "Unknown"}
+                    {log.actor_designation ? ` (${log.actor_designation})` : ""}
                   </p>
                 )}
               </CardContent>
@@ -365,10 +368,10 @@ const AuditLog = () => {
                     <TableCell className="text-sm">
                       {log.user_id ? (
                         <div>
-                          <p>{userMap.get(log.user_id) ?? "Unknown"}</p>
-                          {designationMap.get(log.user_id) && (
+                          <p>{log.actor_name ?? userMap.get(log.user_id) ?? "Unknown"}</p>
+                          {(log.actor_designation ?? designationMap.get(log.user_id)) && (
                             <p className="text-[10px] text-muted-foreground">
-                              {designationMap.get(log.user_id)}
+                              {log.actor_designation ?? designationMap.get(log.user_id)}
                             </p>
                           )}
                           {role === "system_admin" && userRoleMap.get(log.user_id) && (

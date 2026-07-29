@@ -11,6 +11,7 @@ import { type ClientFormValues } from "@/components/ClientForm";
 import { ViewClientSheet } from "@/components/ViewClientSheet";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
 import {
   fetchClients,
   fetchEpiSchedule,
@@ -23,6 +24,7 @@ const Clients = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { accountId, facilityId, role, profile } = useAuth();
+  const { requireWorker, logAction } = useActiveWorker();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
@@ -68,6 +70,12 @@ const Clients = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      logAction(
+        variables.clientId ? "UPDATE_CLIENT" : "CREATE_CLIENT",
+        "clients",
+        variables.clientId ?? null,
+        { client_name: variables.data.name, service: variables.data.service },
+      );
       toast({
         title: "Success",
         description: variables.clientId
@@ -86,15 +94,18 @@ const Clients = () => {
     },
   });
 
-  const handleSaveClient = (data: ClientFormValues, clientId?: string) => {
+  const handleSaveClient = async (data: ClientFormValues, clientId?: string) => {
+    const worker = await requireWorker();
+    if (!worker) return;
     saveClientMutation.mutate({ data, clientId });
   };
 
   const deleteClientMutation = useMutation({
     mutationFn: deleteClient,
-    onSuccess: () => {
+    onSuccess: (_, clientId) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      logAction("DELETE_CLIENT", "clients", clientId);
       toast({
         title: "Client Deleted",
         description: "The client has been successfully deleted.",
@@ -109,12 +120,14 @@ const Clients = () => {
     },
   });
 
-  const handleDeleteClient = (clientId: string) => {
+  const handleDeleteClient = async (clientId: string) => {
     if (
       window.confirm(
         "Are you sure you want to delete this client? This action cannot be undone."
       )
     ) {
+      const worker = await requireWorker();
+      if (!worker) return;
       deleteClientMutation.mutate(clientId);
     }
   };

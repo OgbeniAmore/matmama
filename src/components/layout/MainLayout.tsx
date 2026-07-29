@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 import { Logo } from "@/components/Logo";
+import { ActiveWorkerChip } from "./ActiveWorkerChip";
 
 const roleLabels: Record<string, string> = {
   system_admin: "System Admin",
@@ -47,6 +48,8 @@ export function MainLayout() {
             </div>
 
             <div className="flex-1" />
+
+            <ActiveWorkerChip />
 
             <ThemeToggle />
             <NotificationBell />

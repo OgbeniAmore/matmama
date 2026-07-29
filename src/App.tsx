@@ -10,6 +10,7 @@ import Defaulters from "./pages/Defaulters";
 import NotFound from "./pages/NotFound";
 import { MainLayout } from "./components/layout/MainLayout";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ActiveWorkerProvider } from "./contexts/ActiveWorkerContext";
 import AuthPage from "./pages/Auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ProfilePage from "./pages/Profile";
@@ -36,6 +37,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
+        <ActiveWorkerProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
@@ -68,6 +70,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        </ActiveWorkerProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { HeartPulse, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
 
 interface AncScheduleViewProps {
   clientId: string;
@@ -22,6 +23,7 @@ const statusConfig: Record<string, { icon: React.ElementType; color: string; bad
 
 export function AncScheduleView({ clientId }: AncScheduleViewProps) {
   const queryClient = useQueryClient();
+  const { requireWorker, logAction } = useActiveWorker();
 
   const { data: visits = [], isLoading } = useQuery<AncVisit[]>({
     queryKey: ["anc-visits", clientId],
@@ -50,10 +52,11 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
       const { error: rpcError } = await supabase.rpc("resync_client_status", { _client_id: clientId });
       if (rpcError) console.warn("resync_client_status failed:", rpcError);
     },
-    onSuccess: () => {
+    onSuccess: (_data, id: string) => {
       queryClient.invalidateQueries({ queryKey: ["anc-visits", clientId] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      logAction("ANC_VISIT_COMPLETED", "anc_visits", id);
       toast.success("ANC visit marked as completed");
     },
     onError: (error) => {
@@ -75,10 +78,11 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
       const { error: rpcError } = await supabase.rpc("resync_client_status", { _client_id: clientId });
       if (rpcError) console.warn("resync_client_status failed:", rpcError);
     },
-    onSuccess: () => {
+    onSuccess: (_data, id: string) => {
       queryClient.invalidateQueries({ queryKey: ["anc-visits", clientId] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      logAction("ANC_VISIT_REVERTED", "anc_visits", id);
       toast.success("Visit status reverted to pending");
     },
     onError: (error) => {
@@ -150,7 +154,7 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
                     variant="outline"
                     className="h-7 text-xs px-2"
                     disabled={markCompleted.isPending}
-                    onClick={() => markCompleted.mutate(visit.id)}
+                    onClick={async () => { if (await requireWorker()) markCompleted.mutate(visit.id); }}
                   >
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                     Complete
@@ -162,7 +166,7 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
                     variant="ghost"
                     className="h-7 text-xs px-2 text-muted-foreground"
                     disabled={undoCompleted.isPending}
-                    onClick={() => undoCompleted.mutate(visit.id)}
+                    onClick={async () => { if (await requireWorker()) undoCompleted.mutate(visit.id); }}
                   >
                     Undo
                   </Button>

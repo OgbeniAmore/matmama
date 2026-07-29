@@ -125,9 +125,7 @@ const Dashboard = () => {
     ? `Welcome, ${role === 'system_admin' ? 'System Admin' : 'Program Manager'}!`
     : phcName
       ? `Welcome, ${ensurePhcSuffix(phcName)}!`
-      : profile?.first_name
-        ? `Welcome, ${profile.first_name}!`
-        : 'Welcome back!';
+      : 'Welcome back!';
 
   return (
     <div className="space-y-6">

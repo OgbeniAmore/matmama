@@ -36,6 +36,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
+        <ActiveWorkerProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />

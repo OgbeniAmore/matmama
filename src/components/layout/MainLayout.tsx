@@ -48,6 +48,8 @@ export function MainLayout() {
 
             <div className="flex-1" />
 
+            <ActiveWorkerChip />
+
             <ThemeToggle />
             <NotificationBell />
 

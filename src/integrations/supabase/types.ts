@@ -96,6 +96,8 @@ export type Database = {
         Row: {
           account_id: string | null
           action: string
+          actor_designation: string | null
+          actor_name: string | null
           created_at: string
           device_type: string | null
           id: string
@@ -109,6 +111,8 @@ export type Database = {
         Insert: {
           account_id?: string | null
           action: string
+          actor_designation?: string | null
+          actor_name?: string | null
           created_at?: string
           device_type?: string | null
           id?: string
@@ -122,6 +126,8 @@ export type Database = {
         Update: {
           account_id?: string | null
           action?: string
+          actor_designation?: string | null
+          actor_name?: string | null
           created_at?: string
           device_type?: string | null
           id?: string
@@ -841,6 +847,17 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_action_with_actor: {
+        Args: {
+          _action: string
+          _actor_designation: string
+          _actor_name: string
+          _new_data?: Json
+          _record_id: string
+          _table_name: string
+        }
+        Returns: string
       }
       log_user_audit_event: {
         Args: {

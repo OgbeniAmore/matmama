@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Syringe, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
 
 interface ImmunizationScheduleViewProps {
   clientId: string;
@@ -22,6 +23,7 @@ const statusConfig: Record<string, { icon: React.ElementType; color: string; bad
 
 export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewProps) {
   const queryClient = useQueryClient();
+  const { requireWorker, logAction } = useActiveWorker();
 
   const { data: records = [], isLoading } = useQuery<ImmunizationRecord[]>({
     queryKey: ["immunization-records", clientId],
@@ -50,10 +52,11 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
       const { error: rpcError } = await supabase.rpc("resync_client_status", { _client_id: clientId });
       if (rpcError) console.warn("resync_client_status failed:", rpcError);
     },
-    onSuccess: () => {
+    onSuccess: (_data, id: string) => {
       queryClient.invalidateQueries({ queryKey: ["immunization-records", clientId] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      logAction("VACCINE_ADMINISTERED", "immunization_records", id);
       toast.success("Vaccine marked as administered");
     },
     onError: (error) => {
@@ -75,10 +78,11 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
       const { error: rpcError } = await supabase.rpc("resync_client_status", { _client_id: clientId });
       if (rpcError) console.warn("resync_client_status failed:", rpcError);
     },
-    onSuccess: () => {
+    onSuccess: (_data, id: string) => {
       queryClient.invalidateQueries({ queryKey: ["immunization-records", clientId] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      logAction("VACCINE_REVERTED", "immunization_records", id);
       toast.success("Vaccine status reverted to pending");
     },
     onError: (error) => {
@@ -171,7 +175,7 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
                             variant="outline"
                             className="h-7 text-xs px-2"
                             disabled={markAdministered.isPending}
-                            onClick={() => markAdministered.mutate(vaccine.id)}
+                            onClick={async () => { if (await requireWorker()) markAdministered.mutate(vaccine.id); }}
                           >
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Administer
@@ -183,7 +187,7 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
                             variant="ghost"
                             className="h-7 text-xs px-2 text-muted-foreground"
                             disabled={undoAdministered.isPending}
-                            onClick={() => undoAdministered.mutate(vaccine.id)}
+                            onClick={async () => { if (await requireWorker()) undoAdministered.mutate(vaccine.id); }}
                           >
                             Undo
                           </Button>

@@ -432,14 +432,14 @@ const AuditLog = () => {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 5 }).map((_, j) => (
+                    {Array.from({ length: 6 }).map((_, j) => (
                       <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                     No entries match your filters.
                   </TableCell>
                 </TableRow>
@@ -455,6 +455,10 @@ const AuditLog = () => {
                     <TableCell className="capitalize">
                       {log.table_name?.replace(/_/g, " ") || "—"}
                     </TableCell>
+                    <TableCell className="text-sm max-w-[220px] truncate">
+                      {affectedLabel(log)}
+                    </TableCell>
+
                     <TableCell className="text-sm">
                       {log.user_id ? (
                         <div>

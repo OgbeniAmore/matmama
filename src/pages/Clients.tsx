@@ -19,6 +19,8 @@ import {
   deleteClient,
 } from "@/queries/clients";
 import { ClientGrid } from "@/components/clients/ClientGrid";
+import { fetchClientLastActors } from "@/queries/auditActors";
+
 
 const Clients = () => {
   const { toast } = useToast();
@@ -47,6 +49,12 @@ const Clients = () => {
     queryKey: ["epi-schedule"],
     queryFn: fetchEpiSchedule,
   });
+
+  const { data: lastActors = {} } = useQuery({
+    queryKey: ["client-last-actors"],
+    queryFn: fetchClientLastActors,
+  });
+
 
   const assignedTo = profile?.first_name
     ? `${profile.first_name} ${profile.last_name || ''}`.trim()
@@ -201,11 +209,13 @@ const Clients = () => {
       <ClientGrid
         clients={paginatedClients}
         isLoading={isLoading}
+        lastActors={lastActors}
         onView={openViewSheet}
         onEdit={openEditForm}
         onDelete={handleDeleteClient}
         onAddClient={openAddForm}
       />
+
 
       {!isLoading && filteredClients.length > PAGE_SIZE && (
         <div className="flex items-center justify-between pt-2">

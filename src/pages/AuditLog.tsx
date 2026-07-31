@@ -342,8 +342,24 @@ const AuditLog = () => {
               </SelectContent>
             </Select>
           )}
+          <div className="col-span-2 md:col-span-5 flex flex-wrap items-end gap-2 pt-1">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">From</label>
+              <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-[160px]" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">To</label>
+              <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-[160px]" />
+            </div>
+            {(fromDate || toDate) && (
+              <Button variant="ghost" size="sm" onClick={() => { setFromDate(""); setToDate(""); }}>
+                Clear range
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
+
 
       <p className="text-xs text-muted-foreground">
         Showing {filtered.length} of {logs.length} entries

@@ -108,6 +108,9 @@ const AuditLog = () => {
   const [roleFilter, setRoleFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [days, setDays] = useState("30");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
 
   const { data: logs = [], isLoading, error } = useQuery({
     queryKey: ["audit-logs"],
@@ -132,6 +135,13 @@ const AuditLog = () => {
     queryFn: fetchRoster,
     enabled: canAccess,
   });
+
+  const { data: entities } = useQuery({
+    queryKey: ["audit-entities"],
+    queryFn: fetchAffectedEntities,
+    enabled: canAccess,
+  });
+
 
   const userMap = useMemo(() => {
     const m = new Map<string, string>();

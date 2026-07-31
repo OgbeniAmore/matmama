@@ -78,6 +78,7 @@ const Clients = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      queryClient.invalidateQueries({ queryKey: ["client-last-actors"] });
       logAction(
         variables.clientId ? "UPDATE_CLIENT" : "CREATE_CLIENT",
         "clients",
@@ -113,6 +114,7 @@ const Clients = () => {
     onSuccess: (_, clientId) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      queryClient.invalidateQueries({ queryKey: ["client-last-actors"] });
       logAction("DELETE_CLIENT", "clients", clientId);
       toast({
         title: "Client Deleted",

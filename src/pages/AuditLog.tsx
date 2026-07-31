@@ -299,7 +299,7 @@ const AuditLog = () => {
               className="pl-9"
             />
           </div>
-          <Select value={days} onValueChange={setDays}>
+          <Select value={days} onValueChange={setDays} disabled={!!(fromDate || toDate)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="1">Last 24h</SelectItem>
@@ -309,6 +309,7 @@ const AuditLog = () => {
               <SelectItem value="all">All time</SelectItem>
             </SelectContent>
           </Select>
+
           <Select value={actionFilter} onValueChange={setActionFilter}>
             <SelectTrigger><SelectValue placeholder="Action" /></SelectTrigger>
             <SelectContent>

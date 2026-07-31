@@ -174,11 +174,36 @@ const AuditLog = () => {
     ).sort();
   }, [logs]);
 
+  // record_id -> human readable "who/what was affected"
+  const entityMap = useMemo(() => {
+    const m = new Map<string, string>();
+    const clientNames = new Map<string, string>();
+    for (const c of entities?.clients ?? []) {
+      clientNames.set(c.id, c.name);
+      m.set(c.id, c.name);
+    }
+    for (const v of entities?.anc ?? []) {
+      m.set(v.id, `${clientNames.get(v.client_id) ?? "Client"} — ${v.visit_name}`);
+    }
+    for (const r of entities?.imm ?? []) {
+      m.set(r.id, `${clientNames.get(r.client_id) ?? "Client"} — ${r.vaccine_name}`);
+    }
+    return m;
+  }, [entities]);
+
+  const affectedLabel = (log: AuditEntry) =>
+    (log.record_id && entityMap.get(log.record_id)) || "—";
+
   const filtered = useMemo(() => {
+    const useRange = !!(fromDate || toDate);
+    const from = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : 0;
+    const to = toDate ? new Date(`${toDate}T23:59:59.999`).getTime() : Infinity;
     const cutoff =
-      days === "all" ? 0 : Date.now() - parseInt(days) * 24 * 60 * 60 * 1000;
+      useRange || days === "all" ? 0 : Date.now() - parseInt(days) * 24 * 60 * 60 * 1000;
     return logs.filter((l) => {
-      if (cutoff && new Date(l.created_at).getTime() < cutoff) return false;
+      const ts = new Date(l.created_at).getTime();
+      if (useRange && (ts < from || ts > to)) return false;
+      if (cutoff && ts < cutoff) return false;
       if (actionFilter !== "all" && l.action !== actionFilter) return false;
       if (tableFilter !== "all" && l.table_name !== tableFilter) return false;
       if (roleFilter !== "all") {
@@ -187,30 +212,45 @@ const AuditLog = () => {
       }
       if (search) {
         const q = search.toLowerCase();
-        const userName = l.user_id ? userMap.get(l.user_id) ?? "" : "";
+        const userName = l.actor_name ?? (l.user_id ? userMap.get(l.user_id) ?? "" : "");
+        const affected = affectedLabel(l);
         if (
           !l.action.toLowerCase().includes(q) &&
           !l.table_name?.toLowerCase().includes(q) &&
           !l.record_id?.toLowerCase().includes(q) &&
+          !affected.toLowerCase().includes(q) &&
           !userName.toLowerCase().includes(q)
         ) return false;
       }
       return true;
     });
-  }, [logs, actionFilter, tableFilter, roleFilter, search, days, userMap, userRoleMap]);
+  }, [logs, actionFilter, tableFilter, roleFilter, search, days, fromDate, toDate, userMap, userRoleMap, entityMap]);
 
   const handleExport = () => {
     if (filtered.length === 0) {
       toast.info("No entries to export");
       return;
     }
-    const header = ["Timestamp", "Action", "Table", "Record ID", "User", "Role"];
+    const header = [
+      "Date",
+      "Time",
+      "Action",
+      "Table",
+      "Affected client / visit",
+      "Record ID",
+      "Performed by",
+      "Designation",
+      "Role",
+    ];
     const rows = filtered.map((l) => [
-      new Date(l.created_at).toISOString(),
+      format(new Date(l.created_at), "yyyy-MM-dd"),
+      format(new Date(l.created_at), "HH:mm:ss"),
       l.action,
       l.table_name ?? "",
+      affectedLabel(l),
       l.record_id ?? "",
-      l.user_id ? userMap.get(l.user_id) ?? l.user_id : "",
+      l.actor_name ?? (l.user_id ? userMap.get(l.user_id) ?? l.user_id : "System"),
+      l.actor_designation ?? (l.user_id ? designationMap.get(l.user_id) ?? "" : ""),
       l.user_id ? userRoleMap.get(l.user_id) ?? "" : "",
     ]);
     const csv = [header, ...rows]
@@ -219,12 +259,15 @@ const AuditLog = () => {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+    const rangeLabel =
+      fromDate || toDate ? `${fromDate || "start"}_to_${toDate || "now"}` : `last-${days}d`;
     a.href = url;
-    a.download = `audit-log-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`;
+    a.download = `audit-log-${rangeLabel}-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filtered.length} entries`);
   };
+
 
   if (!canAccess) return <Navigate to="/" replace />;
   if (error) return <div className="text-destructive p-4">Error loading audit logs</div>;

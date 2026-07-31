@@ -98,14 +98,24 @@ export const ClientCard = ({ client, lastActor, onView, onEdit, onDelete }: Clie
           <span className="font-medium">Due: {format(client.dueDate, "PPP")}</span>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-wrap items-center gap-2">
         <Badge
           className={cn("capitalize font-semibold", statusColors[client.status])}
           variant="outline"
         >
           {client.status}
         </Badge>
+        {lastActor && (
+          <Badge variant="secondary" className="gap-1 font-normal">
+            <UserCheck className="h-3 w-3" />
+            <span className="truncate max-w-[160px]">
+              Last updated by {lastActor.name}
+              {lastActor.designation ? ` (${lastActor.designation})` : ""} · {format(new Date(lastActor.at), "MMM d")}
+            </span>
+          </Badge>
+        )}
       </CardFooter>
+
     </Card>
   );
 };

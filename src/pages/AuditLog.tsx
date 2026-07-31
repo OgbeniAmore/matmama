@@ -74,6 +74,20 @@ const fetchRoster = async () => {
   return data ?? [];
 };
 
+const fetchAffectedEntities = async () => {
+  const [clients, anc, imm] = await Promise.all([
+    supabase.from("clients").select("id, name, service"),
+    supabase.from("anc_visits").select("id, client_id, visit_name"),
+    supabase.from("immunization_records").select("id, client_id, vaccine_name"),
+  ]);
+  return {
+    clients: clients.data ?? [],
+    anc: anc.data ?? [],
+    imm: imm.data ?? [],
+  };
+};
+
+
 const actionVariant = (action: string) => {
   switch (action) {
     case "INSERT": return "default" as const;
@@ -94,6 +108,9 @@ const AuditLog = () => {
   const [roleFilter, setRoleFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [days, setDays] = useState("30");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
 
   const { data: logs = [], isLoading, error } = useQuery({
     queryKey: ["audit-logs"],
@@ -118,6 +135,13 @@ const AuditLog = () => {
     queryFn: fetchRoster,
     enabled: canAccess,
   });
+
+  const { data: entities } = useQuery({
+    queryKey: ["audit-entities"],
+    queryFn: fetchAffectedEntities,
+    enabled: canAccess,
+  });
+
 
   const userMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -150,11 +174,36 @@ const AuditLog = () => {
     ).sort();
   }, [logs]);
 
+  // record_id -> human readable "who/what was affected"
+  const entityMap = useMemo(() => {
+    const m = new Map<string, string>();
+    const clientNames = new Map<string, string>();
+    for (const c of entities?.clients ?? []) {
+      clientNames.set(c.id, c.name);
+      m.set(c.id, c.name);
+    }
+    for (const v of entities?.anc ?? []) {
+      m.set(v.id, `${clientNames.get(v.client_id) ?? "Client"} — ${v.visit_name}`);
+    }
+    for (const r of entities?.imm ?? []) {
+      m.set(r.id, `${clientNames.get(r.client_id) ?? "Client"} — ${r.vaccine_name}`);
+    }
+    return m;
+  }, [entities]);
+
+  const affectedLabel = (log: AuditEntry) =>
+    (log.record_id && entityMap.get(log.record_id)) || "—";
+
   const filtered = useMemo(() => {
+    const useRange = !!(fromDate || toDate);
+    const from = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : 0;
+    const to = toDate ? new Date(`${toDate}T23:59:59.999`).getTime() : Infinity;
     const cutoff =
-      days === "all" ? 0 : Date.now() - parseInt(days) * 24 * 60 * 60 * 1000;
+      useRange || days === "all" ? 0 : Date.now() - parseInt(days) * 24 * 60 * 60 * 1000;
     return logs.filter((l) => {
-      if (cutoff && new Date(l.created_at).getTime() < cutoff) return false;
+      const ts = new Date(l.created_at).getTime();
+      if (useRange && (ts < from || ts > to)) return false;
+      if (cutoff && ts < cutoff) return false;
       if (actionFilter !== "all" && l.action !== actionFilter) return false;
       if (tableFilter !== "all" && l.table_name !== tableFilter) return false;
       if (roleFilter !== "all") {
@@ -163,30 +212,45 @@ const AuditLog = () => {
       }
       if (search) {
         const q = search.toLowerCase();
-        const userName = l.user_id ? userMap.get(l.user_id) ?? "" : "";
+        const userName = l.actor_name ?? (l.user_id ? userMap.get(l.user_id) ?? "" : "");
+        const affected = affectedLabel(l);
         if (
           !l.action.toLowerCase().includes(q) &&
           !l.table_name?.toLowerCase().includes(q) &&
           !l.record_id?.toLowerCase().includes(q) &&
+          !affected.toLowerCase().includes(q) &&
           !userName.toLowerCase().includes(q)
         ) return false;
       }
       return true;
     });
-  }, [logs, actionFilter, tableFilter, roleFilter, search, days, userMap, userRoleMap]);
+  }, [logs, actionFilter, tableFilter, roleFilter, search, days, fromDate, toDate, userMap, userRoleMap, entityMap]);
 
   const handleExport = () => {
     if (filtered.length === 0) {
       toast.info("No entries to export");
       return;
     }
-    const header = ["Timestamp", "Action", "Table", "Record ID", "User", "Role"];
+    const header = [
+      "Date",
+      "Time",
+      "Action",
+      "Table",
+      "Affected client / visit",
+      "Record ID",
+      "Performed by",
+      "Designation",
+      "Role",
+    ];
     const rows = filtered.map((l) => [
-      new Date(l.created_at).toISOString(),
+      format(new Date(l.created_at), "yyyy-MM-dd"),
+      format(new Date(l.created_at), "HH:mm:ss"),
       l.action,
       l.table_name ?? "",
+      affectedLabel(l),
       l.record_id ?? "",
-      l.user_id ? userMap.get(l.user_id) ?? l.user_id : "",
+      l.actor_name ?? (l.user_id ? userMap.get(l.user_id) ?? l.user_id : "System"),
+      l.actor_designation ?? (l.user_id ? designationMap.get(l.user_id) ?? "" : ""),
       l.user_id ? userRoleMap.get(l.user_id) ?? "" : "",
     ]);
     const csv = [header, ...rows]
@@ -195,12 +259,15 @@ const AuditLog = () => {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+    const rangeLabel =
+      fromDate || toDate ? `${fromDate || "start"}_to_${toDate || "now"}` : `last-${days}d`;
     a.href = url;
-    a.download = `audit-log-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`;
+    a.download = `audit-log-${rangeLabel}-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filtered.length} entries`);
   };
+
 
   if (!canAccess) return <Navigate to="/" replace />;
   if (error) return <div className="text-destructive p-4">Error loading audit logs</div>;
@@ -232,7 +299,7 @@ const AuditLog = () => {
               className="pl-9"
             />
           </div>
-          <Select value={days} onValueChange={setDays}>
+          <Select value={days} onValueChange={setDays} disabled={!!(fromDate || toDate)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="1">Last 24h</SelectItem>
@@ -242,6 +309,7 @@ const AuditLog = () => {
               <SelectItem value="all">All time</SelectItem>
             </SelectContent>
           </Select>
+
           <Select value={actionFilter} onValueChange={setActionFilter}>
             <SelectTrigger><SelectValue placeholder="Action" /></SelectTrigger>
             <SelectContent>
@@ -274,8 +342,24 @@ const AuditLog = () => {
               </SelectContent>
             </Select>
           )}
+          <div className="col-span-2 md:col-span-5 flex flex-wrap items-end gap-2 pt-1">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">From</label>
+              <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-[160px]" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">To</label>
+              <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-[160px]" />
+            </div>
+            {(fromDate || toDate) && (
+              <Button variant="ghost" size="sm" onClick={() => { setFromDate(""); setToDate(""); }}>
+                Clear range
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
+
 
       <p className="text-xs text-muted-foreground">
         Showing {filtered.length} of {logs.length} entries
@@ -313,6 +397,10 @@ const AuditLog = () => {
                 <p className="text-sm mt-1 capitalize">
                   {log.table_name?.replace(/_/g, " ") || "—"}
                 </p>
+                {affectedLabel(log) !== "—" && (
+                  <p className="text-xs mt-0.5">{affectedLabel(log)}</p>
+                )}
+
                 {log.user_id && (
                   <p className="text-xs text-muted-foreground mt-0.5">
                     by {log.actor_name ?? userMap.get(log.user_id) ?? "Unknown"}
@@ -334,22 +422,24 @@ const AuditLog = () => {
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Action</TableHead>
                 <TableHead>Table</TableHead>
+                <TableHead>Affected client / visit</TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Record ID</TableHead>
+
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 5 }).map((_, j) => (
+                    {Array.from({ length: 6 }).map((_, j) => (
                       <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                     No entries match your filters.
                   </TableCell>
                 </TableRow>
@@ -365,6 +455,10 @@ const AuditLog = () => {
                     <TableCell className="capitalize">
                       {log.table_name?.replace(/_/g, " ") || "—"}
                     </TableCell>
+                    <TableCell className="text-sm max-w-[220px] truncate">
+                      {affectedLabel(log)}
+                    </TableCell>
+
                     <TableCell className="text-sm">
                       {log.user_id ? (
                         <div>

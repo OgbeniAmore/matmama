@@ -19,6 +19,8 @@ import {
   deleteClient,
 } from "@/queries/clients";
 import { ClientGrid } from "@/components/clients/ClientGrid";
+import { fetchClientLastActors } from "@/queries/auditActors";
+
 
 const Clients = () => {
   const { toast } = useToast();
@@ -48,6 +50,12 @@ const Clients = () => {
     queryFn: fetchEpiSchedule,
   });
 
+  const { data: lastActors = {} } = useQuery({
+    queryKey: ["client-last-actors"],
+    queryFn: fetchClientLastActors,
+  });
+
+
   const assignedTo = profile?.first_name
     ? `${profile.first_name} ${profile.last_name || ''}`.trim()
     : 'System';
@@ -70,6 +78,7 @@ const Clients = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      queryClient.invalidateQueries({ queryKey: ["client-last-actors"] });
       logAction(
         variables.clientId ? "UPDATE_CLIENT" : "CREATE_CLIENT",
         "clients",
@@ -105,6 +114,7 @@ const Clients = () => {
     onSuccess: (_, clientId) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
+      queryClient.invalidateQueries({ queryKey: ["client-last-actors"] });
       logAction("DELETE_CLIENT", "clients", clientId);
       toast({
         title: "Client Deleted",
@@ -201,11 +211,13 @@ const Clients = () => {
       <ClientGrid
         clients={paginatedClients}
         isLoading={isLoading}
+        lastActors={lastActors}
         onView={openViewSheet}
         onEdit={openEditForm}
         onDelete={handleDeleteClient}
         onAddClient={openAddForm}
       />
+
 
       {!isLoading && filteredClients.length > PAGE_SIZE && (
         <div className="flex items-center justify-between pt-2">

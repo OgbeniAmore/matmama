@@ -4,17 +4,20 @@ import { ClientCard } from "@/components/ClientCard";
 import { ClientCardSkeleton } from "@/components/ClientCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import type { LastActor } from "@/queries/auditActors";
 
 interface ClientGridProps {
     clients: Client[];
     isLoading: boolean;
+    lastActors?: Record<string, LastActor>;
     onView: (client: Client) => void;
     onEdit: (client: Client) => void;
     onDelete: (clientId: string) => void;
     onAddClient: () => void;
 }
 
-export const ClientGrid = ({ clients, isLoading, onView, onEdit, onDelete, onAddClient }: ClientGridProps) => {
+export const ClientGrid = ({ clients, isLoading, lastActors = {}, onView, onEdit, onDelete, onAddClient }: ClientGridProps) => {
+
     if (isLoading) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -46,10 +49,12 @@ export const ClientGrid = ({ clients, isLoading, onView, onEdit, onDelete, onAdd
                 <ClientCard
                     key={client.id}
                     client={client}
+                    lastActor={lastActors[client.id]}
                     onView={onView}
                     onEdit={onEdit}
                     onDelete={onDelete}
                 />
+
             ))}
         </div>
     );

@@ -17,8 +17,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, User, Calendar, Stethoscope } from "lucide-react";
+import { MoreHorizontal, User, Calendar, Stethoscope, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { LastActor } from "@/queries/auditActors";
 
 const statusColors: Record<Status, string> = {
   "On Track": "bg-status-ontrack/10 text-status-ontrack border-status-ontrack/20 hover:bg-status-ontrack/10",
@@ -28,12 +29,14 @@ const statusColors: Record<Status, string> = {
 
 interface ClientCardProps {
   client: Client;
+  lastActor?: LastActor;
   onView: (client: Client) => void;
   onEdit: (client: Client) => void;
   onDelete: (clientId: string) => void;
 }
 
-export const ClientCard = ({ client, onView, onEdit, onDelete }: ClientCardProps) => {
+export const ClientCard = ({ client, lastActor, onView, onEdit, onDelete }: ClientCardProps) => {
+
   return (
     <Card className="flex flex-col hover:shadow-lg transition-shadow duration-300">
       <CardHeader>
@@ -95,14 +98,24 @@ export const ClientCard = ({ client, onView, onEdit, onDelete }: ClientCardProps
           <span className="font-medium">Due: {format(client.dueDate, "PPP")}</span>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-wrap items-center gap-2">
         <Badge
           className={cn("capitalize font-semibold", statusColors[client.status])}
           variant="outline"
         >
           {client.status}
         </Badge>
+        {lastActor && (
+          <Badge variant="secondary" className="gap-1 font-normal">
+            <UserCheck className="h-3 w-3" />
+            <span className="truncate max-w-[160px]">
+              Last updated by {lastActor.name}
+              {lastActor.designation ? ` (${lastActor.designation})` : ""} · {format(new Date(lastActor.at), "MMM d")}
+            </span>
+          </Badge>
+        )}
       </CardFooter>
+
     </Card>
   );
 };

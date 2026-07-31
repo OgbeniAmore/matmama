@@ -397,6 +397,10 @@ const AuditLog = () => {
                 <p className="text-sm mt-1 capitalize">
                   {log.table_name?.replace(/_/g, " ") || "—"}
                 </p>
+                {affectedLabel(log) !== "—" && (
+                  <p className="text-xs mt-0.5">{affectedLabel(log)}</p>
+                )}
+
                 {log.user_id && (
                   <p className="text-xs text-muted-foreground mt-0.5">
                     by {log.actor_name ?? userMap.get(log.user_id) ?? "Unknown"}
@@ -418,8 +422,10 @@ const AuditLog = () => {
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Action</TableHead>
                 <TableHead>Table</TableHead>
+                <TableHead>Affected client / visit</TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Record ID</TableHead>
+
               </TableRow>
             </TableHeader>
             <TableBody>

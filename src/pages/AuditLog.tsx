@@ -74,6 +74,20 @@ const fetchRoster = async () => {
   return data ?? [];
 };
 
+const fetchAffectedEntities = async () => {
+  const [clients, anc, imm] = await Promise.all([
+    supabase.from("clients").select("id, name, service"),
+    supabase.from("anc_visits").select("id, client_id, visit_name"),
+    supabase.from("immunization_records").select("id, client_id, vaccine_name"),
+  ]);
+  return {
+    clients: clients.data ?? [],
+    anc: anc.data ?? [],
+    imm: imm.data ?? [],
+  };
+};
+
+
 const actionVariant = (action: string) => {
   switch (action) {
     case "INSERT": return "default" as const;

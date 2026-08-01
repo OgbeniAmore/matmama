@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -24,29 +24,65 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
-import { Download, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
 import { toast } from "sonner";
+import AuditDetailSheet, {
+  AuditDetailEntry,
+} from "@/components/audit/AuditDetailSheet";
+import { diffAuditRow, summarizeChanges } from "@/lib/auditDiff";
 
-interface AuditEntry {
-  id: string;
-  action: string;
-  table_name: string | null;
-  record_id: string | null;
-  created_at: string;
-  user_id: string | null;
-  actor_name: string | null;
-  actor_designation: string | null;
+type AuditEntry = AuditDetailEntry;
+
+const PAGE_SIZE = 50;
+const SELECT_COLS =
+  "id, action, table_name, record_id, created_at, user_id, actor_name, actor_designation, old_data, new_data";
+
+interface Filters {
+  actionFilter: string;
+  tableFilter: string;
+  search: string;
+  days: string;
+  fromDate: string;
+  toDate: string;
+  userIds: string[] | null;
 }
 
-const fetchAuditLogs = async (): Promise<AuditEntry[]> => {
-  const { data, error } = await supabase
+const buildQuery = (f: Filters, count: boolean) => {
+  let q = supabase
     .from("audit_logs")
-    .select("id, action, table_name, record_id, created_at, user_id, actor_name, actor_designation")
-    .order("created_at", { ascending: false })
-    .limit(1000);
+    .select(SELECT_COLS, count ? { count: "exact" } : undefined)
+    .order("created_at", { ascending: false });
 
+  const useRange = !!(f.fromDate || f.toDate);
+  if (useRange) {
+    if (f.fromDate) q = q.gte("created_at", new Date(`${f.fromDate}T00:00:00`).toISOString());
+    if (f.toDate) q = q.lte("created_at", new Date(`${f.toDate}T23:59:59.999`).toISOString());
+  } else if (f.days !== "all") {
+    const cutoff = new Date(Date.now() - parseInt(f.days) * 86400000).toISOString();
+    q = q.gte("created_at", cutoff);
+  }
+
+  if (f.actionFilter !== "all") q = q.eq("action", f.actionFilter);
+  if (f.tableFilter !== "all") q = q.eq("table_name", f.tableFilter);
+  if (f.userIds) q = q.in("user_id", f.userIds.length ? f.userIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (f.search) {
+    const s = f.search.replace(/[%,()]/g, "");
+    q = q.or(
+      `action.ilike.%${s}%,table_name.ilike.%${s}%,record_id.ilike.%${s}%,actor_name.ilike.%${s}%`,
+    );
+  }
+  return q;
+};
+
+const fetchAuditPage = async (f: Filters, page: number) => {
+  const from = page * PAGE_SIZE;
+  const { data, error, count } = await buildQuery(f, true).range(
+    from,
+    from + PAGE_SIZE - 1,
+  );
   if (error) throw error;
-  return data || [];
+  return { rows: (data ?? []) as AuditEntry[], total: count ?? 0 };
 };
 
 const fetchProfiles = async () => {
@@ -87,6 +123,16 @@ const fetchAffectedEntities = async () => {
   };
 };
 
+const fetchTableNames = async () => {
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select("table_name")
+    .not("table_name", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  if (error) throw error;
+  return Array.from(new Set((data ?? []).map((r) => r.table_name as string))).sort();
+};
 
 const actionVariant = (action: string) => {
   switch (action) {
@@ -106,17 +152,20 @@ const AuditLog = () => {
   const [actionFilter, setActionFilter] = useState("all");
   const [tableFilter, setTableFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [days, setDays] = useState("30");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState<AuditEntry | null>(null);
+  const [exporting, setExporting] = useState(false);
 
-
-  const { data: logs = [], isLoading, error } = useQuery({
-    queryKey: ["audit-logs"],
-    queryFn: fetchAuditLogs,
-    enabled: canAccess,
-  });
+  // Debounce search input
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput.trim()), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["audit-profiles"],
@@ -142,10 +191,40 @@ const AuditLog = () => {
     enabled: canAccess,
   });
 
+  const { data: tables = [] } = useQuery({
+    queryKey: ["audit-tables"],
+    queryFn: fetchTableNames,
+    enabled: canAccess,
+  });
+
+  const userIds = useMemo(() => {
+    if (roleFilter === "all") return null;
+    return rolesData.filter((r) => r.role === roleFilter).map((r) => r.user_id);
+  }, [roleFilter, rolesData]);
+
+  const filters: Filters = useMemo(
+    () => ({ actionFilter, tableFilter, search, days, fromDate, toDate, userIds }),
+    [actionFilter, tableFilter, search, days, fromDate, toDate, userIds],
+  );
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(0);
+  }, [actionFilter, tableFilter, search, days, fromDate, toDate, roleFilter]);
+
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey: ["audit-logs", filters, page],
+    queryFn: () => fetchAuditPage(filters, page),
+    enabled: canAccess,
+    placeholderData: (prev) => prev,
+  });
+
+  const logs = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const userMap = useMemo(() => {
     const m = new Map<string, string>();
-    // Roster name takes precedence (more authoritative for facility actions)
     for (const p of profiles) {
       const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "Unnamed";
       m.set(p.user_id, name);
@@ -168,12 +247,6 @@ const AuditLog = () => {
     return new Map(rolesData.map((r) => [r.user_id, r.role as string]));
   }, [rolesData]);
 
-  const tables = useMemo(() => {
-    return Array.from(
-      new Set(logs.map((l) => l.table_name).filter(Boolean) as string[]),
-    ).sort();
-  }, [logs]);
-
   // record_id -> human readable "who/what was affected"
   const entityMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -194,83 +267,79 @@ const AuditLog = () => {
   const affectedLabel = (log: AuditEntry) =>
     (log.record_id && entityMap.get(log.record_id)) || "—";
 
-  const filtered = useMemo(() => {
-    const useRange = !!(fromDate || toDate);
-    const from = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : 0;
-    const to = toDate ? new Date(`${toDate}T23:59:59.999`).getTime() : Infinity;
-    const cutoff =
-      useRange || days === "all" ? 0 : Date.now() - parseInt(days) * 24 * 60 * 60 * 1000;
-    return logs.filter((l) => {
-      const ts = new Date(l.created_at).getTime();
-      if (useRange && (ts < from || ts > to)) return false;
-      if (cutoff && ts < cutoff) return false;
-      if (actionFilter !== "all" && l.action !== actionFilter) return false;
-      if (tableFilter !== "all" && l.table_name !== tableFilter) return false;
-      if (roleFilter !== "all") {
-        const r = l.user_id ? userRoleMap.get(l.user_id) : null;
-        if (r !== roleFilter) return false;
-      }
-      if (search) {
-        const q = search.toLowerCase();
-        const userName = l.actor_name ?? (l.user_id ? userMap.get(l.user_id) ?? "" : "");
-        const affected = affectedLabel(l);
-        if (
-          !l.action.toLowerCase().includes(q) &&
-          !l.table_name?.toLowerCase().includes(q) &&
-          !l.record_id?.toLowerCase().includes(q) &&
-          !affected.toLowerCase().includes(q) &&
-          !userName.toLowerCase().includes(q)
-        ) return false;
-      }
-      return true;
-    });
-  }, [logs, actionFilter, tableFilter, roleFilter, search, days, fromDate, toDate, userMap, userRoleMap, entityMap]);
+  const performedBy = (log: AuditEntry) =>
+    log.actor_name ?? (log.user_id ? userMap.get(log.user_id) ?? log.user_id : "System");
 
-  const handleExport = () => {
-    if (filtered.length === 0) {
-      toast.info("No entries to export");
-      return;
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { data: rows, error: exportError } = await buildQuery(filters, false).range(
+        0,
+        4999,
+      );
+      if (exportError) throw exportError;
+      const all = (rows ?? []) as AuditEntry[];
+      if (all.length === 0) {
+        toast.info("No entries to export");
+        return;
+      }
+      const header = [
+        "Date",
+        "Time",
+        "Action",
+        "Table",
+        "Affected client / visit",
+        "Record ID",
+        "Performed by",
+        "Designation",
+        "Role",
+        "Changed fields",
+        "Before",
+        "After",
+      ];
+      const csvRows = all.flatMap((l) => {
+        const changes = diffAuditRow(l.old_data, l.new_data);
+        const base = [
+          format(new Date(l.created_at), "yyyy-MM-dd"),
+          format(new Date(l.created_at), "HH:mm:ss"),
+          l.action,
+          l.table_name ?? "",
+          affectedLabel(l),
+          l.record_id ?? "",
+          performedBy(l),
+          l.actor_designation ?? (l.user_id ? designationMap.get(l.user_id) ?? "" : ""),
+          l.user_id ? userRoleMap.get(l.user_id) ?? "" : "",
+        ];
+        if (changes.length === 0) return [[...base, "", "", ""]];
+        return changes.map((c) => [...base, c.field, c.before, c.after]);
+      });
+      const csv = [header, ...csvRows]
+        .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const rangeLabel =
+        fromDate || toDate ? `${fromDate || "start"}_to_${toDate || "now"}` : `last-${days}d`;
+      a.href = url;
+      a.download = `audit-log-${rangeLabel}-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${all.length} entries`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Export failed");
+    } finally {
+      setExporting(false);
     }
-    const header = [
-      "Date",
-      "Time",
-      "Action",
-      "Table",
-      "Affected client / visit",
-      "Record ID",
-      "Performed by",
-      "Designation",
-      "Role",
-    ];
-    const rows = filtered.map((l) => [
-      format(new Date(l.created_at), "yyyy-MM-dd"),
-      format(new Date(l.created_at), "HH:mm:ss"),
-      l.action,
-      l.table_name ?? "",
-      affectedLabel(l),
-      l.record_id ?? "",
-      l.actor_name ?? (l.user_id ? userMap.get(l.user_id) ?? l.user_id : "System"),
-      l.actor_designation ?? (l.user_id ? designationMap.get(l.user_id) ?? "" : ""),
-      l.user_id ? userRoleMap.get(l.user_id) ?? "" : "",
-    ]);
-    const csv = [header, ...rows]
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const rangeLabel =
-      fromDate || toDate ? `${fromDate || "start"}_to_${toDate || "now"}` : `last-${days}d`;
-    a.href = url;
-    a.download = `audit-log-${rangeLabel}-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(`Exported ${filtered.length} entries`);
   };
-
 
   if (!canAccess) return <Navigate to="/" replace />;
   if (error) return <div className="text-destructive p-4">Error loading audit logs</div>;
+
+  const changeSummary = (log: AuditEntry) => {
+    const s = summarizeChanges(diffAuditRow(log.old_data, log.new_data));
+    return s.length > 90 ? `${s.slice(0, 90)}…` : s;
+  };
 
   return (
     <div className="space-y-6">
@@ -281,9 +350,15 @@ const AuditLog = () => {
             Track all system actions for accountability and compliance.
           </p>
         </div>
-        <Button onClick={handleExport} variant="outline" size="sm" className="gap-2">
+        <Button
+          onClick={handleExport}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          disabled={exporting}
+        >
           <Download className="h-4 w-4" />
-          Export CSV
+          {exporting ? "Exporting…" : "Export CSV"}
         </Button>
       </div>
 
@@ -294,8 +369,8 @@ const AuditLog = () => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-9"
             />
           </div>
@@ -360,10 +435,35 @@ const AuditLog = () => {
         </CardContent>
       </Card>
 
-
-      <p className="text-xs text-muted-foreground">
-        Showing {filtered.length} of {logs.length} entries
-      </p>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <p className="text-xs text-muted-foreground">
+          {total === 0
+            ? "No entries"
+            : `Showing ${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, total)} of ${total} entries`}
+          {isFetching && " · updating…"}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0 || isFetching}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Page {page + 1} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page + 1 >= totalPages || isFetching}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
       {/* Mobile card view */}
       <div className="md:hidden space-y-2">
@@ -376,15 +476,15 @@ const AuditLog = () => {
               </CardContent>
             </Card>
           ))
-        ) : filtered.length === 0 ? (
+        ) : logs.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
               No entries match your filters.
             </CardContent>
           </Card>
         ) : (
-          filtered.map((log) => (
-            <Card key={log.id}>
+          logs.map((log) => (
+            <Card key={log.id} onClick={() => setSelected(log)} className="cursor-pointer">
               <CardContent className="p-3">
                 <div className="flex items-center justify-between gap-2">
                   <Badge variant={actionVariant(log.action)} className="text-xs">
@@ -400,7 +500,11 @@ const AuditLog = () => {
                 {affectedLabel(log) !== "—" && (
                   <p className="text-xs mt-0.5">{affectedLabel(log)}</p>
                 )}
-
+                {changeSummary(log) && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {changeSummary(log)}
+                  </p>
+                )}
                 {log.user_id && (
                   <p className="text-xs text-muted-foreground mt-0.5">
                     by {log.actor_name ?? userMap.get(log.user_id) ?? "Unknown"}
@@ -423,29 +527,33 @@ const AuditLog = () => {
                 <TableHead>Action</TableHead>
                 <TableHead>Table</TableHead>
                 <TableHead>Affected client / visit</TableHead>
+                <TableHead>Changes</TableHead>
                 <TableHead>User</TableHead>
-                <TableHead>Record ID</TableHead>
-
+                <TableHead className="text-right">Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
+                    {Array.from({ length: 7 }).map((_, j) => (
                       <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                     ))}
                   </TableRow>
                 ))
-              ) : filtered.length === 0 ? (
+              ) : logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     No entries match your filters.
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((log) => (
-                  <TableRow key={log.id}>
+                logs.map((log) => (
+                  <TableRow
+                    key={log.id}
+                    className="cursor-pointer"
+                    onClick={() => setSelected(log)}
+                  >
                     <TableCell className="whitespace-nowrap text-sm">
                       {format(new Date(log.created_at), "MMM d, yyyy HH:mm:ss")}
                     </TableCell>
@@ -455,10 +563,12 @@ const AuditLog = () => {
                     <TableCell className="capitalize">
                       {log.table_name?.replace(/_/g, " ") || "—"}
                     </TableCell>
-                    <TableCell className="text-sm max-w-[220px] truncate">
+                    <TableCell className="text-sm max-w-[200px] truncate">
                       {affectedLabel(log)}
                     </TableCell>
-
+                    <TableCell className="text-xs max-w-[240px] truncate text-muted-foreground">
+                      {changeSummary(log) || "—"}
+                    </TableCell>
                     <TableCell className="text-sm">
                       {log.user_id ? (
                         <div>
@@ -478,8 +588,17 @@ const AuditLog = () => {
                         "System"
                       )}
                     </TableCell>
-                    <TableCell className="font-mono text-xs max-w-[200px] truncate">
-                      {log.record_id || "—"}
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelected(log);
+                        }}
+                      >
+                        View
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -488,6 +607,19 @@ const AuditLog = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <AuditDetailSheet
+        entry={selected}
+        open={!!selected}
+        onOpenChange={(o) => !o && setSelected(null)}
+        affectedLabel={selected ? affectedLabel(selected) : "—"}
+        performedBy={selected ? performedBy(selected) : "System"}
+        role={
+          selected?.user_id
+            ? userRoleMap.get(selected.user_id) ?? undefined
+            : undefined
+        }
+      />
     </div>
   );
 };

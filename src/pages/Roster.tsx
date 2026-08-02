@@ -179,6 +179,10 @@ const Roster = () => {
             their actions in the audit log.
           </p>
         </div>
+        <div className="flex items-center gap-2">
+        <Button size="sm" variant="outline" className="gap-2" onClick={() => setImportOpen(true)}>
+          <FileSpreadsheet className="h-4 w-4" /> Upload Excel
+        </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">

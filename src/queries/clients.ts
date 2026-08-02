@@ -99,7 +99,7 @@ export const saveClient = async ({
       .eq("id", clientId);
     if (error) throw error;
   } else {
-    const newClientId = `CLI${String(Date.now()).slice(-6)}`;
+    const newClientId = generateClientId();
     const newClientData = {
       ...clientDataForSupabase,
       id: newClientId,

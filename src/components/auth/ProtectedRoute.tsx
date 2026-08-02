@@ -34,7 +34,12 @@ const ProtectedRoute = () => {
     );
   }
 
-  return <Outlet />;
+  return (
+    <>
+      {splash.visible && <LogoSplash onDone={splash.dismiss} />}
+      <Outlet />
+    </>
+  );
 };
 
 export default ProtectedRoute;

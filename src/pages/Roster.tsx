@@ -100,6 +100,34 @@ const Roster = () => {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const importMutation = useMutation({
+    mutationFn: async (rows: RosterImportRow[]) => {
+      if (!facilityId || !accountId) throw new Error("Missing facility");
+      const existing = new Set(roster.map((r) => r.name.trim().toLowerCase()));
+      const payload = rows
+        .filter((r) => !existing.has(r.name.toLowerCase()))
+        .map((r) => ({
+          account_id: accountId,
+          facility_id: facilityId,
+          name: r.name,
+          designation: r.designation,
+          user_id: null,
+          active: true,
+        }));
+      if (payload.length === 0) return 0;
+      const { error } = await supabase.from("facility_roster").insert(payload);
+      if (error) throw error;
+      return payload.length;
+    },
+    onSuccess: (count) => {
+      toast.success(count ? `Imported ${count} health worker(s)` : "No new workers to import");
+      qc.invalidateQueries({ queryKey: ["facility-roster"] });
+      setImportOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
   const toggleActive = useMutation({
     mutationFn: async (row: RosterRow) => {
       const { error } = await supabase

@@ -2,9 +2,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, Outlet } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LogoSplash, useLogoSplash } from '@/components/layout/LogoSplash';
 
 const ProtectedRoute = () => {
   const { user, loading, profile, signOut } = useAuth();
+  const splash = useLogoSplash(!loading && !!user && !!profile);
+
 
   if (loading) {
     return (
@@ -31,7 +34,12 @@ const ProtectedRoute = () => {
     );
   }
 
-  return <Outlet />;
+  return (
+    <>
+      {splash.visible && <LogoSplash onDone={splash.dismiss} />}
+      <Outlet />
+    </>
+  );
 };
 
 export default ProtectedRoute;

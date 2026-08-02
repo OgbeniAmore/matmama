@@ -18,8 +18,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, UserCheck, UserX, Link as LinkIcon } from "lucide-react";
+import { Plus, Trash2, UserCheck, UserX, Link as LinkIcon, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
+import { RosterImportDialog, type RosterImportRow } from "@/components/roster/RosterImportDialog";
 
 const DESIGNATIONS = [
   "Officer-in-Charge",
@@ -49,6 +50,7 @@ const Roster = () => {
   const { role, facilityId, accountId, user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState(DESIGNATIONS[0]);
   const [linkSelf, setLinkSelf] = useState(true);
@@ -97,6 +99,34 @@ const Roster = () => {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const importMutation = useMutation({
+    mutationFn: async (rows: RosterImportRow[]) => {
+      if (!facilityId || !accountId) throw new Error("Missing facility");
+      const existing = new Set(roster.map((r) => r.name.trim().toLowerCase()));
+      const payload = rows
+        .filter((r) => !existing.has(r.name.toLowerCase()))
+        .map((r) => ({
+          account_id: accountId,
+          facility_id: facilityId,
+          name: r.name,
+          designation: r.designation,
+          user_id: null,
+          active: true,
+        }));
+      if (payload.length === 0) return 0;
+      const { error } = await supabase.from("facility_roster").insert(payload);
+      if (error) throw error;
+      return payload.length;
+    },
+    onSuccess: (count) => {
+      toast.success(count ? `Imported ${count} health worker(s)` : "No new workers to import");
+      qc.invalidateQueries({ queryKey: ["facility-roster"] });
+      setImportOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   const toggleActive = useMutation({
     mutationFn: async (row: RosterRow) => {
@@ -149,6 +179,10 @@ const Roster = () => {
             their actions in the audit log.
           </p>
         </div>
+        <div className="flex items-center gap-2">
+        <Button size="sm" variant="outline" className="gap-2" onClick={() => setImportOpen(true)}>
+          <FileSpreadsheet className="h-4 w-4" /> Upload Excel
+        </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">
@@ -199,7 +233,16 @@ const Roster = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      <RosterImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        designations={DESIGNATIONS}
+        isSaving={importMutation.isPending}
+        onImport={(rows) => importMutation.mutate(rows)}
+      />
 
       <Card>
         <CardContent className="p-0">

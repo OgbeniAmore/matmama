@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
+import { resetLogoSplash } from '@/components/layout/LogoSplash';
 
 export type UserRole = 'system_admin' | 'program_manager' | 'facility_officer' | 'data_entry_officer';
 
@@ -146,6 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     setProfile(null);
     setRole(null);
+    resetLogoSplash();
     await supabase.auth.signOut();
   };
 

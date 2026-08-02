@@ -4,6 +4,7 @@ import { Client, EpiSchedule, Status, Service } from "@/types";
 import { type ClientFormValues } from "@/components/ClientForm";
 import { generateImmunizationSchedule } from "@/utils/immunizationUtils";
 import { generateAncSchedule } from "@/utils/ancUtils";
+import { generateClientId, generateSystemId } from "@/lib/ids";
 
 export const fetchClients = async (): Promise<Client[]> => {
   const { data, error } = await supabase
@@ -64,9 +65,10 @@ export const saveClient = async ({
   assignedTo?: string;
 }) => {
   // Auto-generate system_id if no LASRAA or NIN provided
-  const systemId = (!data.lasraaId && !data.ninId) 
-    ? `SYS-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+  const systemId = (!data.lasraaId && !data.ninId)
+    ? generateSystemId()
     : null;
+
 
   const clientDataForSupabase = {
     name: data.name,
@@ -97,7 +99,7 @@ export const saveClient = async ({
       .eq("id", clientId);
     if (error) throw error;
   } else {
-    const newClientId = `CLI${String(Date.now()).slice(-6)}`;
+    const newClientId = generateClientId();
     const newClientData = {
       ...clientDataForSupabase,
       id: newClientId,

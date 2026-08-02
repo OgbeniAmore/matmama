@@ -41,15 +41,30 @@ export const ClientCard = ({ client, lastActor, onView, onEdit, onDelete }: Clie
     <Card className="flex flex-col hover:shadow-lg transition-shadow duration-300">
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-full">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => onView(client)}
+              className="bg-primary/10 p-2 rounded-full shrink-0"
+              aria-label={`View details for ${client.name}`}
+            >
               <User className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">{client.name}</CardTitle>
+            </button>
+            <div className="min-w-0">
+              <CardTitle className="text-lg">
+                <button
+                  type="button"
+                  onClick={() => onView(client)}
+                  className="text-left hover:text-primary hover:underline underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm truncate max-w-full"
+                  title={`View ${client.name}'s details`}
+                >
+                  {client.name}
+                </button>
+              </CardTitle>
               <CardDescription>{client.service}</CardDescription>
             </div>
           </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

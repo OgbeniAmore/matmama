@@ -146,6 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     setProfile(null);
     setRole(null);
+    resetLogoSplash();
     await supabase.auth.signOut();
   };
 

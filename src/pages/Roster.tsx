@@ -233,7 +233,16 @@ const Roster = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      <RosterImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        designations={DESIGNATIONS}
+        isSaving={importMutation.isPending}
+        onImport={(rows) => importMutation.mutate(rows)}
+      />
 
       <Card>
         <CardContent className="p-0">

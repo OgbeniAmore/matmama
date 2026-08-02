@@ -65,9 +65,10 @@ export const saveClient = async ({
   assignedTo?: string;
 }) => {
   // Auto-generate system_id if no LASRAA or NIN provided
-  const systemId = (!data.lasraaId && !data.ninId) 
-    ? `SYS-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+  const systemId = (!data.lasraaId && !data.ninId)
+    ? generateSystemId()
     : null;
+
 
   const clientDataForSupabase = {
     name: data.name,

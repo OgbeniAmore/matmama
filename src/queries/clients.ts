@@ -4,6 +4,7 @@ import { Client, EpiSchedule, Status, Service } from "@/types";
 import { type ClientFormValues } from "@/components/ClientForm";
 import { generateImmunizationSchedule } from "@/utils/immunizationUtils";
 import { generateAncSchedule } from "@/utils/ancUtils";
+import { generateClientId, generateSystemId } from "@/lib/ids";
 
 export const fetchClients = async (): Promise<Client[]> => {
   const { data, error } = await supabase

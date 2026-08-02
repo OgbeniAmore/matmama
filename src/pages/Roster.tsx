@@ -18,8 +18,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, UserCheck, UserX, Link as LinkIcon } from "lucide-react";
+import { Plus, Trash2, UserCheck, UserX, Link as LinkIcon, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
+import { RosterImportDialog, type RosterImportRow } from "@/components/roster/RosterImportDialog";
 
 const DESIGNATIONS = [
   "Officer-in-Charge",

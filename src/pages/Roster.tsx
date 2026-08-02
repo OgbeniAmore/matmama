@@ -50,6 +50,7 @@ const Roster = () => {
   const { role, facilityId, accountId, user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState(DESIGNATIONS[0]);
   const [linkSelf, setLinkSelf] = useState(true);

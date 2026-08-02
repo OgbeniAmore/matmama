@@ -240,6 +240,7 @@ const Roster = () => {
         open={importOpen}
         onOpenChange={setImportOpen}
         designations={DESIGNATIONS}
+        existingNames={roster.map((r) => r.name)}
         isSaving={importMutation.isPending}
         onImport={(rows) => importMutation.mutate(rows)}
       />

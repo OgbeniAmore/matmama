@@ -1,11 +1,10 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, Outlet } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { LogoSplash, useLogoSplash } from '@/components/layout/LogoSplash';
 
 const ProtectedRoute = () => {
-  const { user, loading, profile, signOut } = useAuth();
+  const { user, loading, profile } = useAuth();
   const splash = useLogoSplash(!loading && !!user && !!profile);
 
 

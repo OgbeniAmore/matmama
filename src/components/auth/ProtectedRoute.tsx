@@ -22,17 +22,9 @@ const ProtectedRoute = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!profile) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center flex-col gap-4 p-4 text-center">
-        <p className="text-destructive font-medium">Account setup failed</p>
-        <p className="text-muted-foreground text-sm max-w-sm">
-          We couldn't set up your workspace. Please try signing out and back in.
-        </p>
-        <Button variant="outline" onClick={signOut}>Sign Out & Retry</Button>
-      </div>
-    );
-  }
+  // A missing profile is no longer treated as a hard failure — the app shell
+  // loads and the workspace finishes provisioning in the background.
+
 
   return (
     <>

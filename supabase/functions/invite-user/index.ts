@@ -218,9 +218,18 @@ serve(async (req) => {
 
       if (profileCheck) {
         // Update role + facility + lga instead
-        await supabaseAdmin
+        // Unique constraint is (user_id, role) — replace the row so the new role sticks
+        await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+        const { error: roleErr } = await supabaseAdmin
           .from("user_roles")
-          .upsert({ user_id: userId, role }, { onConflict: "user_id" });
+          .insert({ user_id: userId, role });
+        if (roleErr) {
+          console.error("role update error:", roleErr);
+          return new Response(JSON.stringify({ error: "Failed to update role" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
 
         const updates: Record<string, unknown> = {};
         if (facility_id !== undefined) updates.facility_id = facility_id;
@@ -234,7 +243,7 @@ serve(async (req) => {
         }
 
         return new Response(
-          JSON.stringify({ message: "User already in team — role updated", userId }),
+          JSON.stringify({ message: `User already in team — role updated to ${role}`, userId, roleUpdated: true }),
           {
             status: 200,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -253,9 +262,8 @@ serve(async (req) => {
         lga: lga || null,
       });
 
-      await supabaseAdmin
-        .from("user_roles")
-        .upsert({ user_id: userId, role }, { onConflict: "user_id" });
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+      await supabaseAdmin.from("user_roles").insert({ user_id: userId, role });
     } else {
       isNewUser = true;
       tempPassword = generateTempPassword();

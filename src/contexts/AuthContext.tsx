@@ -91,23 +91,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const initializeUser = useCallback(async (currentUser: User) => {
     let userProfile = await fetchProfile(currentUser.id);
 
+    // Fresh sign-ups may not have a profile yet — provision it, then poll until
+    // it becomes readable through RLS instead of failing the whole session.
     if (!userProfile) {
-      const success = await setupAccount();
-      if (success) {
-        // Brief delay for profile to be queryable through RLS
-        await new Promise(resolve => setTimeout(resolve, 800));
-        userProfile = await fetchProfile(currentUser.id);
+      for (let attempt = 0; attempt < 3 && !userProfile; attempt++) {
+        await setupAccount();
+        for (let poll = 0; poll < 4 && !userProfile; poll++) {
+          await new Promise((resolve) => setTimeout(resolve, 600));
+          userProfile = await fetchProfile(currentUser.id);
+        }
       }
     }
 
     if (userProfile) {
       setProfile(userProfile);
-      const userRole = await fetchRole(currentUser.id);
-      setRole(userRole);
     }
+    const userRole = await fetchRole(currentUser.id);
+    setRole(userRole);
 
     setLoading(false);
   }, [fetchProfile, fetchRole, setupAccount]);
+
 
   useEffect(() => {
     let mounted = true;

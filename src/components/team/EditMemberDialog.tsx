@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Enums } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
@@ -74,27 +73,30 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
   const performSave = async () => {
     setLoading(true);
     try {
-      if (roleChanged) {
-        if (isSelf) {
-          throw new Error("You cannot change your own role.");
-        }
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .update({ role: role as Enums<"app_role"> })
-          .eq("user_id", member.user_id);
-        if (roleError) throw roleError;
+      if (roleChanged && isSelf) {
+        throw new Error("You cannot change your own role.");
       }
 
-      if (facilityChanged) {
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({ facility_id: facilityId || null })
-          .eq("user_id", member.user_id);
-        if (profileError) throw profileError;
+      const { data, error } = await supabase.functions.invoke("update-member", {
+        body: {
+          user_id: member.user_id,
+          ...(roleChanged ? { role } : {}),
+          ...(facilityChanged ? { facility_id: facilityId || null } : {}),
+        },
+      });
+
+      if (error) {
+        const details =
+          typeof (error as any)?.context?.text === "function"
+            ? await (error as any).context.text()
+            : error.message;
+        throw new Error(details || "Failed to update member");
       }
+      if ((data as any)?.error) throw new Error((data as any).error);
 
       toast.success(`Updated ${memberName}`);
       onSuccess();
+      onOpenChange(false);
     } catch (err: any) {
       toast.error(err.message || "Failed to update member");
     } finally {
@@ -102,6 +104,7 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
       setConfirmOpen(false);
     }
   };
+
 
   const handleSave = () => {
     if (!roleChanged && !facilityChanged) {

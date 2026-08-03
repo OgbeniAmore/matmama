@@ -162,7 +162,130 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, role, facility_id, lga } = body;
+    const { email, role, facility_id, lga, resend, user_id } = body;
+
+    const inviterNameForEmail = [callerProfile.first_name, callerProfile.last_name]
+      .filter(Boolean)
+      .join(" ") || "A team manager";
+
+    // ---- Resend invitation: reset the temp password and re-send the email ----
+    if (resend) {
+      if (!user_id && !email) {
+        return new Response(JSON.stringify({ error: "user_id or email is required to resend" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      let targetId: string | null = user_id ?? null;
+      let targetEmail: string | null = email ?? null;
+
+      if (targetId) {
+        const { data: target } = await supabaseAdmin.auth.admin.getUserById(targetId);
+        targetEmail = target?.user?.email ?? null;
+      } else {
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+        const found = list?.users?.find((u) => u.email === targetEmail);
+        targetId = found?.id ?? null;
+      }
+
+      if (!targetId || !targetEmail) {
+        return new Response(JSON.stringify({ error: "User not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: targetRoleRow } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", targetId)
+        .maybeSingle();
+
+      const newTempPassword = generateTempPassword();
+      const { error: pwErr } = await supabaseAdmin.auth.admin.updateUserById(targetId, {
+        password: newTempPassword,
+      });
+      if (pwErr) {
+        console.error("resend password reset error:", pwErr);
+        return new Response(JSON.stringify({ error: "Failed to reset temporary password" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const resendExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const resendKeyForResend = Deno.env.get("RESEND_API_KEY");
+      const resendAppUrl = Deno.env.get("APP_URL") || "https://main.d34ou16e4j43yh.amplifyapp.com";
+      let resendSent = false;
+      let resendError: string | null = null;
+
+      const resendHtml = buildEmailHtml({
+        email: targetEmail,
+        tempPassword: newTempPassword,
+        role: targetRoleRow?.role ?? role ?? "facility_officer",
+        appUrl: resendAppUrl,
+        inviterName: inviterNameForEmail,
+        expiresAt: resendExpiry,
+      });
+
+      if (resendKeyForResend) {
+        try {
+          const res = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${resendKeyForResend}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "Matmama <onboarding@resend.dev>",
+              to: [targetEmail],
+              subject: `Your Matmama invitation (resent)`,
+              html: resendHtml,
+            }),
+          });
+          if (res.ok) {
+            resendSent = true;
+          } else {
+            resendError = await res.text();
+            console.error("Resend send failed:", resendError);
+          }
+        } catch (e) {
+          resendError = String(e);
+          console.error("Resend error:", e);
+        }
+      } else {
+        resendError = "Email service not configured — share credentials manually";
+      }
+
+      await supabaseAdmin
+        .from("invitations")
+        .upsert(
+          {
+            account_id: callerProfile.account_id,
+            email: targetEmail,
+            role: (targetRoleRow?.role ?? role ?? "facility_officer"),
+            invited_by: caller.id,
+            status: "pending",
+            expires_at: resendExpiry,
+          },
+          { onConflict: "account_id,email" }
+        );
+
+      return new Response(
+        JSON.stringify({
+          message: resendSent
+            ? "Invitation email resent"
+            : "Temporary password reset — share it manually",
+          userId: targetId,
+          email: targetEmail,
+          emailSent: resendSent,
+          emailError: resendError,
+          tempPassword: resendSent ? null : newTempPassword,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!email || !role) {
       return new Response(JSON.stringify({ error: "email and role are required" }), {
@@ -170,6 +293,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     // System Admin only check for inviting system_admin or unrestricted PM placement
     const callerIsAdmin = callerRole.role === "system_admin";

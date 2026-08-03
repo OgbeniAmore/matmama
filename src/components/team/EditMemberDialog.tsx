@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, MailPlus } from "lucide-react";
 
 const roles = [
   { value: "facility_officer", label: "Facility Officer" },
@@ -196,7 +196,20 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
               </Select>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button
+              variant="secondary"
+              onClick={handleResendInvite}
+              disabled={resending || loading}
+              className="sm:mr-auto"
+            >
+              {resending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MailPlus className="h-4 w-4" />
+              )}
+              Resend invite
+            </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

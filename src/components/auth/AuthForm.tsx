@@ -22,6 +22,7 @@ import {
 import { LAGOS_LGAS } from "@/lib/lagos-lgas";
 import { LAGOS_WARDS } from "@/lib/lagos-wards";
 import { LAGOS_PHCS } from "@/lib/lagos-phcs";
+import { authRedirectOrigin } from "@/lib/appUrl";
 
 const OTHER_PHC = "__other__";
 
@@ -87,7 +88,7 @@ export default function AuthForm() {
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${authRedirectOrigin()}/reset-password`,
     });
     setLoading(false);
     if (error) {
@@ -131,7 +132,7 @@ export default function AuthForm() {
             ward: ward,
             facility: facility,
           },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${authRedirectOrigin()}/`,
         },
       });
 
@@ -171,7 +172,7 @@ export default function AuthForm() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
+      redirect_uri: authRedirectOrigin(),
     });
     if (result.error) {
       toast.error(result.error.message || 'Google sign-in failed');

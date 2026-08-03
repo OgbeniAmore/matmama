@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, MailPlus } from "lucide-react";
 
 const roles = [
   { value: "facility_officer", label: "Facility Officer" },
@@ -63,12 +63,42 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
   const [role, setRole] = useState(member.role || "facility_officer");
   const [facilityId, setFacilityId] = useState(member.facility_id || "");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const memberName = [member.first_name, member.last_name].filter(Boolean).join(" ") || "Unnamed User";
   const isSelf = user?.id === member.user_id;
   const roleChanged = role !== member.role;
   const facilityChanged = (facilityId || null) !== (member.facility_id || null);
+
+  const handleResendInvite = async () => {
+    setResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("invite-user", {
+        body: { resend: true, user_id: member.user_id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.emailSent) {
+        toast.success(`Invitation resent to ${data.email ?? memberName}`, {
+          description: "A fresh temporary password is on its way.",
+        });
+      } else if (data?.tempPassword) {
+        toast.success(`Temporary password reset for ${data.email ?? memberName}`, {
+          description: `Email delivery unavailable. Share manually: ${data.tempPassword}`,
+          duration: 20000,
+        });
+      } else {
+        toast.info(data?.message || "Invitation processed");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend invitation");
+    } finally {
+      setResending(false);
+    }
+  };
+
 
   const performSave = async () => {
     setLoading(true);
@@ -166,7 +196,20 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
               </Select>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button
+              variant="secondary"
+              onClick={handleResendInvite}
+              disabled={resending || loading}
+              className="sm:mr-auto"
+            >
+              {resending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MailPlus className="h-4 w-4" />
+              )}
+              Resend invite
+            </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

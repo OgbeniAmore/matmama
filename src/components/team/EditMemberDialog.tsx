@@ -135,12 +135,12 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
       } else {
         toast.info(data?.message || "Invitation processed");
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to resend invitation");
+
       setCooldown(data?.cooldownSeconds ?? 120);
       fetchStatus();
     } catch (err: any) {
       toast.error(err.message || "Failed to resend invitation");
+
     } finally {
       setResending(false);
     }

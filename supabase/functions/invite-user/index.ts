@@ -162,11 +162,78 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, role, facility_id, lga, resend, user_id } = body;
+    const { email, role, facility_id, lga, resend, user_id, statusOnly } = body;
 
     const inviterNameForEmail = [callerProfile.first_name, callerProfile.last_name]
       .filter(Boolean)
       .join(" ") || "A team manager";
+
+    const COOLDOWN_SECONDS = 120;
+
+    // ---- Invite status lookup (no side effects other than marking acceptance) ----
+    if (statusOnly) {
+      if (!user_id && !email) {
+        return new Response(JSON.stringify({ error: "user_id or email is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      let sEmail: string | null = email ?? null;
+      let lastSignInAt: string | null = null;
+      if (user_id) {
+        const { data: target } = await supabaseAdmin.auth.admin.getUserById(user_id);
+        sEmail = target?.user?.email ?? sEmail;
+        lastSignInAt = target?.user?.last_sign_in_at ?? null;
+      }
+
+      let invite: any = null;
+      if (sEmail) {
+        const { data } = await supabaseAdmin
+          .from("invitations")
+          .select("status, last_sent_at, send_count, last_send_ok, last_send_error, accepted_at, expires_at")
+          .eq("email", sEmail)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        invite = data;
+      }
+
+      const accepted = !!lastSignInAt;
+      if (accepted && invite && !invite.accepted_at && sEmail) {
+        await supabaseAdmin
+          .from("invitations")
+          .update({ accepted_at: lastSignInAt, status: "accepted" })
+          .eq("email", sEmail);
+        invite.accepted_at = lastSignInAt;
+        invite.status = "accepted";
+      }
+
+      const remaining = invite?.last_sent_at
+        ? Math.max(
+            0,
+            Math.ceil(COOLDOWN_SECONDS - (Date.now() - new Date(invite.last_sent_at).getTime()) / 1000),
+          )
+        : 0;
+
+      return new Response(
+        JSON.stringify({
+          email: sEmail,
+          accepted,
+          acceptedAt: invite?.accepted_at ?? lastSignInAt ?? null,
+          lastSentAt: invite?.last_sent_at ?? null,
+          sendCount: invite?.send_count ?? 0,
+          lastSendOk: invite?.last_send_ok ?? null,
+          lastSendError: invite?.last_send_error ?? null,
+          status: invite?.status ?? null,
+          cooldownSeconds: COOLDOWN_SECONDS,
+          cooldownRemaining: remaining,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+
 
     // ---- Resend invitation: reset the temp password and re-send the email ----
     if (resend) {
@@ -202,6 +269,30 @@ serve(async (req) => {
         .eq("user_id", targetId)
         .maybeSingle();
 
+      // ---- Cooldown: block repeat sends within RESEND_COOLDOWN_SECONDS ----
+      const { data: existingInvite } = await supabaseAdmin
+        .from("invitations")
+        .select("last_sent_at, send_count")
+        .eq("account_id", callerProfile.account_id)
+        .eq("email", targetEmail)
+        .maybeSingle();
+
+      if (existingInvite?.last_sent_at) {
+        const elapsed = (Date.now() - new Date(existingInvite.last_sent_at).getTime()) / 1000;
+        if (elapsed < COOLDOWN_SECONDS) {
+          const retryAfter = Math.ceil(COOLDOWN_SECONDS - elapsed);
+          return new Response(
+            JSON.stringify({
+              error: `Please wait ${retryAfter}s before resending this invitation.`,
+              cooldown: true,
+              retryAfterSeconds: retryAfter,
+              lastSentAt: existingInvite.last_sent_at,
+            }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
       const newTempPassword = generateTempPassword();
       const { error: pwErr } = await supabaseAdmin.auth.admin.updateUserById(targetId, {
         password: newTempPassword,
@@ -213,6 +304,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
 
       const resendExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       const resendKeyForResend = Deno.env.get("RESEND_API_KEY");
@@ -258,6 +350,7 @@ serve(async (req) => {
         resendError = "Email service not configured — share credentials manually";
       }
 
+      const nowIso = new Date().toISOString();
       await supabaseAdmin
         .from("invitations")
         .upsert(
@@ -268,6 +361,10 @@ serve(async (req) => {
             invited_by: caller.id,
             status: "pending",
             expires_at: resendExpiry,
+            last_sent_at: nowIso,
+            send_count: (existingInvite?.send_count ?? 0) + 1,
+            last_send_ok: resendSent,
+            last_send_error: resendError,
           },
           { onConflict: "account_id,email" }
         );
@@ -281,8 +378,12 @@ serve(async (req) => {
           email: targetEmail,
           emailSent: resendSent,
           emailError: resendError,
+          lastSentAt: nowIso,
+          sendCount: (existingInvite?.send_count ?? 0) + 1,
+          cooldownSeconds: COOLDOWN_SECONDS,
           tempPassword: resendSent ? null : newTempPassword,
         }),
+
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -434,6 +535,9 @@ serve(async (req) => {
           invited_by: caller.id,
           status: "pending",
           expires_at: expiresAt,
+          last_sent_at: new Date().toISOString(),
+          send_count: 1,
+
         },
         { onConflict: "account_id,email" }
       )
@@ -486,6 +590,15 @@ serve(async (req) => {
         emailError = "Email service not configured — share credentials manually";
       }
     }
+
+    if (invitationRow?.id) {
+      await supabaseAdmin
+        .from("invitations")
+        .update({ last_send_ok: emailSent, last_send_error: emailError })
+        .eq("id", invitationRow.id);
+    }
+
+
 
     return new Response(
       JSON.stringify({

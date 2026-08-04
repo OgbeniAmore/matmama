@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -29,7 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle, MailPlus } from "lucide-react";
+import { Loader2, AlertTriangle, MailPlus, CheckCircle2, Clock, MailCheck, MailX } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const roles = [
   { value: "facility_officer", label: "Facility Officer" },
@@ -65,6 +66,36 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [inviteStatus, setInviteStatus] = useState<any>(null);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  const fetchStatus = async () => {
+    setStatusLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("invite-user", {
+        body: { statusOnly: true, user_id: member.user_id },
+      });
+      if (error) throw error;
+      setInviteStatus(data);
+      setCooldown(data?.cooldownRemaining ?? 0);
+    } catch {
+      setInviteStatus(null);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open) fetchStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, member.user_id]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown((c) => (c <= 1 ? 0 : c - 1)), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
 
   const memberName = [member.first_name, member.last_name].filter(Boolean).join(" ") || "Unnamed User";
   const isSelf = user?.id === member.user_id;
@@ -77,7 +108,19 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
       const { data, error } = await supabase.functions.invoke("invite-user", {
         body: { resend: true, user_id: member.user_id },
       });
-      if (error) throw error;
+      if (error) {
+        const details =
+          typeof (error as any)?.context?.text === "function"
+            ? await (error as any).context.text()
+            : error.message;
+        let parsed: any = null;
+        try { parsed = JSON.parse(details); } catch { /* not json */ }
+        if (parsed?.cooldown) {
+          setCooldown(parsed.retryAfterSeconds ?? 120);
+          throw new Error(parsed.error);
+        }
+        throw new Error(parsed?.error || details || "Failed to resend invitation");
+      }
       if (data?.error) throw new Error(data.error);
 
       if (data?.emailSent) {
@@ -92,6 +135,10 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
       } else {
         toast.info(data?.message || "Invitation processed");
       }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend invitation");
+      setCooldown(data?.cooldownSeconds ?? 120);
+      fetchStatus();
     } catch (err: any) {
       toast.error(err.message || "Failed to resend invitation");
     } finally {
@@ -159,6 +206,56 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Invitation status
+                </Label>
+                {statusLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+              </div>
+              {!statusLoading && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {inviteStatus?.accepted ? (
+                    <Badge variant="default" className="gap-1">
+                      <CheckCircle2 className="h-3 w-3" /> Accepted
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="gap-1">
+                      <Clock className="h-3 w-3" /> Not accepted yet
+                    </Badge>
+                  )}
+                  {inviteStatus?.lastSentAt ? (
+                    <Badge variant="outline" className="gap-1">
+                      {inviteStatus.lastSendOk === false ? (
+                        <MailX className="h-3 w-3 text-destructive" />
+                      ) : (
+                        <MailCheck className="h-3 w-3" />
+                      )}
+                      {inviteStatus.lastSendOk === false ? "Last email failed" : "Email sent"}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="gap-1">
+                      <MailX className="h-3 w-3" /> No email on record
+                    </Badge>
+                  )}
+                </div>
+              )}
+              {!statusLoading && (
+                <p className="text-xs text-muted-foreground">
+                  {inviteStatus?.lastSentAt
+                    ? `Last sent ${new Date(inviteStatus.lastSentAt).toLocaleString()} · ${
+                        inviteStatus.sendCount ?? 1
+                      } send${(inviteStatus.sendCount ?? 1) === 1 ? "" : "s"}`
+                    : "This user has no invitation email on record."}
+                  {inviteStatus?.acceptedAt
+                    ? ` · Accepted ${new Date(inviteStatus.acceptedAt).toLocaleString()}`
+                    : ""}
+                </p>
+              )}
+              {inviteStatus?.lastSendOk === false && inviteStatus?.lastSendError && (
+                <p className="text-xs text-destructive break-words">{inviteStatus.lastSendError}</p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label>Role</Label>
               <Select value={role} onValueChange={setRole} disabled={isSelf}>
@@ -200,15 +297,16 @@ export function EditMemberDialog({ open, onOpenChange, member, facilities, onSuc
             <Button
               variant="secondary"
               onClick={handleResendInvite}
-              disabled={resending || loading}
+              disabled={resending || loading || cooldown > 0}
               className="sm:mr-auto"
+              title={cooldown > 0 ? `Cooldown active — wait ${cooldown}s` : undefined}
             >
               {resending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <MailPlus className="h-4 w-4" />
               )}
-              Resend invite
+              {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend invite"}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

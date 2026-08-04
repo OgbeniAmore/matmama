@@ -284,6 +284,7 @@ serve(async (req) => {
         resendError = "Email service not configured — share credentials manually";
       }
 
+      const nowIso = new Date().toISOString();
       await supabaseAdmin
         .from("invitations")
         .upsert(
@@ -294,6 +295,10 @@ serve(async (req) => {
             invited_by: caller.id,
             status: "pending",
             expires_at: resendExpiry,
+            last_sent_at: nowIso,
+            send_count: (existingInvite?.send_count ?? 0) + 1,
+            last_send_ok: resendSent,
+            last_send_error: resendError,
           },
           { onConflict: "account_id,email" }
         );
@@ -307,8 +312,12 @@ serve(async (req) => {
           email: targetEmail,
           emailSent: resendSent,
           emailError: resendError,
+          lastSentAt: nowIso,
+          sendCount: (existingInvite?.send_count ?? 0) + 1,
+          cooldownSeconds: COOLDOWN_SECONDS,
           tempPassword: resendSent ? null : newTempPassword,
         }),
+
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

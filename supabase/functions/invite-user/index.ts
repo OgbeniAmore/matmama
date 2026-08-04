@@ -525,6 +525,15 @@ serve(async (req) => {
       }
     }
 
+    if (invitationRow?.id) {
+      await supabaseAdmin
+        .from("invitations")
+        .update({ last_send_ok: emailSent, last_send_error: emailError })
+        .eq("id", invitationRow.id);
+    }
+
+
+
     return new Response(
       JSON.stringify({
         message: emailSent

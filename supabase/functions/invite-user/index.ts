@@ -469,6 +469,9 @@ serve(async (req) => {
           invited_by: caller.id,
           status: "pending",
           expires_at: expiresAt,
+          last_sent_at: new Date().toISOString(),
+          send_count: 1,
+
         },
         { onConflict: "account_id,email" }
       )

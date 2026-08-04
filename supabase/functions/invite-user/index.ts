@@ -162,11 +162,78 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, role, facility_id, lga, resend, user_id } = body;
+    const { email, role, facility_id, lga, resend, user_id, statusOnly } = body;
 
     const inviterNameForEmail = [callerProfile.first_name, callerProfile.last_name]
       .filter(Boolean)
       .join(" ") || "A team manager";
+
+    const COOLDOWN_SECONDS = 120;
+
+    // ---- Invite status lookup (no side effects other than marking acceptance) ----
+    if (statusOnly) {
+      if (!user_id && !email) {
+        return new Response(JSON.stringify({ error: "user_id or email is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      let sEmail: string | null = email ?? null;
+      let lastSignInAt: string | null = null;
+      if (user_id) {
+        const { data: target } = await supabaseAdmin.auth.admin.getUserById(user_id);
+        sEmail = target?.user?.email ?? sEmail;
+        lastSignInAt = target?.user?.last_sign_in_at ?? null;
+      }
+
+      let invite: any = null;
+      if (sEmail) {
+        const { data } = await supabaseAdmin
+          .from("invitations")
+          .select("status, last_sent_at, send_count, last_send_ok, last_send_error, accepted_at, expires_at")
+          .eq("email", sEmail)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        invite = data;
+      }
+
+      const accepted = !!lastSignInAt;
+      if (accepted && invite && !invite.accepted_at && sEmail) {
+        await supabaseAdmin
+          .from("invitations")
+          .update({ accepted_at: lastSignInAt, status: "accepted" })
+          .eq("email", sEmail);
+        invite.accepted_at = lastSignInAt;
+        invite.status = "accepted";
+      }
+
+      const remaining = invite?.last_sent_at
+        ? Math.max(
+            0,
+            Math.ceil(COOLDOWN_SECONDS - (Date.now() - new Date(invite.last_sent_at).getTime()) / 1000),
+          )
+        : 0;
+
+      return new Response(
+        JSON.stringify({
+          email: sEmail,
+          accepted,
+          acceptedAt: invite?.accepted_at ?? lastSignInAt ?? null,
+          lastSentAt: invite?.last_sent_at ?? null,
+          sendCount: invite?.send_count ?? 0,
+          lastSendOk: invite?.last_send_ok ?? null,
+          lastSendError: invite?.last_send_error ?? null,
+          status: invite?.status ?? null,
+          cooldownSeconds: COOLDOWN_SECONDS,
+          cooldownRemaining: remaining,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+
 
     // ---- Resend invitation: reset the temp password and re-send the email ----
     if (resend) {

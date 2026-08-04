@@ -270,7 +270,6 @@ serve(async (req) => {
         .maybeSingle();
 
       // ---- Cooldown: block repeat sends within RESEND_COOLDOWN_SECONDS ----
-      const COOLDOWN_SECONDS = 120;
       const { data: existingInvite } = await supabaseAdmin
         .from("invitations")
         .select("last_sent_at, send_count")

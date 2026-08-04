@@ -202,6 +202,31 @@ serve(async (req) => {
         .eq("user_id", targetId)
         .maybeSingle();
 
+      // ---- Cooldown: block repeat sends within RESEND_COOLDOWN_SECONDS ----
+      const COOLDOWN_SECONDS = 120;
+      const { data: existingInvite } = await supabaseAdmin
+        .from("invitations")
+        .select("last_sent_at, send_count")
+        .eq("account_id", callerProfile.account_id)
+        .eq("email", targetEmail)
+        .maybeSingle();
+
+      if (existingInvite?.last_sent_at) {
+        const elapsed = (Date.now() - new Date(existingInvite.last_sent_at).getTime()) / 1000;
+        if (elapsed < COOLDOWN_SECONDS) {
+          const retryAfter = Math.ceil(COOLDOWN_SECONDS - elapsed);
+          return new Response(
+            JSON.stringify({
+              error: `Please wait ${retryAfter}s before resending this invitation.`,
+              cooldown: true,
+              retryAfterSeconds: retryAfter,
+              lastSentAt: existingInvite.last_sent_at,
+            }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
       const newTempPassword = generateTempPassword();
       const { error: pwErr } = await supabaseAdmin.auth.admin.updateUserById(targetId, {
         password: newTempPassword,
@@ -213,6 +238,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
 
       const resendExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       const resendKeyForResend = Deno.env.get("RESEND_API_KEY");

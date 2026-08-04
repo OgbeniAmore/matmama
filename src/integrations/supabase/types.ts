@@ -404,6 +404,7 @@ export type Database = {
       }
       invitations: {
         Row: {
+          accepted_at: string | null
           account_id: string
           created_at: string
           email: string
@@ -411,10 +412,15 @@ export type Database = {
           facility_id: string | null
           id: string
           invited_by: string
+          last_send_error: string | null
+          last_send_ok: boolean | null
+          last_sent_at: string | null
           role: Database["public"]["Enums"]["app_role"]
+          send_count: number
           status: string
         }
         Insert: {
+          accepted_at?: string | null
           account_id: string
           created_at?: string
           email: string
@@ -422,10 +428,15 @@ export type Database = {
           facility_id?: string | null
           id?: string
           invited_by: string
+          last_send_error?: string | null
+          last_send_ok?: boolean | null
+          last_sent_at?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          send_count?: number
           status?: string
         }
         Update: {
+          accepted_at?: string | null
           account_id?: string
           created_at?: string
           email?: string
@@ -433,7 +444,11 @@ export type Database = {
           facility_id?: string | null
           id?: string
           invited_by?: string
+          last_send_error?: string | null
+          last_send_ok?: boolean | null
+          last_sent_at?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          send_count?: number
           status?: string
         }
         Relationships: [

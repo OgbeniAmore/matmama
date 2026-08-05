@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchReminders, Reminder } from "@/queries/reminders";
 import { format } from "date-fns";
@@ -10,11 +11,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Phone, Clock, Bot, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { MessageSquare, Phone, Clock, Bot, CheckCircle2, XCircle, RefreshCw, History } from "lucide-react";
+import { ReminderTimelineSheet } from "@/components/reminders/ReminderTimelineSheet";
 
 const ReminderHistory = () => {
+  const [selected, setSelected] = useState<Reminder | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const openTimeline = (r: Reminder) => {
+    setSelected(r);
+    setSheetOpen(true);
+  };
+
   const {
     data: reminders = [],
     isLoading,

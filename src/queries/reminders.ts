@@ -14,6 +14,8 @@ export interface Reminder {
   retry_count?: number;
   max_retries?: number;
   error_detail?: string;
+  last_attempted_at?: string;
+  next_retry_at?: string;
   external_message_id?: string;
   client_name?: string;
   client_service?: string;

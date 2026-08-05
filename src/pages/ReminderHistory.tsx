@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchReminders, Reminder } from "@/queries/reminders";
 import { format } from "date-fns";
@@ -10,11 +11,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Phone, Clock, Bot, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { MessageSquare, Phone, Clock, Bot, CheckCircle2, XCircle, RefreshCw, History } from "lucide-react";
+import { ReminderTimelineSheet } from "@/components/reminders/ReminderTimelineSheet";
 
 const ReminderHistory = () => {
+  const [selected, setSelected] = useState<Reminder | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const openTimeline = (r: Reminder) => {
+    setSelected(r);
+    setSheetOpen(true);
+  };
+
   const {
     data: reminders = [],
     isLoading,
@@ -108,13 +119,14 @@ const ReminderHistory = () => {
                 <TableHead>Sent At</TableHead>
                 <TableHead>Delivery</TableHead>
                 <TableHead>Retries</TableHead>
+                <TableHead className="text-right">Timeline</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
@@ -123,13 +135,17 @@ const ReminderHistory = () => {
                 ))
               ) : reminders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     No reminders have been sent yet.
                   </TableCell>
                 </TableRow>
               ) : (
                 reminders.map((reminder) => (
-                  <TableRow key={reminder.id}>
+                  <TableRow
+                    key={reminder.id}
+                    className="cursor-pointer"
+                    onClick={() => openTimeline(reminder)}
+                  >
                     <TableCell className="font-medium">
                       {reminder.client_name}
                     </TableCell>
@@ -170,6 +186,20 @@ const ReminderHistory = () => {
                         <span className="text-sm text-muted-foreground">—</span>
                       )}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openTimeline(reminder);
+                        }}
+                      >
+                        <History className="h-4 w-4" />
+                        View
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -177,6 +207,12 @@ const ReminderHistory = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <ReminderTimelineSheet
+        reminder={selected}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </div>
   );
 };

@@ -186,6 +186,20 @@ const ReminderHistory = () => {
                         <span className="text-sm text-muted-foreground">—</span>
                       )}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openTimeline(reminder);
+                        }}
+                      >
+                        <History className="h-4 w-4" />
+                        View
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -193,6 +207,12 @@ const ReminderHistory = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <ReminderTimelineSheet
+        reminder={selected}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </div>
   );
 };

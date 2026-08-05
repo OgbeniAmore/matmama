@@ -103,11 +103,35 @@ function buildIdempotencyKey(clientId: string, category: string, dateStr: string
 }
 
 // ──────────────── MANUAL RETRY (single reminder, user-initiated) ────────────────
+const MANUAL_RESEND_COOLDOWN_MS = 5 * 60_000; // 5 minutes per reminder
+const MANUAL_RESEND_HOURLY_CAP = 20;          // per account, per rolling hour
+
 async function handleManualRetry(reminderId: string, callerAccountId: string) {
   const { data: original } = await supabaseAdmin
     .from('patient_reminders').select('*').eq('id', reminderId).eq('account_id', callerAccountId).single();
   if (!original) return jsonResponse({ error: 'Original reminder not found' }, 404);
   if (original.retry_count >= original.max_retries) return jsonResponse({ error: 'Max retries exceeded' }, 400);
+
+  // Per-reminder cooldown
+  const last = original.last_attempted_at ? new Date(original.last_attempted_at).getTime() : 0;
+  const elapsed = Date.now() - last;
+  if (last && elapsed < MANUAL_RESEND_COOLDOWN_MS) {
+    return jsonResponse({
+      error: 'Cooldown active',
+      retryAfterSeconds: Math.ceil((MANUAL_RESEND_COOLDOWN_MS - elapsed) / 1000),
+    }, 429);
+  }
+
+  // Account-level hourly rate limit
+  const sinceHour = new Date(Date.now() - 60 * 60_000).toISOString();
+  const { count } = await supabaseAdmin
+    .from('patient_reminders')
+    .select('id', { count: 'exact', head: true })
+    .eq('account_id', callerAccountId)
+    .gte('last_attempted_at', sinceHour);
+  if ((count ?? 0) >= MANUAL_RESEND_HOURLY_CAP) {
+    return jsonResponse({ error: 'Hourly resend limit reached. Try again later.' }, 429);
+  }
 
   const { data: client } = await supabaseAdmin
     .from('clients').select('*').eq('id', original.patient_id).eq('account_id', callerAccountId).single();
@@ -115,6 +139,7 @@ async function handleManualRetry(reminderId: string, callerAccountId: string) {
 
   return await attemptRetry(original, client);
 }
+
 
 // ──────────────── RETRY QUEUE WORKER (cron) ────────────────
 async function processRetryQueue() {

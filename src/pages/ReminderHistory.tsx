@@ -119,13 +119,14 @@ const ReminderHistory = () => {
                 <TableHead>Sent At</TableHead>
                 <TableHead>Delivery</TableHead>
                 <TableHead>Retries</TableHead>
+                <TableHead className="text-right">Timeline</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
@@ -134,13 +135,17 @@ const ReminderHistory = () => {
                 ))
               ) : reminders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     No reminders have been sent yet.
                   </TableCell>
                 </TableRow>
               ) : (
                 reminders.map((reminder) => (
-                  <TableRow key={reminder.id}>
+                  <TableRow
+                    key={reminder.id}
+                    className="cursor-pointer"
+                    onClick={() => openTimeline(reminder)}
+                  >
                     <TableCell className="font-medium">
                       {reminder.client_name}
                     </TableCell>

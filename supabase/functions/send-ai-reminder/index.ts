@@ -229,8 +229,9 @@ async function processRetryQueue() {
   return jsonResponse({ success: true, processed: (due || []).length, succeeded, failed, skipped });
 }
 
-async function attemptRetry(reminder: any, client: any) {
-  const nextAttempt = (reminder.retry_count || 0) + 1;
+async function attemptRetry(reminder: any, client: any, manual = false) {
+  const nextAttempt = manual ? (reminder.retry_count || 0) : (reminder.retry_count || 0) + 1;
+
   try {
     const message = reminder.message?.startsWith('FAILED:')
       ? await generateMessage(client, mapCategoryForGeneration(reminder.reminder_category))

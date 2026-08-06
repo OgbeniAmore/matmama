@@ -322,9 +322,6 @@ async function generateMessage(client: any, type: 'upcoming' | 'day_of' | 'follo
     return renderTemplate(template, client, facilityName);
   }
 
-  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-  if (!openaiApiKey) throw new Error('OPENAI_API_KEY is not configured');
-
   const contextMap: Record<string, string> = {
     upcoming: 'Their appointment is coming up in 3 days. Remind them warmly.',
     day_of: 'Their appointment is TODAY. Remind them warmly to come in.',
@@ -344,25 +341,94 @@ ${client.service === 'Ante Natal Care' && client.trimester ? `- Trimester: ${cli
 
 Context: ${contextMap[type]}
 
-Create a warm, caring message (max 160 characters for SMS) that addresses the patient by name, mentions their service, and uses a supportive tone. Return ONLY the message text.`;
+Create a warm, caring message (max 160 characters for SMS) that addresses the client by name, mentions their service, and uses a supportive tone. Return ONLY the message text.`;
 
-  const r = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: 'You are a helpful healthcare communication assistant. Return only the message text.' },
-        { role: 'user', content: prompt },
-      ],
-      max_tokens: 100,
-      temperature: 0.7,
-    }),
-  });
-  if (!r.ok) { console.error('OpenAI error:', await r.text()); throw new Error('Failed to generate reminder message'); }
-  const d = await r.json();
-  return d.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
+  const aiMessage = await tryGenerateWithAi(prompt);
+  if (aiMessage) return aiMessage;
+
+  // Deterministic fallback so a reminder is never dropped because AI is unavailable.
+  return fallbackMessage(client, type);
 }
+
+// Lovable AI Gateway first, then OpenAI if a key exists. Never throws.
+async function tryGenerateWithAi(prompt: string): Promise<string | null> {
+  const clean = (t: string) => t.trim().replace(/^["']|["']$/g, '');
+
+  const lovableKey = Deno.env.get('LOVABLE_API_KEY');
+  if (lovableKey) {
+    try {
+      const r = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${lovableKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: 'You are a helpful healthcare communication assistant. Return only the message text.' },
+            { role: 'user', content: prompt },
+          ],
+        }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const text = d?.choices?.[0]?.message?.content;
+        if (text) return clean(text);
+      } else {
+        console.error('Lovable AI error:', r.status, await r.text());
+      }
+    } catch (e) {
+      console.error('Lovable AI request failed:', (e as Error).message);
+    }
+  }
+
+  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+  if (openaiApiKey) {
+    try {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'You are a helpful healthcare communication assistant. Return only the message text.' },
+            { role: 'user', content: prompt },
+          ],
+          max_tokens: 100,
+          temperature: 0.7,
+        }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const text = d?.choices?.[0]?.message?.content;
+        if (text) return clean(text);
+      } else {
+        console.error('OpenAI error:', r.status, await r.text());
+      }
+    } catch (e) {
+      console.error('OpenAI request failed:', (e as Error).message);
+    }
+  }
+
+  return null;
+}
+
+function fallbackMessage(client: any, type: string): string {
+  const due = client.due_date ? new Date(client.due_date).toLocaleDateString() : '';
+  const name = client.name || 'Hello';
+  const service = client.service || 'your appointment';
+  switch (type) {
+    case 'upcoming':
+      return `Hello ${name}, a friendly reminder: your ${service} appointment is on ${due}. We look forward to seeing you.`;
+    case 'day_of':
+      return `Hello ${name}, your ${service} appointment is today. Please visit your health facility. We look forward to seeing you.`;
+    case 'follow_up':
+      return `Hello ${name}, we missed you at your ${service} appointment yesterday. Please come in today so we can care for you.`;
+    case 'defaulter':
+      return `Hello ${name}, you missed your ${service} appointment on ${due}. Please visit your health facility soon to reschedule.`;
+    default:
+      return `Hello ${name}, this is a reminder about your ${service} appointment due ${due}. Please visit your health facility.`;
+  }
+}
+
 
 // ──────────────── LOGGING ────────────────
 async function logReminder(patientId: string, type: string, message: string, accountId: string | null, category: string, messageSid?: string, idemKey?: string) {

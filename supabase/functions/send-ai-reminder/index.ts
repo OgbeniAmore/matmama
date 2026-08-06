@@ -42,6 +42,16 @@ serve(async (req) => {
       return await processRetryQueue();
     }
 
+    // --- DELIVERY FAILURE ALERT MODE (cron) ---
+    if (body.checkFailureAlerts) {
+      const expected = Deno.env.get('CRON_SECRET');
+      if (expected) {
+        const cronSecret = req.headers.get('x-cron-secret');
+        if (cronSecret !== expected) return jsonResponse({ error: 'Forbidden' }, 403);
+      }
+      return await checkFailureRateAlerts(body.threshold, body.minVolume);
+    }
+
     // --- AUTHENTICATED MODES (manual + manual retry) ---
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) return jsonResponse({ error: 'Unauthorized' }, 401);
@@ -55,7 +65,13 @@ serve(async (req) => {
     const callerAccountId = callerProfile?.account_id ?? null;
     if (!callerAccountId) return jsonResponse({ error: 'Forbidden' }, 403);
 
-    if (retryOf) return await handleManualRetry(retryOf, callerAccountId);
+    if (retryOf) {
+      return await handleManualRetry(retryOf, callerAccountId, userId, {
+        actorName: body.actorName,
+        actorDesignation: body.actorDesignation,
+      });
+    }
+
 
     if (!patientId || !reminderType) throw new Error('Missing required fields: patientId and reminderType');
     if (!['sms', 'whatsapp'].includes(reminderType)) throw new Error('Invalid reminder type');

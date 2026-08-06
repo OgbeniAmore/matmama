@@ -122,11 +122,15 @@ function buildIdempotencyKey(clientId: string, category: string, dateStr: string
 const MANUAL_RESEND_COOLDOWN_MS = 5 * 60_000; // 5 minutes per reminder
 const MANUAL_RESEND_HOURLY_CAP = 20;          // per account, per rolling hour
 
-async function handleManualRetry(reminderId: string, callerAccountId: string) {
+async function handleManualRetry(
+  reminderId: string,
+  callerAccountId: string,
+  userId: string,
+  actor: { actorName?: string; actorDesignation?: string } = {},
+) {
   const { data: original } = await supabaseAdmin
     .from('patient_reminders').select('*').eq('id', reminderId).eq('account_id', callerAccountId).single();
   if (!original) return jsonResponse({ error: 'Original reminder not found' }, 404);
-  if (original.retry_count >= original.max_retries) return jsonResponse({ error: 'Max retries exceeded' }, 400);
 
   // Per-reminder cooldown
   const last = original.last_attempted_at ? new Date(original.last_attempted_at).getTime() : 0;
@@ -153,8 +157,48 @@ async function handleManualRetry(reminderId: string, callerAccountId: string) {
     .from('clients').select('*').eq('id', original.patient_id).eq('account_id', callerAccountId).single();
   if (!client) return jsonResponse({ error: 'Client not found' }, 404);
 
-  return await attemptRetry(original, client);
+  // Manual resends are user-initiated and rate limited, so they are allowed even
+  // after the automated retry budget is exhausted.
+  const res = await attemptRetry(original, client, true);
+  const ok = (res as any).status === 200;
+
+  // Audit trail: who clicked Resend SMS, when, and the resulting delivery status.
+  const { data: after } = await supabaseAdmin
+    .from('patient_reminders')
+    .select('delivery_status, status, retry_count, external_message_id, error_detail, last_attempted_at')
+    .eq('id', reminderId).maybeSingle();
+
+  await supabaseAdmin.from('audit_logs').insert({
+    user_id: userId,
+    account_id: callerAccountId,
+    action: 'RESEND_SMS',
+    table_name: 'patient_reminders',
+    record_id: reminderId,
+    actor_name: actor.actorName?.trim() || null,
+    actor_designation: actor.actorDesignation?.trim() || null,
+    old_data: {
+      delivery_status: original.delivery_status,
+      status: original.status,
+      retry_count: original.retry_count,
+      error_detail: original.error_detail,
+    },
+    new_data: {
+      succeeded: ok,
+      client_id: original.patient_id,
+      client_name: client.name,
+      channel: original.reminder_type,
+      resent_at: new Date().toISOString(),
+      delivery_status: after?.delivery_status ?? null,
+      status: after?.status ?? null,
+      retry_count: after?.retry_count ?? null,
+      external_message_id: after?.external_message_id ?? null,
+      error_detail: after?.error_detail ?? null,
+    },
+  });
+
+  return res;
 }
+
 
 
 // ──────────────── RETRY QUEUE WORKER (cron) ────────────────

@@ -587,7 +587,98 @@ async function sendWhatsApp(phoneNumber: string, message: string): Promise<{ mes
   return { messageSid: data.info?.whatsappMessageId || data.id || crypto.randomUUID() };
 }
 
+
+// ──────────────── DELIVERY FAILURE RATE ALERTS ────────────────
+async function checkFailureRateAlerts(threshold?: number, minVolume?: number) {
+  const failThreshold = typeof threshold === 'number' ? threshold : 0.2; // 20%
+  const minVol = typeof minVolume === 'number' ? minVolume : 10;
+  const since = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+
+  const { data: rows, error } = await supabaseAdmin
+    .from('patient_reminders')
+    .select('account_id, delivery_status, error_detail')
+    .gte('sent_at', since);
+
+  if (error) return jsonResponse({ error: error.message }, 500);
+
+  const byAccount = new Map<string, { total: number; failed: number; reasons: Record<string, number> }>();
+  for (const r of rows || []) {
+    const key = r.account_id || 'unknown';
+    const agg = byAccount.get(key) || { total: 0, failed: 0, reasons: {} };
+    agg.total++;
+    if (['failed', 'undelivered'].includes(r.delivery_status || '')) {
+      agg.failed++;
+      const reason = (r.error_detail || 'Unknown reason').slice(0, 80);
+      agg.reasons[reason] = (agg.reasons[reason] || 0) + 1;
+    }
+    byAccount.set(key, agg);
+  }
+
+  const alerts: any[] = [];
+  for (const [accountId, agg] of byAccount) {
+    if (accountId === 'unknown' || agg.total < minVol) continue;
+    const rate = agg.failed / agg.total;
+    if (rate < failThreshold) continue;
+
+    // Don't re-alert the same account within 12 hours.
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60_000).toISOString();
+    const { data: recent } = await supabaseAdmin
+      .from('audit_logs')
+      .select('id')
+      .eq('action', 'SMS_FAILURE_ALERT')
+      .eq('account_id', accountId)
+      .gte('created_at', twelveHoursAgo)
+      .limit(1);
+    if (recent && recent.length > 0) continue;
+
+    const topReason = Object.entries(agg.reasons).sort((a, b) => b[1] - a[1])[0];
+    const pct = Math.round(rate * 100);
+    const title = `SMS failure rate spike: ${pct}%`;
+    const message = `${agg.failed} of ${agg.total} SMS reminders failed in the last 24 hours (${pct}%, threshold ${Math.round(failThreshold * 100)}%).${topReason ? ` Top reason: ${topReason[0]}.` : ''}`;
+
+    const { data: admins } = await supabaseAdmin
+      .from('profiles')
+      .select('user_id, user_roles!inner(role)')
+      .eq('account_id', accountId);
+
+    const recipients = (admins || [])
+      .filter((p: any) => (p.user_roles || []).some((r: any) => ['system_admin', 'program_manager'].includes(r.role)))
+      .map((p: any) => p.user_id);
+
+    for (const uid of recipients) {
+      await supabaseAdmin.from('notifications').insert({
+        user_id: uid,
+        title,
+        message,
+        type: 'reminder',
+        link: '/reminders',
+      });
+    }
+
+    await supabaseAdmin.from('audit_logs').insert({
+      account_id: accountId,
+      action: 'SMS_FAILURE_ALERT',
+      table_name: 'patient_reminders',
+      record_id: accountId,
+      new_data: {
+        window_hours: 24,
+        total: agg.total,
+        failed: agg.failed,
+        failure_rate: rate,
+        threshold: failThreshold,
+        reasons: agg.reasons,
+        notified_users: recipients.length,
+      },
+    });
+
+    alerts.push({ accountId, total: agg.total, failed: agg.failed, rate, notified: recipients.length });
+  }
+
+  return jsonResponse({ success: true, threshold: failThreshold, minVolume: minVol, alerts });
+}
+
 function jsonResponse(body: any, status = 200) {
+
   return new Response(JSON.stringify(body), {
     status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });

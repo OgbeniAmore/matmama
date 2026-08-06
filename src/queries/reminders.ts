@@ -19,6 +19,8 @@ export interface Reminder {
   external_message_id?: string;
   client_name?: string;
   client_service?: string;
+  facility_id?: string | null;
+  facility_name?: string;
 }
 
 export const fetchReminders = async (): Promise<Reminder[]> => {
@@ -36,18 +38,42 @@ export const fetchReminders = async (): Promise<Reminder[]> => {
 
   const { data: clients, error: clientsError } = await supabase
     .from("clients")
-    .select("id, name, service")
+    .select("id, name, service, facility_id")
     .in("id", patientIds);
 
   if (clientsError) throw clientsError;
 
+  const facilityIds = [
+    ...new Set((clients || []).map((c) => c.facility_id).filter(Boolean) as string[]),
+  ];
+
+  const facilityMap = new Map<string, string>();
+  if (facilityIds.length > 0) {
+    const { data: facilities } = await supabase
+      .from("facilities")
+      .select("id, name")
+      .in("id", facilityIds);
+    (facilities || []).forEach((f) => facilityMap.set(f.id, f.name));
+  }
+
   const clientMap = new Map(
-    (clients || []).map((c) => [c.id, { name: c.name, service: c.service }])
+    (clients || []).map((c) => [
+      c.id,
+      { name: c.name, service: c.service, facility_id: c.facility_id },
+    ])
   );
 
-  return (reminders || []).map((r) => ({
-    ...r,
-    client_name: clientMap.get(r.patient_id)?.name ?? "Unknown",
-    client_service: clientMap.get(r.patient_id)?.service ?? "Unknown",
-  }));
+  return (reminders || []).map((r) => {
+    const c = clientMap.get(r.patient_id);
+    return {
+      ...r,
+      client_name: c?.name ?? "Unknown",
+      client_service: c?.service ?? "Unknown",
+      facility_id: c?.facility_id ?? null,
+      facility_name: c?.facility_id
+        ? facilityMap.get(c.facility_id) ?? "Unknown facility"
+        : "Unassigned",
+    };
+  });
 };
+

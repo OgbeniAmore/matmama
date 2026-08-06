@@ -42,6 +42,16 @@ serve(async (req) => {
       return await processRetryQueue();
     }
 
+    // --- DELIVERY FAILURE ALERT MODE (cron) ---
+    if (body.checkFailureAlerts) {
+      const expected = Deno.env.get('CRON_SECRET');
+      if (expected) {
+        const cronSecret = req.headers.get('x-cron-secret');
+        if (cronSecret !== expected) return jsonResponse({ error: 'Forbidden' }, 403);
+      }
+      return await checkFailureRateAlerts(body.threshold, body.minVolume);
+    }
+
     // --- AUTHENTICATED MODES (manual + manual retry) ---
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) return jsonResponse({ error: 'Unauthorized' }, 401);
@@ -55,7 +65,13 @@ serve(async (req) => {
     const callerAccountId = callerProfile?.account_id ?? null;
     if (!callerAccountId) return jsonResponse({ error: 'Forbidden' }, 403);
 
-    if (retryOf) return await handleManualRetry(retryOf, callerAccountId);
+    if (retryOf) {
+      return await handleManualRetry(retryOf, callerAccountId, userId, {
+        actorName: body.actorName,
+        actorDesignation: body.actorDesignation,
+      });
+    }
+
 
     if (!patientId || !reminderType) throw new Error('Missing required fields: patientId and reminderType');
     if (!['sms', 'whatsapp'].includes(reminderType)) throw new Error('Invalid reminder type');
@@ -106,11 +122,15 @@ function buildIdempotencyKey(clientId: string, category: string, dateStr: string
 const MANUAL_RESEND_COOLDOWN_MS = 5 * 60_000; // 5 minutes per reminder
 const MANUAL_RESEND_HOURLY_CAP = 20;          // per account, per rolling hour
 
-async function handleManualRetry(reminderId: string, callerAccountId: string) {
+async function handleManualRetry(
+  reminderId: string,
+  callerAccountId: string,
+  userId: string,
+  actor: { actorName?: string; actorDesignation?: string } = {},
+) {
   const { data: original } = await supabaseAdmin
     .from('patient_reminders').select('*').eq('id', reminderId).eq('account_id', callerAccountId).single();
   if (!original) return jsonResponse({ error: 'Original reminder not found' }, 404);
-  if (original.retry_count >= original.max_retries) return jsonResponse({ error: 'Max retries exceeded' }, 400);
 
   // Per-reminder cooldown
   const last = original.last_attempted_at ? new Date(original.last_attempted_at).getTime() : 0;
@@ -137,8 +157,48 @@ async function handleManualRetry(reminderId: string, callerAccountId: string) {
     .from('clients').select('*').eq('id', original.patient_id).eq('account_id', callerAccountId).single();
   if (!client) return jsonResponse({ error: 'Client not found' }, 404);
 
-  return await attemptRetry(original, client);
+  // Manual resends are user-initiated and rate limited, so they are allowed even
+  // after the automated retry budget is exhausted.
+  const res = await attemptRetry(original, client, true);
+  const ok = (res as any).status === 200;
+
+  // Audit trail: who clicked Resend SMS, when, and the resulting delivery status.
+  const { data: after } = await supabaseAdmin
+    .from('patient_reminders')
+    .select('delivery_status, status, retry_count, external_message_id, error_detail, last_attempted_at')
+    .eq('id', reminderId).maybeSingle();
+
+  await supabaseAdmin.from('audit_logs').insert({
+    user_id: userId,
+    account_id: callerAccountId,
+    action: 'RESEND_SMS',
+    table_name: 'patient_reminders',
+    record_id: reminderId,
+    actor_name: actor.actorName?.trim() || null,
+    actor_designation: actor.actorDesignation?.trim() || null,
+    old_data: {
+      delivery_status: original.delivery_status,
+      status: original.status,
+      retry_count: original.retry_count,
+      error_detail: original.error_detail,
+    },
+    new_data: {
+      succeeded: ok,
+      client_id: original.patient_id,
+      client_name: client.name,
+      channel: original.reminder_type,
+      resent_at: new Date().toISOString(),
+      delivery_status: after?.delivery_status ?? null,
+      status: after?.status ?? null,
+      retry_count: after?.retry_count ?? null,
+      external_message_id: after?.external_message_id ?? null,
+      error_detail: after?.error_detail ?? null,
+    },
+  });
+
+  return res;
 }
+
 
 
 // ──────────────── RETRY QUEUE WORKER (cron) ────────────────
@@ -169,8 +229,9 @@ async function processRetryQueue() {
   return jsonResponse({ success: true, processed: (due || []).length, succeeded, failed, skipped });
 }
 
-async function attemptRetry(reminder: any, client: any) {
-  const nextAttempt = (reminder.retry_count || 0) + 1;
+async function attemptRetry(reminder: any, client: any, manual = false) {
+  const nextAttempt = manual ? (reminder.retry_count || 0) : (reminder.retry_count || 0) + 1;
+
   try {
     const message = reminder.message?.startsWith('FAILED:')
       ? await generateMessage(client, mapCategoryForGeneration(reminder.reminder_category))
@@ -322,9 +383,6 @@ async function generateMessage(client: any, type: 'upcoming' | 'day_of' | 'follo
     return renderTemplate(template, client, facilityName);
   }
 
-  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-  if (!openaiApiKey) throw new Error('OPENAI_API_KEY is not configured');
-
   const contextMap: Record<string, string> = {
     upcoming: 'Their appointment is coming up in 3 days. Remind them warmly.',
     day_of: 'Their appointment is TODAY. Remind them warmly to come in.',
@@ -344,25 +402,94 @@ ${client.service === 'Ante Natal Care' && client.trimester ? `- Trimester: ${cli
 
 Context: ${contextMap[type]}
 
-Create a warm, caring message (max 160 characters for SMS) that addresses the patient by name, mentions their service, and uses a supportive tone. Return ONLY the message text.`;
+Create a warm, caring message (max 160 characters for SMS) that addresses the client by name, mentions their service, and uses a supportive tone. Return ONLY the message text.`;
 
-  const r = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: 'You are a helpful healthcare communication assistant. Return only the message text.' },
-        { role: 'user', content: prompt },
-      ],
-      max_tokens: 100,
-      temperature: 0.7,
-    }),
-  });
-  if (!r.ok) { console.error('OpenAI error:', await r.text()); throw new Error('Failed to generate reminder message'); }
-  const d = await r.json();
-  return d.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
+  const aiMessage = await tryGenerateWithAi(prompt);
+  if (aiMessage) return aiMessage;
+
+  // Deterministic fallback so a reminder is never dropped because AI is unavailable.
+  return fallbackMessage(client, type);
 }
+
+// Lovable AI Gateway first, then OpenAI if a key exists. Never throws.
+async function tryGenerateWithAi(prompt: string): Promise<string | null> {
+  const clean = (t: string) => t.trim().replace(/^["']|["']$/g, '');
+
+  const lovableKey = Deno.env.get('LOVABLE_API_KEY');
+  if (lovableKey) {
+    try {
+      const r = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${lovableKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: 'You are a helpful healthcare communication assistant. Return only the message text.' },
+            { role: 'user', content: prompt },
+          ],
+        }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const text = d?.choices?.[0]?.message?.content;
+        if (text) return clean(text);
+      } else {
+        console.error('Lovable AI error:', r.status, await r.text());
+      }
+    } catch (e) {
+      console.error('Lovable AI request failed:', (e as Error).message);
+    }
+  }
+
+  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+  if (openaiApiKey) {
+    try {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'You are a helpful healthcare communication assistant. Return only the message text.' },
+            { role: 'user', content: prompt },
+          ],
+          max_tokens: 100,
+          temperature: 0.7,
+        }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const text = d?.choices?.[0]?.message?.content;
+        if (text) return clean(text);
+      } else {
+        console.error('OpenAI error:', r.status, await r.text());
+      }
+    } catch (e) {
+      console.error('OpenAI request failed:', (e as Error).message);
+    }
+  }
+
+  return null;
+}
+
+function fallbackMessage(client: any, type: string): string {
+  const due = client.due_date ? new Date(client.due_date).toLocaleDateString() : '';
+  const name = client.name || 'Hello';
+  const service = client.service || 'your appointment';
+  switch (type) {
+    case 'upcoming':
+      return `Hello ${name}, a friendly reminder: your ${service} appointment is on ${due}. We look forward to seeing you.`;
+    case 'day_of':
+      return `Hello ${name}, your ${service} appointment is today. Please visit your health facility. We look forward to seeing you.`;
+    case 'follow_up':
+      return `Hello ${name}, we missed you at your ${service} appointment yesterday. Please come in today so we can care for you.`;
+    case 'defaulter':
+      return `Hello ${name}, you missed your ${service} appointment on ${due}. Please visit your health facility soon to reschedule.`;
+    default:
+      return `Hello ${name}, this is a reminder about your ${service} appointment due ${due}. Please visit your health facility.`;
+  }
+}
+
 
 // ──────────────── LOGGING ────────────────
 async function logReminder(patientId: string, type: string, message: string, accountId: string | null, category: string, messageSid?: string, idemKey?: string) {
@@ -460,7 +587,98 @@ async function sendWhatsApp(phoneNumber: string, message: string): Promise<{ mes
   return { messageSid: data.info?.whatsappMessageId || data.id || crypto.randomUUID() };
 }
 
+
+// ──────────────── DELIVERY FAILURE RATE ALERTS ────────────────
+async function checkFailureRateAlerts(threshold?: number, minVolume?: number) {
+  const failThreshold = typeof threshold === 'number' ? threshold : 0.2; // 20%
+  const minVol = typeof minVolume === 'number' ? minVolume : 10;
+  const since = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+
+  const { data: rows, error } = await supabaseAdmin
+    .from('patient_reminders')
+    .select('account_id, delivery_status, error_detail')
+    .gte('sent_at', since);
+
+  if (error) return jsonResponse({ error: error.message }, 500);
+
+  const byAccount = new Map<string, { total: number; failed: number; reasons: Record<string, number> }>();
+  for (const r of rows || []) {
+    const key = r.account_id || 'unknown';
+    const agg = byAccount.get(key) || { total: 0, failed: 0, reasons: {} };
+    agg.total++;
+    if (['failed', 'undelivered'].includes(r.delivery_status || '')) {
+      agg.failed++;
+      const reason = (r.error_detail || 'Unknown reason').slice(0, 80);
+      agg.reasons[reason] = (agg.reasons[reason] || 0) + 1;
+    }
+    byAccount.set(key, agg);
+  }
+
+  const alerts: any[] = [];
+  for (const [accountId, agg] of byAccount) {
+    if (accountId === 'unknown' || agg.total < minVol) continue;
+    const rate = agg.failed / agg.total;
+    if (rate < failThreshold) continue;
+
+    // Don't re-alert the same account within 12 hours.
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60_000).toISOString();
+    const { data: recent } = await supabaseAdmin
+      .from('audit_logs')
+      .select('id')
+      .eq('action', 'SMS_FAILURE_ALERT')
+      .eq('account_id', accountId)
+      .gte('created_at', twelveHoursAgo)
+      .limit(1);
+    if (recent && recent.length > 0) continue;
+
+    const topReason = Object.entries(agg.reasons).sort((a, b) => b[1] - a[1])[0];
+    const pct = Math.round(rate * 100);
+    const title = `SMS failure rate spike: ${pct}%`;
+    const message = `${agg.failed} of ${agg.total} SMS reminders failed in the last 24 hours (${pct}%, threshold ${Math.round(failThreshold * 100)}%).${topReason ? ` Top reason: ${topReason[0]}.` : ''}`;
+
+    const { data: admins } = await supabaseAdmin
+      .from('profiles')
+      .select('user_id, user_roles!inner(role)')
+      .eq('account_id', accountId);
+
+    const recipients = (admins || [])
+      .filter((p: any) => (p.user_roles || []).some((r: any) => ['system_admin', 'program_manager'].includes(r.role)))
+      .map((p: any) => p.user_id);
+
+    for (const uid of recipients) {
+      await supabaseAdmin.from('notifications').insert({
+        user_id: uid,
+        title,
+        message,
+        type: 'reminder',
+        link: '/reminders',
+      });
+    }
+
+    await supabaseAdmin.from('audit_logs').insert({
+      account_id: accountId,
+      action: 'SMS_FAILURE_ALERT',
+      table_name: 'patient_reminders',
+      record_id: accountId,
+      new_data: {
+        window_hours: 24,
+        total: agg.total,
+        failed: agg.failed,
+        failure_rate: rate,
+        threshold: failThreshold,
+        reasons: agg.reasons,
+        notified_users: recipients.length,
+      },
+    });
+
+    alerts.push({ accountId, total: agg.total, failed: agg.failed, rate, notified: recipients.length });
+  }
+
+  return jsonResponse({ success: true, threshold: failThreshold, minVolume: minVol, alerts });
+}
+
 function jsonResponse(body: any, status = 200) {
+
   return new Response(JSON.stringify(body), {
     status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });

@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
 import {
   Clock,
   Send,
@@ -21,6 +22,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Timer,
+  Download,
 } from "lucide-react";
 
 interface Props {
@@ -42,6 +44,7 @@ const fmt = (v?: string | null) =>
 
 export function ReminderTimelineSheet({ reminder, open, onOpenChange }: Props) {
   const { toast } = useToast();
+  const { worker, requireWorker } = useActiveWorker();
   const queryClient = useQueryClient();
   const [cooldown, setCooldown] = useState(0);
 
@@ -53,8 +56,14 @@ export function ReminderTimelineSheet({ reminder, open, onOpenChange }: Props) {
   const resend = useMutation({
     mutationFn: async () => {
       if (!reminder) return;
+      const actor = worker ?? (await requireWorker());
+      if (!actor) throw new Error("Health worker identification is required to resend.");
       const { data, error } = await supabase.functions.invoke("send-ai-reminder", {
-        body: { retryOf: reminder.id },
+        body: {
+          retryOf: reminder.id,
+          actorName: actor.name,
+          actorDesignation: actor.designation,
+        },
       });
       if (error) {
         // Surface structured errors (429 cooldown / rate limit) from the function
@@ -100,6 +109,7 @@ export function ReminderTimelineSheet({ reminder, open, onOpenChange }: Props) {
       );
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
       queryClient.invalidateQueries({ queryKey: ["sms-delivery-kpis"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
     },
     onError: (e: Error) => {
       toast({ title: "Resend failed", description: e.message, variant: "destructive" });
@@ -190,6 +200,13 @@ export function ReminderTimelineSheet({ reminder, open, onOpenChange }: Props) {
         </SheetHeader>
 
         <div className="mt-5 space-y-5">
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportTimelineCsv(reminder, events)}>
+              <Download className="h-4 w-4" />
+              Export timeline CSV
+            </Button>
+          </div>
+
           <div className="rounded-md border bg-muted/40 p-3">
             <p className="text-xs text-muted-foreground mb-1">Message</p>
             <p className="text-sm">{reminder.message}</p>
@@ -236,22 +253,20 @@ export function ReminderTimelineSheet({ reminder, open, onOpenChange }: Props) {
               </p>
               <p className="text-xs text-muted-foreground">
                 Manual resends are limited to one every 5 minutes per reminder, and 20 per
-                hour across your facility.
+                hour across your facility.{exhausted ? " Automatic retries are exhausted, but you can still resend manually." : ""}
               </p>
               <Button
                 size="sm"
                 onClick={() => resend.mutate()}
-                disabled={resend.isPending || cooldown > 0 || exhausted}
+                disabled={resend.isPending || cooldown > 0}
                 className="gap-1.5"
               >
                 <RefreshCw
                   className={`h-4 w-4 ${resend.isPending ? "animate-spin" : ""}`}
                 />
-                {exhausted
-                  ? "Retry limit reached"
-                  : cooldown > 0
-                    ? `Resend in ${Math.floor(cooldown / 60)}:${String(cooldown % 60).padStart(2, "0")}`
-                    : "Resend SMS"}
+                {cooldown > 0
+                  ? `Resend in ${Math.floor(cooldown / 60)}:${String(cooldown % 60).padStart(2, "0")}`
+                  : "Resend SMS"}
               </Button>
             </div>
           )}
@@ -259,4 +274,49 @@ export function ReminderTimelineSheet({ reminder, open, onOpenChange }: Props) {
       </SheetContent>
     </Sheet>
   );
+}
+
+function exportTimelineCsv(reminder: Reminder, events: TimelineEvent[]) {
+  const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const header = [
+    "reminder_id",
+    "client",
+    "service",
+    "facility",
+    "channel",
+    "category",
+    "event",
+    "event_at",
+    "detail",
+    "delivery_status",
+    "retry_count",
+    "max_retries",
+    "provider_message_id",
+    "message",
+  ];
+  const rows = events.map((e) =>
+    [
+      reminder.id,
+      reminder.client_name,
+      reminder.client_service,
+      reminder.facility_name,
+      reminder.reminder_type,
+      reminder.reminder_category,
+      e.label,
+      e.at ? new Date(e.at).toISOString() : "",
+      e.detail,
+      reminder.delivery_status,
+      reminder.retry_count ?? 0,
+      reminder.max_retries ?? 3,
+      reminder.external_message_id,
+      reminder.message,
+    ].map(esc).join(","),
+  );
+  const csv = [header.join(","), ...rows].join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `reminder-timeline-${reminder.id.slice(0, 8)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

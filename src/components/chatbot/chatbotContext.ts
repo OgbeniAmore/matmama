@@ -130,32 +130,38 @@ const COMMON: Suggestion[] = [
 const ROLE_SUGGESTIONS: Record<string, Suggestion[]> = {
   facility_officer: [
     { label: "Register a new client", prompt: "How do I register a new client?" },
-    { label: "Send a reminder", prompt: "How do I send a reminder to a client?" },
-    { label: "Add an ANC client", prompt: "How do I add an Ante Natal Care client using LMP?" },
-    { label: "Handle a defaulter", prompt: "How do I follow up with a defaulting client?" },
+    { label: "Add an ANC client", prompt: "How do I add an Ante Natal Care client using LMP, and how is the 8-contact schedule generated?" },
+    { label: "Mark a visit completed", prompt: "How do I mark an ANC or immunization visit as completed?" },
+    { label: "Handle a defaulter", prompt: "How do I follow up with a defaulting client, and how does a client return to On Track?" },
+    { label: "Fix a failed SMS", prompt: "A reminder SMS failed. How do I check its delivery timeline and resend it?" },
+    { label: "Manage the roster", prompt: "How do I manage the health worker roster and upload it from Excel?" },
     { label: "Transfer a client", prompt: "How do I transfer a client to another facility?" },
   ],
   data_entry_officer: [
     { label: "Register a new client", prompt: "How do I register a new client?" },
     { label: "Update client info", prompt: "How do I update a client's contact details?" },
     { label: "Record a visit", prompt: "How do I record that a client attended a visit?" },
-    { label: "Find a client", prompt: "How do I find an existing client?" },
+    { label: "Find a client", prompt: "How do I find an existing client by name or ID?" },
+    { label: "Who am I logging as?", prompt: "Why am I asked to pick a health worker before saving, and where does that show up?" },
   ],
   program_manager: [
     { label: "Approve a transfer", prompt: "How do I approve or reject a client transfer request?" },
-    { label: "Invite a team member", prompt: "How do I invite a new team member and assign their role?" },
-    { label: "Review defaulters", prompt: "How do I review defaulters across all facilities?" },
-    { label: "Read audit logs", prompt: "How do I use the audit log to investigate actions?" },
-    { label: "Send bulk reminders", prompt: "How do I send bulk reminders to defaulters?" },
+    { label: "Invite a team member", prompt: "How do I invite a new team member and assign their role, facility and LGA?" },
+    { label: "Review defaulters", prompt: "How do I review defaulters across the facilities in my LGA?" },
+    { label: "Check SMS runs", prompt: "How do I check automated SMS reminder runs and see failures by facility?" },
+    { label: "Edit SMS templates", prompt: "How do I edit the SMS reminder templates for each service?" },
+    { label: "Read audit logs", prompt: "How do I use the audit log filters, details drawer and CSV export?" },
   ],
   system_admin: [
-    { label: "Add a facility", prompt: "How do I add a new facility to the account?" },
-    { label: "Invite a team member", prompt: "How do I invite a team member and assign role + facility?" },
-    { label: "Manage permissions", prompt: "How do roles and permissions work on the platform?" },
-    { label: "Review audit logs", prompt: "How do I use the audit log to investigate activity?" },
-    { label: "Configure notifications", prompt: "How do users configure their notification preferences?" },
+    { label: "Tour the admin dashboard", prompt: "Walk me through the Admin Dashboard: global KPIs, LGA grid, SMS KPIs and the 30-day trend chart." },
+    { label: "Reassign a Program Manager", prompt: "How do I reassign the Program Manager seat for an LGA?" },
+    { label: "Manage PHCs", prompt: "How do I review the PHC list per LGA and ward, and add a missing PHC?" },
+    { label: "Invite an admin", prompt: "How do I invite another admin or a program manager and set their access level?" },
+    { label: "Resend an invite", prompt: "An invited user didn't get their email. How do I check invite status and resend it?" },
+    { label: "Review audit logs", prompt: "How do I investigate activity across all roles in the audit log?" },
   ],
 };
+
 
 export function getSuggestionsForRole(role: string | null): Suggestion[] {
   const base = role ? ROLE_SUGGESTIONS[role] || ROLE_SUGGESTIONS.facility_officer : ROLE_SUGGESTIONS.facility_officer;

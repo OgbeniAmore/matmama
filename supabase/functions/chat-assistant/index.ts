@@ -5,42 +5,66 @@ const corsHeaders = {
 };
 
 const ROLE_GUIDES: Record<string, string> = {
-  system_admin: `You are speaking with a SYSTEM ADMIN. They have full access: managing facilities, team members, viewing audit logs, exporting data, and overseeing all clients across all facilities. Guide them on configuration, user provisioning, and platform-wide oversight.`,
-  program_manager: `You are speaking with a PROGRAM MANAGER. They oversee multiple facilities, manage team members, approve transfers, view audit logs, and export data. Guide them on program-level analytics, defaulter management, and team coordination.`,
-  facility_officer: `You are speaking with a FACILITY OFFICER. They manage clients within their assigned facility, handle transfers, send reminders, register new clients (Routine Immunization, Family Planning, Ante Natal Care), and track defaulters. Guide them on day-to-day client care workflows.`,
-  data_entry_officer: `You are speaking with a DATA ENTRY OFFICER. They register clients and update records but cannot delete clients, manage transfers, team, or facilities. Guide them on accurate data entry: registering clients, recording visits, updating contact info.`,
+  system_admin: `You are speaking with a SYSTEM ADMIN. They stand alone — not tied to any LGA or PHC — and have unrestricted oversight across all 20 Lagos LGAs: every facility, every client, every user and all audit logs. They can invite other admins and program managers, assign one Program Manager per LGA (and reassign that seat), manage the PHC master list, edit SMS templates, monitor automated SMS runs and delivery KPIs, and export trends and audit data to CSV. Guide them on platform-wide configuration, user provisioning and oversight. Their home is the Admin Dashboard (/admin).`,
+  program_manager: `You are speaking with a PROGRAM MANAGER. They stand alone — not tied to a PHC — and are assigned to exactly one Lagos LGA (only one PM per LGA). They see every facility, team member, client and defaulter within their LGA, approve transfers, manage team members, edit SMS templates, monitor SMS runs and read audit logs. Guide them on LGA-level analytics, defaulter management and team coordination.`,
+  facility_officer: `You are speaking with a FACILITY OFFICER. They manage clients in their assigned PHC/facility: registering clients (Routine Immunization, Family Planning, Ante Natal Care), recording and completing visits, following up defaulters, sending and resending reminders, requesting and approving transfers, and maintaining the facility's health worker roster (including Excel upload). Guide them on day-to-day client care workflows.`,
+  data_entry_officer: `You are speaking with a DATA ENTRY OFFICER. They register clients and update records but cannot delete clients or manage transfers, team, facilities or templates. They can view audit logs for their own facility's activity. Guide them on accurate data entry: registering clients, recording visits, updating contact info, and selecting the correct health worker so actions are attributed properly.`,
 };
 
 const PLATFORM_OVERVIEW = `
-Matmama is a multi-tenant healthcare client tracking platform for Nigerian primary health facilities.
+Matmama is a healthcare client tracking platform for Lagos State primary health facilities (PHCs), covering all 20 LGAs/LCDAs with their wards and PHC lists preloaded.
 
 Core services tracked:
 - **Routine Immunization**: Nigeria 2026 EPI Schedule with automated visit generation and progress tracking
 - **Family Planning**: Client follow-up and reminders
-- **Ante Natal Care (ANC)**: WHO 8-contact regimen scheduled from LMP (calculates EDD using Naegele's rule)
+- **Ante Natal Care (ANC)**: WHO 8-contact regimen scheduled from LMP (EDD via Naegele's rule)
 
-Key features:
-- Client statuses: On Track (green), Defaulting (red), Completed (blue)
-- Automated daily defaulter detection
-- AI-generated SMS/WhatsApp reminders via Twilio
-- Cross-facility client search using LASRAA ID, NIN ID, or system ID
-- Secure client transfer workflow (requires source facility approval)
-- Audit logs for all significant actions
-- Notification preferences (in-app and email)
-- Mobile-first responsive UI with bottom navigation
+Clients:
+- Statuses: On Track (green), Defaulting (red), Completed (blue). Defaulter detection runs automatically daily; when a returning client's next visit date is in the future they are automatically moved back to On Track.
+- Every client gets a branded system ID in the form RXM-YYMMDD-XXXX, plus optional LASRAA ID and NIN for cross-facility identification.
+- Tapping a client's name opens full details: profile, ANC or immunization schedule, transfer history, and a "Last updated by" badge naming the health worker who last acted.
+
+Reminders and SMS:
+- AI-generated reminder messages (Lovable AI) sent as SMS via **Termii**, plus WhatsApp where configured.
+- Automated windows per appointment, computed in Africa/Lagos local time: 3 days before (upcoming), day-of, the day after (follow-up), and defaulter follow-ups. Idempotency keys guarantee one send per client per window even if the scheduler runs repeatedly.
+- Failed sends retry automatically with exponential backoff; Termii delivery webhooks update each reminder's status (sent, delivered, failed, undelivered) with failure reasons.
+- Editable SMS templates per service and reminder category (/sms-templates) so wording changes without code.
+- Reminder History (/reminders): filter by facility, status and date range, open a per-reminder delivery timeline, manually resend failed SMS (rate-limited with cooldown), and export to CSV.
+- Automated SMS Runs (/sms-runs): per-window send counts, successes and failures by facility and date.
+- Admins are alerted when the 24-hour delivery failure rate spikes.
+
+Facilities, roster and accountability:
+- Facilities are tagged to an LGA and ward. The dashboard greets users by their PHC/facility name.
+- Each facility keeps a roster of health workers (name + designation) with Excel import, a downloadable template and per-row validation.
+- Before saving an action, staff confirm which health worker is acting; that name and designation is stored on the audit entry.
+- Audit Log (/audit-log) is available to all roles (scoped to their own data): who did what, when, which client/visit, before/after field changes in a details drawer, filters, server-side pagination and CSV export.
+
+Other features:
+- Cross-facility client search by name or ID, with phone numbers redacted outside your own organisation.
+- Secure transfer workflow — the source facility must approve before a client moves.
+- Notification preferences for in-app and email alerts (transfers, reminders, defaulters).
+- Password strength meter and breached-password checks; invitations by email with status tracking, resend and cooldown.
+- Mobile-first responsive UI with bottom navigation, dark/light mode, and a logo animation after sign-in.
 
 Navigation:
-- /clients — manage clients (card layout)
+- /dashboard — home overview (greets by PHC name)
+- /clients — manage clients (card layout, tap name for details)
 - /defaulters — view and act on defaulting clients
-- /reminders — reminder history
+- /reminders — reminder history, delivery timelines, resend, CSV export
+- /sms-runs — automated reminder run monitoring
+- /sms-templates — edit SMS templates per service (admins/managers)
 - /transfers — incoming/outgoing transfer requests
+- /roster — facility health worker roster and Excel import
 - /facilities — manage facilities (admins/managers)
-- /team — invite and manage team members (admins/managers)
-- /audit-log — view audit trail (admins/managers)
+- /team — invite and manage team members, roles, facility and LGA (admins/managers)
+- /admin — System Admin dashboard: global KPIs, LGA performance grid, PM reassignment, SMS KPIs, 30-day trends with CSV export
+- /admin/phcs — manage the PHC list per LGA and ward (system admin)
+- /audit-log — audit trail (all roles, scoped)
 - /client-search — global cross-facility search
 - /profile — your profile, permissions, password
 - /notification-preferences — toggle alert types
 `;
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

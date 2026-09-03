@@ -12,7 +12,9 @@ function appRoutes(): string[] {
 
 function dbTables(): string[] {
   const src = readFileSync("src/integrations/supabase/types.ts", "utf8");
-  const publicBlock = src.slice(src.indexOf("Tables: {"));
+  const start = src.indexOf("Tables: {");
+  const end = src.indexOf("Views: {", start);
+  const publicBlock = src.slice(start, end > start ? end : undefined);
   return [...publicBlock.matchAll(/^ {6}(\w+): \{$/gm)].map((m) => m[1]);
 }
 

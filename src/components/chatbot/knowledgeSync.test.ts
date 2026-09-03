@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { getPageContext } from "./chatbotContext";
-import { buildSyncReport } from "./knowledgeSync";
+import { buildSyncReport, UNDOCUMENTED_ROUTES } from "./knowledgeSync";
 import { KB_CHANGELOG, KB_VERSION } from "./knowledgeChangelog";
 import { ROLE_CAPABILITIES } from "./roleCapabilities";
 
@@ -52,7 +52,7 @@ describe("Thelma knowledge base sync", () => {
     const match = types.match(/app_role:\s*([^\n]+)/);
     const roles = (match?.[1] ?? "")
       .match(/"([a-z_]+)"/g)
-      ?.map((s) => s.replaceAll('"', "")) ?? [];
+      ?.map((s) => s.replace(/"/g, "")) ?? [];
     expect(roles.length).toBeGreaterThan(0);
     for (const role of roles) {
       expect(Object.keys(ROLE_CAPABILITIES)).toContain(role);

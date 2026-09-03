@@ -65,6 +65,49 @@ Navigation:
 - /notification-preferences — toggle alert types
 `;
 
+const KB_VERSION = "2026.09.03";
+
+const ROLE_CAPABILITIES = `
+ROLE CAPABILITY SUMMARIES (what each role can view and do):
+
+**System Admin** — scope: whole platform, all 20 Lagos LGAs; not attached to an LGA or PHC.
+- View: global KPIs, all clients and defaulters, all facilities, all users and roles, all audit logs, SMS runs and delivery KPIs, 30-day per-LGA trends.
+- Do: invite admins/managers/staff and change roles; assign and reassign the one Program Manager per LGA (audited); manage the PHC master list; edit SMS templates; resend failed SMS; export trends and audit CSVs.
+- Cannot: nothing restricted (clinical data entry is normally done by facility staff).
+
+**Program Manager** — scope: exactly one Lagos LGA (one PM per LGA); not attached to a PHC.
+- View: every facility, team member, client and defaulter in their LGA; LGA audit logs and SMS runs; transfer requests.
+- Do: approve/reject transfers; invite and manage team members and facility assignments in their LGA; edit SMS templates; resend reminders; export CSVs.
+- Cannot: see or manage anything outside their LGA; manage the PHC master list; reassign Program Managers.
+
+**Facility Officer** — scope: their assigned PHC/facility.
+- View: their facility's clients, schedules, defaulters, reminder history and timelines, roster and audit log.
+- Do: register clients (Routine Immunization, Family Planning, ANC); record and complete visits; follow up defaulters; send/resend reminders; request and approve transfers of their clients; maintain the roster incl. Excel import.
+- Cannot: see other facilities' clients (beyond redacted cross-facility search); invite users; manage facilities; edit SMS templates.
+
+**Data Entry Officer** — scope: their facility, data entry only.
+- View: their facility's clients, schedules and audit activity.
+- Do: register clients, update contact/profile details, record attended visits, select the acting health worker.
+- Cannot: delete clients; manage transfers, team, facilities or SMS templates.
+`;
+
+const CHANGELOG = `
+RECENT CHANGES (knowledge base version ${KB_VERSION}). If asked "what's new?", summarise from here, newest first:
+
+**2026-09 — Knowledge base upkeep**: a changelog Thelma can quote, concise role capability summaries, and an automated check that flags when this knowledge base drifts from the app's routes or database tables.
+
+**2026-08 — Security and access scope**: anonymous access to database functions removed; resync RPCs require an authenticated caller with the right role and only touch clients in their own organisation; visit/immunization/reminder writes verify the client belongs to the caller's organisation; reminder visibility narrowed to the user's facility (PM = their LGA, Admin = all); profile creation limited to Program Managers and System Admins; System Admins now see all facilities/users/roles and Program Managers see everything in their LGA.
+
+**2026-08 — SMS reminders (Termii)**: AI-generated text with deterministic fallback; automated Africa/Lagos windows (T-3, day-of, day-after follow-up, defaulter) with idempotency keys; automatic retries with exponential backoff; delivery webhooks with failure reasons; editable templates per service and category; Reminder History filters, delivery timeline, rate-limited manual resend and CSV export; SMS Runs monitoring; admin delivery KPI card and failure-spike alerts; resends recorded in the audit log.
+
+**2026-07 — Accountability**: facility roster with Excel template, upload and per-row validation; acting health worker captured on every audit entry; Audit Log for all roles with filters, pagination, before/after drawer and CSV export; "Last updated by" badge on client cards; branded client IDs (RXM-YYMMDD-XXXX) backfilled onto existing clients.
+
+**2026-07 — Lagos State oversight**: Admin Dashboard with global KPIs, LGA performance grid, 30-day trend chart with CSV export and role-filtered team management; one PM per LGA enforced in the database with an audited reassignment action; PHC management per LGA/ward with an "Other" option; sign-up captures LGA, ward and PHC; dashboard greets by PHC name.
+
+**2026-06 — Clinical schedules**: ANC WHO 8-contact schedule from LMP with working completion toggles; Nigeria 2026 EPI immunization schedule with progress tracking; daily defaulter detection with automatic return to On Track; transfer approval by the source facility; cross-facility search with phone redaction outside your organisation.
+`;
+
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

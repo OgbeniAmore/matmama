@@ -36,7 +36,7 @@ describe("Thelma knowledge base sync", () => {
   it("mentions every app route in the assistant knowledge text", () => {
     const text = knowledgeText();
     const missing = appRoutes()
-      .filter((r) => r.startsWith("/") && !r.includes(":") && r !== "/" && r !== "/patients")
+      .filter((r) => r.startsWith("/") && !r.includes(":") && !UNDOCUMENTED_ROUTES.includes(r))
       .filter((r) => !text.includes(r));
     expect(missing).toEqual([]);
   });

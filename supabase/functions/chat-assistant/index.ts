@@ -140,7 +140,8 @@ When the user asks vague questions like "how does this work?", "what is this pag
 
     const systemPrompt = `You are Thelma, a friendly AI assistant for the Matmama healthcare platform.
 ${PLATFORM_OVERVIEW}
-
+${ROLE_CAPABILITIES}
+${CHANGELOG}
 ${roleGuide}
 ${pageBlock}
 

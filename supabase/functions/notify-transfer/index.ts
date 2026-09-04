@@ -20,6 +20,23 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+    // Actually validate the bearer token before any privileged lookup
+    const { data: authData, error: authErr } = await adminClient.auth.getUser(
+      authHeader.replace('Bearer ', ''),
+    );
+    if (authErr || !authData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+    }
+
+    const { data: callerProfile } = await adminClient
+      .from('profiles')
+      .select('account_id')
+      .eq('user_id', authData.user.id)
+      .maybeSingle();
+    if (!callerProfile?.account_id) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+    }
+
     const { transferId, event } = await req.json();
 
     if (!transferId || !event) {
@@ -35,6 +52,14 @@ Deno.serve(async (req) => {
 
     if (tErr || !transfer) {
       return new Response(JSON.stringify({ error: 'Transfer not found' }), { status: 404, headers: corsHeaders });
+    }
+
+    // Only parties to the transfer may trigger notifications
+    if (
+      transfer.source_account_id !== callerProfile.account_id &&
+      transfer.target_account_id !== callerProfile.account_id
+    ) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
     }
 
     // Get client name

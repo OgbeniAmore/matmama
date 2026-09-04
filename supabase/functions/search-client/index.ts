@@ -54,13 +54,22 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Search term must be at least 3 characters' }), { status: 400, headers: corsHeaders });
     }
 
-    const sanitizedTerm = searchId.trim();
+    // Reject PostgREST filter metacharacters so the term cannot alter query logic
+    const rawTerm = searchId.trim();
+    if (!/^[\p{L}\p{N} '\-_.@]{3,64}$/u.test(rawTerm)) {
+      return new Response(
+        JSON.stringify({ error: 'Search term contains unsupported characters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    const sanitizedTerm = rawTerm;
+    const quoted = `"${rawTerm}"`;
 
     // Search by exact ID match OR partial name match (case-insensitive)
     const { data: clients, error: searchError } = await adminClient
       .from('clients')
       .select('id, name, service, status, facility_id, account_id, lasraa_id, nin_id, system_id, contact')
-      .or(`lasraa_id.eq.${sanitizedTerm},nin_id.eq.${sanitizedTerm},system_id.eq.${sanitizedTerm},id.eq.${sanitizedTerm},name.ilike.%${sanitizedTerm}%`)
+      .or(`lasraa_id.eq.${quoted},nin_id.eq.${quoted},system_id.eq.${quoted},id.eq.${quoted},name.ilike.${'"%' + rawTerm + '%"'}`)
       .limit(50);
 
     if (searchError) {

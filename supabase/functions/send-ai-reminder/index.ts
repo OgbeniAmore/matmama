@@ -15,6 +15,19 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 // All windows resolved against Africa/Lagos local day boundaries.
 const LAGOS_TZ = 'Africa/Lagos';
 
+// Cron-only entrypoints fail CLOSED: without a configured CRON_SECRET nobody can trigger them.
+function denyCron(req: Request): Response | null {
+  const expected = Deno.env.get('CRON_SECRET');
+  if (!expected) {
+    console.error('CRON_SECRET is not configured — refusing automated request');
+    return jsonResponse({ error: 'Automation secret not configured' }, 503);
+  }
+  if (req.headers.get('x-cron-secret') !== expected) {
+    return jsonResponse({ error: 'Forbidden' }, 403);
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -24,31 +37,22 @@ serve(async (req) => {
 
     // --- AUTOMATED CRON MODE ---
     if (automated) {
-      const expected = Deno.env.get('CRON_SECRET');
-      if (expected) {
-        const cronSecret = req.headers.get('x-cron-secret');
-        if (cronSecret !== expected) return jsonResponse({ error: 'Forbidden' }, 403);
-      }
+      const cronDenied = denyCron(req);
+      if (cronDenied) return cronDenied;
       return await handleAutomatedReminders({ dryRun: !!dryRun, simulatedNow });
     }
 
     // --- RETRY WORKER MODE (cron) ---
     if (processRetries) {
-      const expected = Deno.env.get('CRON_SECRET');
-      if (expected) {
-        const cronSecret = req.headers.get('x-cron-secret');
-        if (cronSecret !== expected) return jsonResponse({ error: 'Forbidden' }, 403);
-      }
+      const cronDenied = denyCron(req);
+      if (cronDenied) return cronDenied;
       return await processRetryQueue();
     }
 
     // --- DELIVERY FAILURE ALERT MODE (cron) ---
     if (body.checkFailureAlerts) {
-      const expected = Deno.env.get('CRON_SECRET');
-      if (expected) {
-        const cronSecret = req.headers.get('x-cron-secret');
-        if (cronSecret !== expected) return jsonResponse({ error: 'Forbidden' }, 403);
-      }
+      const cronDenied = denyCron(req);
+      if (cronDenied) return cronDenied;
       return await checkFailureRateAlerts(body.threshold, body.minVolume);
     }
 

@@ -26,6 +26,18 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const expectedSecret = Deno.env.get("SMS_WEBHOOK_SECRET");
+  const providedSecret =
+    req.headers.get("x-webhook-secret") ??
+    new URL(req.url).searchParams.get("secret");
+  if (!expectedSecret || providedSecret !== expectedSecret) {
+    console.error("Termii webhook rejected: missing or invalid shared secret");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const payload = await req.json().catch(() => null);
     if (!payload) {

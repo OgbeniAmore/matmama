@@ -498,20 +498,6 @@ serve(async (req) => {
         }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-
-      // eslint-disable-next-line no-unreachable
-      tempPassword = generateTempPassword();
-      await supabaseAdmin.auth.admin.updateUserById(userId, { password: tempPassword });
-
-      await supabaseAdmin.from("profiles").insert({
-        user_id: userId,
-        account_id: accountId,
-        facility_id: facility_id || null,
-        lga: lga || null,
-      });
-
-      await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
-      await supabaseAdmin.from("user_roles").insert({ user_id: userId, role });
     } else {
       isNewUser = true;
       tempPassword = generateTempPassword();

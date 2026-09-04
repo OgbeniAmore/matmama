@@ -395,7 +395,6 @@ serve(async (req) => {
           lastSentAt: nowIso,
           sendCount: (existingInvite?.send_count ?? 0) + 1,
           cooldownSeconds: COOLDOWN_SECONDS,
-          tempPassword: resendSent ? null : newTempPassword,
         }),
 
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -490,7 +489,17 @@ serve(async (req) => {
         );
       }
 
-      // Reset password so we can email a fresh temp one
+      // The email belongs to an existing user in a different organisation.
+      // Never reset their password or attach them to this account without consent.
+      return new Response(
+        JSON.stringify({
+          error:
+            "This email already belongs to an account on the platform. Ask the user to sign in and request access, or invite a different email address.",
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+
+      // eslint-disable-next-line no-unreachable
       tempPassword = generateTempPassword();
       await supabaseAdmin.auth.admin.updateUserById(userId, { password: tempPassword });
 
@@ -623,8 +632,8 @@ serve(async (req) => {
         isNewUser,
         emailSent,
         emailError,
-        // Only return tempPassword if email failed, so manager can share manually
-        tempPassword: emailSent ? null : tempPassword,
+        // Temporary credentials are never returned in the API response
+
         invitationId: invitationRow?.id,
       }),
       {

@@ -193,11 +193,24 @@ export function ChatbotWidget() {
         size="icon"
         className={cn(
           "fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 h-14 w-14 rounded-full shadow-lg",
-          "bg-primary hover:bg-primary/90"
+          "bg-primary hover:bg-primary/90 overflow-hidden"
         )}
         aria-label={open ? "Close assistant" : "Open assistant"}
       >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        {open ? (
+          <X className="h-6 w-6" />
+        ) : (
+          <div className="relative flex items-center justify-center">
+            <img
+              src={thelmaAvatar}
+              alt="Thelma"
+              className="h-10 w-10 rounded-full object-cover border-2 border-primary-foreground"
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary-foreground text-primary">
+              <MessageCircle className="h-2.5 w-2.5" />
+            </span>
+          </div>
+        )}
       </Button>
 
       {/* Chat panel */}

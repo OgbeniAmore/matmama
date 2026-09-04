@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { Loader2, MessageCircle, Send, X, Sparkles, Trash2 } from "lucide-react";
@@ -113,11 +114,16 @@ export function ChatbotWidget() {
 
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-assistant`;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error("Please sign in again to chat with Thelma.");
+      }
       const resp = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           messages: next,

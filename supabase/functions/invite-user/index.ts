@@ -263,6 +263,20 @@ serve(async (req) => {
         });
       }
 
+      // Tenant isolation: only resend for members of the caller's own account.
+      const { data: targetProfileRow } = await supabaseAdmin
+        .from("profiles")
+        .select("account_id")
+        .eq("user_id", targetId)
+        .maybeSingle();
+
+      if (!targetProfileRow || targetProfileRow.account_id !== callerProfile.account_id) {
+        return new Response(JSON.stringify({ error: "Member not found in your organisation" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { data: targetRoleRow } = await supabaseAdmin
         .from("user_roles")
         .select("role")

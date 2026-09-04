@@ -263,6 +263,20 @@ serve(async (req) => {
         });
       }
 
+      // Tenant isolation: only resend for members of the caller's own account.
+      const { data: targetProfileRow } = await supabaseAdmin
+        .from("profiles")
+        .select("account_id")
+        .eq("user_id", targetId)
+        .maybeSingle();
+
+      if (!targetProfileRow || targetProfileRow.account_id !== callerProfile.account_id) {
+        return new Response(JSON.stringify({ error: "Member not found in your organisation" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { data: targetRoleRow } = await supabaseAdmin
         .from("user_roles")
         .select("role")
@@ -381,7 +395,6 @@ serve(async (req) => {
           lastSentAt: nowIso,
           sendCount: (existingInvite?.send_count ?? 0) + 1,
           cooldownSeconds: COOLDOWN_SECONDS,
-          tempPassword: resendSent ? null : newTempPassword,
         }),
 
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -476,19 +489,15 @@ serve(async (req) => {
         );
       }
 
-      // Reset password so we can email a fresh temp one
-      tempPassword = generateTempPassword();
-      await supabaseAdmin.auth.admin.updateUserById(userId, { password: tempPassword });
-
-      await supabaseAdmin.from("profiles").insert({
-        user_id: userId,
-        account_id: accountId,
-        facility_id: facility_id || null,
-        lga: lga || null,
-      });
-
-      await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
-      await supabaseAdmin.from("user_roles").insert({ user_id: userId, role });
+      // The email belongs to an existing user in a different organisation.
+      // Never reset their password or attach them to this account without consent.
+      return new Response(
+        JSON.stringify({
+          error:
+            "This email already belongs to an account on the platform. Ask the user to sign in and request access, or invite a different email address.",
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     } else {
       isNewUser = true;
       tempPassword = generateTempPassword();
@@ -609,8 +618,8 @@ serve(async (req) => {
         isNewUser,
         emailSent,
         emailError,
-        // Only return tempPassword if email failed, so manager can share manually
-        tempPassword: emailSent ? null : tempPassword,
+        // Temporary credentials are never returned in the API response
+
         invitationId: invitationRow?.id,
       }),
       {

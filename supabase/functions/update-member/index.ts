@@ -63,13 +63,22 @@ serve(async (req) => {
 
     if (!targetProfile) return json({ error: "Member not found" }, 404);
 
+    const { data: callerOwnProfile } = await admin
+      .from("profiles")
+      .select("account_id, lga")
+      .eq("user_id", caller.id)
+      .maybeSingle();
+
+    if (!callerOwnProfile?.account_id) return json({ error: "Caller profile not found" }, 403);
+
     // Program Managers are limited to their own LGA and cannot grant elevated roles
     if (callerIsPm) {
-      const { data: callerProfile } = await admin
-        .from("profiles")
-        .select("lga")
-        .eq("user_id", caller.id)
-        .maybeSingle();
+      const callerProfile = callerOwnProfile;
+
+      // Tenant isolation: PMs may only manage members of their own account
+      if (targetProfile.account_id !== callerOwnProfile.account_id) {
+        return json({ error: "You can only manage members in your own organisation" }, 403);
+      }
 
       let targetLga = targetProfile.lga;
       if (!targetLga && targetProfile.facility_id) {

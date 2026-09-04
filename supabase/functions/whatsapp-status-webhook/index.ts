@@ -8,6 +8,17 @@ serve(async (req) => {
     });
   }
 
+  const expectedSecret = Deno.env.get("SMS_WEBHOOK_SECRET");
+  const providedSecret =
+    req.headers.get('x-webhook-secret') ??
+    new URL(req.url).searchParams.get('secret');
+  if (!expectedSecret || providedSecret !== expectedSecret) {
+    console.error('WhatsApp webhook rejected: missing or invalid shared secret');
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     // WATI sends JSON POST for all webhook events
     const payload = await req.json().catch(() => null);

@@ -95,33 +95,35 @@ export function MotherChildRecord({ client }: { client: Client }) {
     confirmed: false, date: today(), place: "This facility", mode: "Normal (vaginal)",
     outcome: "Live birth", babies: "1", notes: "",
   });
+  const [babyNames, setBabyNames] = useState<string[]>([""]);
+  const babyCount = Number(dForm.babies) || 1;
+  const isLive = dForm.outcome === "Live birth";
+  const namesOk = !isLive || babyNames.slice(0, babyCount).every((n) => n?.trim());
 
   const recordDelivery = useMutation({
     mutationFn: async () => {
-      const { data: u } = await supabase.auth.getUser();
-      const { data, error } = await (supabase.from as any)("deliveries").insert({
-        mother_client_id: client.id,
-        pregnancy_number: currentPregnancy,
-        delivery_date: dForm.date,
-        place: dForm.place,
-        delivery_mode: dForm.mode,
-        outcome: dForm.outcome,
-        number_of_babies: Number(dForm.babies) || 1,
-        notes: dForm.notes || null,
-        recorded_by: u.user?.id ?? null,
-        account_id: client.account_id ?? accountId,
-        facility_id: client.facility_id ?? facilityId,
-      }).select("id").single();
+      const sb: any = supabase;
+      const { data, error } = await sb.rpc("record_delivery", {
+        _mother_id: client.id,
+        _pregnancy: currentPregnancy,
+        _date: dForm.date,
+        _place: dForm.place,
+        _mode: dForm.mode,
+        _outcome: dForm.outcome,
+        _notes: dForm.notes,
+        _baby_names: isLive ? babyNames.slice(0, babyCount).map((n) => n.trim()) : [],
+      });
       if (error) throw error;
-      await supabase.rpc("resync_client_status", { _client_id: client.id });
-      return data.id as string;
+      return data as string;
     },
     onSuccess: (id) => {
       logAction("DELIVERY_RECORDED", "deliveries", id, {
         client_name: client.name, pregnancy: currentPregnancy, outcome: dForm.outcome,
+        babies: isLive ? babyNames.slice(0, babyCount) : [],
       });
-      toast.success("Delivery recorded");
+      toast.success(isLive ? "Delivery recorded and baby registered" : "Delivery recorded");
       setDeliveryOpen(false);
+      setBabyNames([""]);
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -134,34 +136,12 @@ export function MotherChildRecord({ client }: { client: Client }) {
 
   const registerBaby = useMutation({
     mutationFn: async () => {
-      const id = generateClientId();
-      const dob = new Date(`${babyDob}T00:00:00`);
-      const { data: epi } = await supabase.from("epi_schedule").select("*").order("age_weeks");
-      const { error } = await supabase.from("clients").insert({
-        id,
-        name: client.name,
-        child_name: babyName.trim(),
-        child_dob: babyDob,
-        service: "Routine Immunization",
-        status: "On Track",
-        due_date: dob.toISOString(),
-        contact: client.contact,
-        address: client.address,
-        assigned_to: client.assignedTo,
-        preferred_channel: client.preferred_channel ?? "sms",
-        account_id: client.account_id ?? accountId,
-        facility_id: client.facility_id ?? facilityId,
-        mother_client_id: client.id,
-      } as any);
+      const sb: any = supabase;
+      const { data, error } = await sb.rpc("register_child", {
+        _mother_id: client.id, _child_name: babyName.trim(), _dob: babyDob,
+      });
       if (error) throw error;
-      const schedule = generateImmunizationSchedule(dob, (epi ?? []) as EpiSchedule[], id)
-        .map((s) => ({ ...s, account_id: client.account_id ?? accountId }));
-      if (schedule.length) {
-        const { error: e2 } = await supabase.from("immunization_records").insert(schedule);
-        if (e2) console.error(e2);
-      }
-      await supabase.rpc("resync_client_status", { _client_id: id });
-      return id;
+      return data as string;
     },
     onSuccess: (id) => {
       logAction("CHILD_REGISTERED", "clients", id, { child_name: babyName, mother: client.name });

@@ -98,7 +98,7 @@ export function MotherChildRecord({ client }: { client: Client }) {
   const [babyNames, setBabyNames] = useState<string[]>([""]);
   const babyCount = Number(dForm.babies) || 1;
   const isLive = dForm.outcome === "Live birth";
-  const namesOk = !isLive || babyNames.slice(0, babyCount).every((n) => n?.trim());
+  const namesOk = true;
 
   const recordDelivery = useMutation({
     mutationFn: async () => {
@@ -111,7 +111,7 @@ export function MotherChildRecord({ client }: { client: Client }) {
         _mode: dForm.mode,
         _outcome: dForm.outcome,
         _notes: dForm.notes,
-        _baby_names: isLive ? babyNames.slice(0, babyCount).map((n) => n.trim()) : [],
+        _baby_names: isLive ? Array.from({ length: babyCount }, (_, i) => (babyNames[i] ?? "").trim()) : [],
       });
       if (error) throw error;
       return data as string;
@@ -300,10 +300,9 @@ export function MotherChildRecord({ client }: { client: Client }) {
             {isLive && Array.from({ length: babyCount }).map((_, i) => (
               <div key={i} className="space-y-1">
                 <Label>
-                  {babyCount > 1 ? `Baby ${i + 1} name` : "Baby's name"} <span className="text-destructive">*</span>
+                  {babyCount > 1 ? `Baby ${i + 1} name` : "Baby's name"} <span className="text-muted-foreground font-normal">(optional — required by 2nd immunization visit)</span>
                 </Label>
                 <Input
-                  required
                   value={babyNames[i] ?? ""}
                   placeholder="e.g. Adeola Bello"
                   onChange={(e) => {
@@ -315,7 +314,6 @@ export function MotherChildRecord({ client }: { client: Client }) {
               </div>
             ))}
             <Textarea placeholder="Notes (optional)" value={dForm.notes} onChange={(e) => setDForm({ ...dForm, notes: e.target.value })} />
-            {isLive && !namesOk && <p className="text-xs text-destructive">Enter each baby's name to save.</p>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeliveryOpen(false)}>Cancel</Button>
@@ -337,8 +335,8 @@ export function MotherChildRecord({ client }: { client: Client }) {
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label>Baby's name <span className="text-destructive">*</span></Label>
-              <Input required value={babyName} onChange={(e) => setBabyName(e.target.value)} placeholder="e.g. Adeola Bello" />
+              <Label>Baby's name <span className="text-muted-foreground font-normal">(optional for now)</span></Label>
+              <Input value={babyName} onChange={(e) => setBabyName(e.target.value)} placeholder="e.g. Adeola Bello" />
             </div>
             <div className="space-y-1">
               <Label>Date of birth</Label>
@@ -347,7 +345,7 @@ export function MotherChildRecord({ client }: { client: Client }) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBabyFor(null)}>Cancel</Button>
-            <Button disabled={!babyName.trim() || !babyDob || registerBaby.isPending} onClick={() => registerBaby.mutate()}>
+            <Button disabled={!babyDob || registerBaby.isPending} onClick={() => registerBaby.mutate()}>
               {registerBaby.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Register
             </Button>
           </DialogFooter>

@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Trash2, UserCheck, UserX, Link as LinkIcon, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { RosterImportDialog, type RosterImportRow } from "@/components/roster/RosterImportDialog";
+import { SharedClientsCard } from "@/components/roster/SharedClientsCard";
 
 const DESIGNATIONS = [
   "Officer-in-Charge",
@@ -235,6 +236,9 @@ const Roster = () => {
         </Dialog>
         </div>
       </div>
+
+      <SharedClientsCard facilityId={facilityId} />
+
 
       <RosterImportDialog
         open={importOpen}

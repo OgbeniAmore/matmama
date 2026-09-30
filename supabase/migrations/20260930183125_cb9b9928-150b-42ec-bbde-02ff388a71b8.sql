@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public._can_act_on_client(text) FROM authenticated;

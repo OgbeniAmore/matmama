@@ -74,17 +74,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const setupAccount = useCallback(async (): Promise<boolean> => {
+  const setupAccount = useCallback(async (): Promise<'ok' | 'unauthorized' | 'error'> => {
     try {
       const { error } = await supabase.functions.invoke('setup-account');
       if (error) {
-        console.error('Setup account error:', error);
-        return false;
+        const status = (error as { context?: Response }).context?.status;
+        console.warn('Setup account failed:', status, error.message);
+        return status === 401 ? 'unauthorized' : 'error';
       }
-      return true;
+      return 'ok';
     } catch (err) {
-      console.error('Setup account error:', err);
-      return false;
+      console.warn('Setup account failed:', err);
+      return 'error';
     }
   }, []);
 
@@ -95,7 +96,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // it becomes readable through RLS instead of failing the whole session.
     if (!userProfile) {
       for (let attempt = 0; attempt < 3 && !userProfile; attempt++) {
-        await setupAccount();
+        const result = await setupAccount();
+        if (result === 'unauthorized') {
+          // Stale session (user no longer exists) — clear it and return to login.
+          await supabase.auth.signOut();
+          setProfile(null);
+          setRole(null);
+          setLoading(false);
+          return;
+        }
         for (let poll = 0; poll < 4 && !userProfile; poll++) {
           await new Promise((resolve) => setTimeout(resolve, 600));
           userProfile = await fetchProfile(currentUser.id);

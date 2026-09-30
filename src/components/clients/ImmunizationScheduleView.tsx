@@ -10,6 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Syringe, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+
+const isUnnamed = (n?: string | null) => !n || !n.trim() || /^baby of /i.test(n.trim());
 
 interface ImmunizationScheduleViewProps {
   clientId: string;
@@ -37,6 +45,34 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
       if (error) throw error;
       return data as ImmunizationRecord[];
     },
+  });
+
+  const [nameFor, setNameFor] = useState<string | null>(null);
+  const [childName, setChildName] = useState("");
+
+  const { data: clientRow } = useQuery({
+    queryKey: ["client-child-name", clientId],
+    queryFn: async () => {
+      const { data } = await supabase.from("clients").select("child_name").eq("id", clientId).maybeSingle();
+      return data;
+    },
+  });
+
+  const saveNameAndAdminister = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("clients").update({ child_name: childName.trim() }).eq("id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      logAction("CHILD_NAMED", "clients", clientId, { child_name: childName.trim() });
+      queryClient.invalidateQueries({ queryKey: ["client-child-name", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["children"] });
+      if (nameFor) markAdministered.mutate(nameFor);
+      setNameFor(null);
+      setChildName("");
+    },
+    onError: () => toast.error("Could not save the child's name"),
   });
 
   const markAdministered = useMutation({
@@ -124,6 +160,18 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
     65: "15 Months",
   };
 
+  const sortedWeeks = Object.keys(grouped).map(Number).sort((a, b) => a - b);
+  const secondVisitWeek = sortedWeeks[1];
+  const handleAdminister = async (v: ImmunizationRecord) => {
+    if (!(await requireWorker())) return;
+    const week = v.age_weeks ?? 0;
+    if (secondVisitWeek !== undefined && week >= secondVisitWeek && isUnnamed(clientRow?.child_name)) {
+      setNameFor(v.id);
+      return;
+    }
+    markAdministered.mutate(v.id);
+  };
+
   const administered = records.filter(r => r.status === "Administered").length;
   const total = records.length;
   const progressPercent = total > 0 ? Math.round((administered / total) * 100) : 0;
@@ -175,7 +223,7 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
                             variant="outline"
                             className="h-7 text-xs px-2"
                             disabled={markAdministered.isPending}
-                            onClick={async () => { if (await requireWorker()) markAdministered.mutate(vaccine.id); }}
+                            onClick={() => handleAdminister(vaccine)}
                           >
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Administer
@@ -200,6 +248,26 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
             </div>
           );
         })}
+      <Dialog open={!!nameFor} onOpenChange={(o) => !o && setNameFor(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Child's name required</DialogTitle>
+            <DialogDescription>
+              The child's name must be recorded from the second immunization visit onwards.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1">
+            <Label>Child's name <span className="text-destructive">*</span></Label>
+            <Input required value={childName} onChange={(e) => setChildName(e.target.value)} placeholder="e.g. Adeola Bello" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNameFor(null)}>Cancel</Button>
+            <Button disabled={!childName.trim() || saveNameAndAdminister.isPending} onClick={() => saveNameAndAdminister.mutate()}>
+              Save & administer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

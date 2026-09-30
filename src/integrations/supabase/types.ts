@@ -946,6 +946,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _can_act_on_client: { Args: { _client_id: string }; Returns: boolean }
       auto_detect_defaulters: { Args: never; Returns: number }
       auto_resync_clients: { Args: never; Returns: number }
       get_user_account_id: { Args: { _user_id: string }; Returns: string }
@@ -992,6 +993,23 @@ export type Database = {
       reassign_program_manager: {
         Args: { _lga: string; _new_pm_id: string }
         Returns: Json
+      }
+      record_delivery: {
+        Args: {
+          _baby_names: string[]
+          _date: string
+          _mode: string
+          _mother_id: string
+          _notes: string
+          _outcome: string
+          _place: string
+          _pregnancy: number
+        }
+        Returns: string
+      }
+      register_child: {
+        Args: { _child_name: string; _dob: string; _mother_id: string }
+        Returns: string
       }
       resync_client_status: { Args: { _client_id: string }; Returns: undefined }
     }

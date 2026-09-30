@@ -325,8 +325,25 @@ export function MotherChildRecord({ client }: { client: Client }) {
             <div className="space-y-1">
               <Label>Date of birth</Label>
               <Input type="date" max={today()} value={babyDob} onChange={(e) => setBabyDob(e.target.value)} />
+              </div>
             </div>
-          </div>
+            {isLive && Array.from({ length: babyCount }).map((_, i) => (
+              <div key={i} className="space-y-1">
+                <Label>
+                  {babyCount > 1 ? `Baby ${i + 1} name` : "Baby's name"} <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  required
+                  value={babyNames[i] ?? ""}
+                  placeholder="e.g. Adeola Bello"
+                  onChange={(e) => {
+                    const next = [...babyNames];
+                    next[i] = e.target.value;
+                    setBabyNames(next);
+                  }}
+                />
+              </div>
+            ))}
           <DialogFooter>
             <Button variant="outline" onClick={() => setBabyFor(null)}>Cancel</Button>
             <Button disabled={!babyName.trim() || !babyDob || registerBaby.isPending} onClick={() => registerBaby.mutate()}>

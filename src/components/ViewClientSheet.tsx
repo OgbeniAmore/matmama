@@ -59,6 +59,10 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [targetFacilityId, setTargetFacilityId] = useState("");
   const [transferNotes, setTransferNotes] = useState("");
+  const [transferType, setTransferType] = useState<"permanent" | "temporary">("permanent");
+  const [reason, setReason] = useState("");
+  const [duration, setDuration] = useState("14");
+  const [customEnd, setCustomEnd] = useState("");
 
   const { data: facilities = [] } = useQuery({
     queryKey: ["facilities-for-transfer"],
@@ -78,6 +82,12 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (!userId) throw new Error("Not authenticated");
       const targetFacility = facilities.find((f) => f.id === targetFacilityId);
+      let shareExpiresAt: string | null = null;
+      if (transferType === "temporary") {
+        shareExpiresAt = duration === "custom"
+          ? new Date(`${customEnd}T23:59:59`).toISOString()
+          : new Date(Date.now() + Number(duration) * 86400000).toISOString();
+      }
       const { data: transferData, error } = await supabase.from("transfer_requests").insert({
         client_id: client.id,
         source_facility_id: client.facility_id!,
@@ -86,7 +96,10 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
         target_account_id: targetFacility?.account_id ?? accountId!,
         requested_by: userId,
         notes: transferNotes || null,
-      }).select("id").single();
+        transfer_type: transferType,
+        reason,
+        share_expires_at: shareExpiresAt,
+      } as any).select("id").single();
       if (error) throw error;
       await supabase.functions.invoke("notify-transfer", {
         body: { transferId: transferData.id, event: "created" },
@@ -294,6 +307,16 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
+            <Label>Type</Label>
+            <Select value={transferType} onValueChange={(v) => setTransferType(v as "permanent" | "temporary")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="permanent">Permanent transfer</SelectItem>
+                <SelectItem value="temporary">Temporary share</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label>Target Facility</Label>
             <Select value={targetFacilityId} onValueChange={setTargetFacilityId}>
               <SelectTrigger>
@@ -306,6 +329,41 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label>Reason</Label>
+            <Select value={reason} onValueChange={setReason}>
+              <SelectTrigger><SelectValue placeholder="Select reason" /></SelectTrigger>
+              <SelectContent>
+                {["Visiting", "Relocation", "Referral", "Emergency care", "Other"].map((r) => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {transferType === "temporary" && (
+            <div className="space-y-2">
+              <Label>Share duration</Label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["7", "14", "30", "90"].map((d) => (
+                    <SelectItem key={d} value={d}>{d} days</SelectItem>
+                  ))}
+                  <SelectItem value="custom">Pick end date</SelectItem>
+                </SelectContent>
+              </Select>
+              {duration === "custom" && (
+                <input
+                  type="date"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                />
+              )}
+              <p className="text-xs text-muted-foreground">The other facility loses access automatically when the share ends.</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>Notes (optional)</Label>
             <Textarea
@@ -320,7 +378,7 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
           <Button variant="outline" onClick={() => setIsTransferOpen(false)}>Cancel</Button>
           <Button
             onClick={() => initiateTransferMutation.mutate()}
-            disabled={!targetFacilityId || initiateTransferMutation.isPending}
+            disabled={!targetFacilityId || !reason || (transferType === "temporary" && duration === "custom" && !customEnd) || initiateTransferMutation.isPending}
           >
             {initiateTransferMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             Submit Request

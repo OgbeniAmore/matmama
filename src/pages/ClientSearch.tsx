@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, ArrowRightLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,6 +51,10 @@ const ClientSearch = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [transferClient, setTransferClient] = useState<SearchResult | null>(null);
   const [transferNotes, setTransferNotes] = useState("");
+  const [transferType, setTransferType] = useState<"permanent" | "temporary">("permanent");
+  const [reason, setReason] = useState("");
+  const [duration, setDuration] = useState("14");
+  const [customEnd, setCustomEnd] = useState("");
 
   const handleSearch = async () => {
     if (!searchId.trim() || searchId.trim().length < 3) {
@@ -80,6 +86,12 @@ const ClientSearch = () => {
     mutationFn: async (client: SearchResult) => {
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (!userId) throw new Error("Not authenticated");
+      let shareExpiresAt: string | null = null;
+      if (transferType === "temporary") {
+        shareExpiresAt = duration === "custom"
+          ? new Date(`${customEnd}T23:59:59`).toISOString()
+          : new Date(Date.now() + Number(duration) * 86400000).toISOString();
+      }
       const { data: transferData, error } = await supabase.from("transfer_requests").insert({
         client_id: client.id,
         source_facility_id: client.facility_id,
@@ -88,7 +100,10 @@ const ClientSearch = () => {
         target_account_id: accountId!,
         requested_by: userId,
         notes: transferNotes || null,
-      }).select("id").single();
+        transfer_type: transferType,
+        reason,
+        share_expires_at: shareExpiresAt,
+      } as any).select("id").single();
       if (error) throw error;
       await supabase.functions.invoke("notify-transfer", {
         body: { transferId: transferData.id, event: "created" },
@@ -211,8 +226,52 @@ const ClientSearch = () => {
               <span className="text-muted-foreground">Current Facility:</span>
               <span>{transferClient?.facility_name}</span>
             </div>
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Select value={transferType} onValueChange={(v) => setTransferType(v as "permanent" | "temporary")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="permanent">Permanent transfer</SelectItem>
+                  <SelectItem value="temporary">Temporary share</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Reason</Label>
+              <Select value={reason} onValueChange={setReason}>
+                <SelectTrigger><SelectValue placeholder="Select reason" /></SelectTrigger>
+                <SelectContent>
+                  {["Visiting", "Relocation", "Referral", "Emergency care", "Other"].map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {transferType === "temporary" && (
+              <div className="space-y-2">
+                <Label>Share duration</Label>
+                <Select value={duration} onValueChange={setDuration}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["7", "14", "30", "90"].map((d) => (
+                      <SelectItem key={d} value={d}>{d} days</SelectItem>
+                    ))}
+                    <SelectItem value="custom">Pick end date</SelectItem>
+                  </SelectContent>
+                </Select>
+                {duration === "custom" && (
+                  <Input
+                    type="date"
+                    min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+                    value={customEnd}
+                    onChange={(e) => setCustomEnd(e.target.value)}
+                  />
+                )}
+                <p className="text-xs text-muted-foreground">Your facility loses access automatically when the share ends.</p>
+              </div>
+            )}
             <Textarea
-              placeholder="Reason for transfer (optional)"
+              placeholder="Notes (optional)"
               value={transferNotes}
               onChange={(e) => setTransferNotes(e.target.value)}
             />
@@ -221,7 +280,7 @@ const ClientSearch = () => {
             <Button variant="outline" onClick={() => setTransferClient(null)}>Cancel</Button>
             <Button
               onClick={() => transferClient && createTransferMutation.mutate(transferClient)}
-              disabled={createTransferMutation.isPending}
+              disabled={!reason || (transferType === "temporary" && duration === "custom" && !customEnd) || createTransferMutation.isPending}
             >
               {createTransferMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Submit Request

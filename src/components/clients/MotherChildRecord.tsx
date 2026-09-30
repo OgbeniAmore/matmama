@@ -297,36 +297,6 @@ export function MotherChildRecord({ client }: { client: Client }) {
                 </Select>
               </div>
             </div>
-            <Textarea placeholder="Notes (optional)" value={dForm.notes} onChange={(e) => setDForm({ ...dForm, notes: e.target.value })} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeliveryOpen(false)}>Cancel</Button>
-            <Button disabled={!dForm.confirmed || !dForm.date || recordDelivery.isPending} onClick={() => recordDelivery.mutate()}>
-              {recordDelivery.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Register baby dialog */}
-      <Dialog open={!!babyFor} onOpenChange={(o) => !o && setBabyFor(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Register baby</DialogTitle>
-            <DialogDescription>
-              The baby is added under {client.name}'s record with an immunization schedule. Contact and address are copied from the mother.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Baby's name</Label>
-              <Input value={babyName} onChange={(e) => setBabyName(e.target.value)} placeholder="e.g. Baby Adeola" />
-            </div>
-            <div className="space-y-1">
-              <Label>Date of birth</Label>
-              <Input type="date" max={today()} value={babyDob} onChange={(e) => setBabyDob(e.target.value)} />
-              </div>
-            </div>
             {isLive && Array.from({ length: babyCount }).map((_, i) => (
               <div key={i} className="space-y-1">
                 <Label>
@@ -344,6 +314,37 @@ export function MotherChildRecord({ client }: { client: Client }) {
                 />
               </div>
             ))}
+            <Textarea placeholder="Notes (optional)" value={dForm.notes} onChange={(e) => setDForm({ ...dForm, notes: e.target.value })} />
+            {isLive && !namesOk && <p className="text-xs text-destructive">Enter each baby's name to save.</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeliveryOpen(false)}>Cancel</Button>
+            <Button disabled={!dForm.confirmed || !dForm.date || !namesOk || recordDelivery.isPending} onClick={() => recordDelivery.mutate()}>
+              {recordDelivery.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Register baby dialog */}
+      <Dialog open={!!babyFor} onOpenChange={(o) => !o && setBabyFor(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Register baby</DialogTitle>
+            <DialogDescription>
+              The baby is added under {client.name}'s record with an immunization schedule. Contact and address are copied from the mother.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Baby's name <span className="text-destructive">*</span></Label>
+              <Input required value={babyName} onChange={(e) => setBabyName(e.target.value)} placeholder="e.g. Adeola Bello" />
+            </div>
+            <div className="space-y-1">
+              <Label>Date of birth</Label>
+              <Input type="date" max={today()} value={babyDob} onChange={(e) => setBabyDob(e.target.value)} />
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBabyFor(null)}>Cancel</Button>
             <Button disabled={!babyName.trim() || !babyDob || registerBaby.isPending} onClick={() => registerBaby.mutate()}>

@@ -46,7 +46,7 @@ serve(async (req) => {
       .from('profiles')
       .select('id, account_id, facility_id')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (existingProfile) {
       return new Response(JSON.stringify({
@@ -60,9 +60,13 @@ serve(async (req) => {
     }
 
     // Get user metadata for account setup
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(token);
     if (userError || !user) {
-      throw new Error('Failed to fetch user details');
+      console.error('getUser error:', userError);
+      return new Response(JSON.stringify({ error: 'Session expired. Please sign in again.' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const metadata = user.user_metadata || {};

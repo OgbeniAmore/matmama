@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Baby, CheckCircle2, Plus, HeartPulse, Loader2 } from "lucide-react";
+import { Baby, CheckCircle2, Plus, HeartPulse, Loader2, Syringe } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Client, EpiSchedule } from "@/types";
@@ -228,9 +228,16 @@ export function MotherChildRecord({ client }: { client: Client }) {
               </div>
             </div>
             {babies.map((b) => (
-              <div key={b.id} className="flex items-center justify-between text-sm bg-muted/40 rounded px-2 py-1.5">
-                <span className="flex items-center gap-2"><Baby className="h-4 w-4" />{b.child_name}</span>
-                <Badge variant="outline" className="text-xs">{b.status}</Badge>
+              <div key={b.id} className="flex items-center justify-between gap-2 text-sm bg-muted/40 rounded px-2 py-1.5">
+                <span className="flex items-center gap-2 min-w-0"><Baby className="h-4 w-4 shrink-0" /><span className="truncate">{b.child_name}</span></span>
+                <span className="flex items-center gap-2 shrink-0">
+                  <Badge variant="outline" className="text-xs">{b.status}</Badge>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" asChild>
+                    <a href={`/clients?view=${b.id}`}>
+                      <Syringe className="h-3.5 w-3.5 mr-1" /> Schedule
+                    </a>
+                  </Button>
+                </span>
               </div>
             ))}
             {d.outcome === "Live birth" && babies.length < d.number_of_babies && (

@@ -751,12 +751,15 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          reason: string | null
           requested_by: string
+          share_expires_at: string | null
           source_account_id: string
           source_facility_id: string
           status: string
           target_account_id: string
           target_facility_id: string
+          transfer_type: string
           updated_at: string
         }
         Insert: {
@@ -765,12 +768,15 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          reason?: string | null
           requested_by: string
+          share_expires_at?: string | null
           source_account_id: string
           source_facility_id: string
           status?: string
           target_account_id: string
           target_facility_id: string
+          transfer_type?: string
           updated_at?: string
         }
         Update: {
@@ -779,12 +785,15 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          reason?: string | null
           requested_by?: string
+          share_expires_at?: string | null
           source_account_id?: string
           source_facility_id?: string
           status?: string
           target_account_id?: string
           target_facility_id?: string
+          transfer_type?: string
           updated_at?: string
         }
         Relationships: [
@@ -868,6 +877,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_client_shared_with_user: {
+        Args: { _client_id: string; _user_id: string }
         Returns: boolean
       }
       log_action_with_actor: {

@@ -211,7 +211,15 @@ const TransfersPage = () => {
                         <TableCell>{facilityMap[t.target_facility_id] || "Other Account"}</TableCell>
                         <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">{t.notes || "—"}</TableCell>
                         <TableCell className="text-sm">{format(new Date(t.created_at), "dd MMM yyyy")}</TableCell>
-                        <TableCell><Badge variant={statusColors[t.status] || "outline"}>{t.status}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant={statusColors[t.status] || "outline"}>{t.status}</Badge>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {(t as any).transfer_type === "temporary"
+                              ? `Temporary share${(t as any).share_expires_at ? ` until ${format(new Date((t as any).share_expires_at), "dd MMM yyyy")}` : ""}`
+                              : "Permanent"}
+                            {(t as any).reason ? ` · ${(t as any).reason}` : ""}
+                          </div>
+                        </TableCell>
                         {isManager && (
                           <TableCell><ApproveRejectActions transfer={t} /></TableCell>
                         )}
@@ -253,7 +261,15 @@ const TransfersPage = () => {
                         <TableCell>{facilityMap[t.source_facility_id] || "Other Account"}</TableCell>
                         <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">{t.notes || "—"}</TableCell>
                         <TableCell className="text-sm">{format(new Date(t.created_at), "dd MMM yyyy")}</TableCell>
-                        <TableCell><Badge variant={statusColors[t.status] || "outline"}>{t.status}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant={statusColors[t.status] || "outline"}>{t.status}</Badge>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {(t as any).transfer_type === "temporary"
+                              ? `Temporary share${(t as any).share_expires_at ? ` until ${format(new Date((t as any).share_expires_at), "dd MMM yyyy")}` : ""}`
+                              : "Permanent"}
+                            {(t as any).reason ? ` · ${(t as any).reason}` : ""}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           {t.status === "pending" && (
                             <AlertDialog>

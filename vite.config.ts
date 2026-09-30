@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
   define: {
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(

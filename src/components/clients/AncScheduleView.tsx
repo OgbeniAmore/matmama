@@ -35,7 +35,10 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
         .order("visit_number", { ascending: true });
 
       if (error) throw error;
-      return data as AncVisit[];
+      // Show only the current (latest) pregnancy's schedule
+      const rows = data as (AncVisit & { pregnancy_number?: number })[];
+      const latest = Math.max(1, ...rows.map((r) => r.pregnancy_number ?? 1));
+      return rows.filter((r) => (r.pregnancy_number ?? 1) === latest) as AncVisit[];
     },
   });
 

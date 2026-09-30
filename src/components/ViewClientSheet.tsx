@@ -35,6 +35,7 @@ import { Separator } from "./ui/separator";
 import { ImmunizationScheduleView } from "./clients/ImmunizationScheduleView";
 import { AncScheduleView } from "./clients/AncScheduleView";
 import { TransferHistoryView } from "./clients/TransferHistoryView";
+import { MotherChildRecord, MotherLink } from "./clients/MotherChildRecord";
 import { ClientActionBar } from "./ClientActionBar";
 import { AIReminderDialog } from "./AIReminderDialog";
 import GoogleMapModal from "./GoogleMapModal";
@@ -265,6 +266,8 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
               <p className="whitespace-pre-wrap">{client.address}</p>
             </div>
 
+            {client.mother_client_id && <MotherLink motherId={client.mother_client_id} />}
+
             {/* Show immunization or ANC schedule based on service type */}
             {client.service === "Routine Immunization" && (
               <>
@@ -275,6 +278,8 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
 
             {client.service === "Ante Natal Care" && (
               <>
+                <Separator />
+                <MotherChildRecord client={client} />
                 <Separator />
                 <AncScheduleView clientId={client.id} />
               </>

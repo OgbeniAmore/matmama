@@ -24,6 +24,7 @@ export interface Client {
   nin_id?: string;
   system_id?: string;
   preferred_channel?: PreferredChannel;
+  mother_client_id?: string | null;
 }
 
 export interface TransferRequest {

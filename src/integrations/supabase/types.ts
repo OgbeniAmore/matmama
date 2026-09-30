@@ -44,6 +44,7 @@ export type Database = {
           gestational_weeks: number
           id: string
           notes: string | null
+          pregnancy_number: number
           scheduled_date: string
           status: string
           visit_name: string
@@ -57,6 +58,7 @@ export type Database = {
           gestational_weeks: number
           id?: string
           notes?: string | null
+          pregnancy_number?: number
           scheduled_date: string
           status?: string
           visit_name: string
@@ -70,6 +72,7 @@ export type Database = {
           gestational_weeks?: number
           id?: string
           notes?: string | null
+          pregnancy_number?: number
           scheduled_date?: string
           status?: string
           visit_name?: string
@@ -163,6 +166,7 @@ export type Database = {
           id: string
           lasraa_id: string | null
           lmp: string | null
+          mother_client_id: string | null
           name: string
           nin_id: string | null
           preferred_channel: string
@@ -186,6 +190,7 @@ export type Database = {
           id: string
           lasraa_id?: string | null
           lmp?: string | null
+          mother_client_id?: string | null
           name: string
           nin_id?: string | null
           preferred_channel?: string
@@ -209,6 +214,7 @@ export type Database = {
           id?: string
           lasraa_id?: string | null
           lmp?: string | null
+          mother_client_id?: string | null
           name?: string
           nin_id?: string | null
           preferred_channel?: string
@@ -231,6 +237,86 @@ export type Database = {
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_mother_client_id_fkey"
+            columns: ["mother_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deliveries: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          delivery_date: string
+          delivery_mode: string | null
+          facility_id: string | null
+          id: string
+          mother_client_id: string
+          notes: string | null
+          number_of_babies: number
+          outcome: string
+          place: string | null
+          pregnancy_number: number
+          recorded_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          delivery_date: string
+          delivery_mode?: string | null
+          facility_id?: string | null
+          id?: string
+          mother_client_id: string
+          notes?: string | null
+          number_of_babies?: number
+          outcome?: string
+          place?: string | null
+          pregnancy_number?: number
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          delivery_date?: string
+          delivery_mode?: string | null
+          facility_id?: string | null
+          id?: string
+          mother_client_id?: string
+          notes?: string | null
+          number_of_babies?: number
+          outcome?: string
+          place?: string | null
+          pregnancy_number?: number
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_mother_client_id_fkey"
+            columns: ["mother_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]

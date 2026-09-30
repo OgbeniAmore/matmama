@@ -70,9 +70,9 @@ export function MotherChildRecord({ client }: { client: Client }) {
   const { data: children = [] } = useQuery<ChildRow[]>({
     queryKey: ["children", client.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clients").select("id, name, child_name, child_dob, status")
-        .eq("mother_client_id" as any, client.id).order("child_dob", { ascending: false });
+      const { data, error } = await (supabase.from as any)("clients")
+        .select("id, name, child_name, child_dob, status")
+        .eq("mother_client_id", client.id).order("child_dob", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ChildRow[];
     },

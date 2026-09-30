@@ -437,6 +437,63 @@ export type Database = {
           },
         ]
       }
+      growth_measurements: {
+        Row: {
+          account_id: string | null
+          actor_name: string | null
+          client_id: string
+          created_at: string
+          height_cm: number | null
+          id: string
+          measured_on: string
+          notes: string | null
+          recorded_by: string | null
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          account_id?: string | null
+          actor_name?: string | null
+          client_id: string
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          measured_on?: string
+          notes?: string | null
+          recorded_by?: string | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          account_id?: string | null
+          actor_name?: string | null
+          client_id?: string
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          measured_on?: string
+          notes?: string | null
+          recorded_by?: string | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_measurements_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_measurements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       immunization_records: {
         Row: {
           account_id: string | null

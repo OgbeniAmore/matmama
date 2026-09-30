@@ -33,6 +33,7 @@ import { format } from "date-fns";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import { ImmunizationScheduleView } from "./clients/ImmunizationScheduleView";
+import { GrowthChart } from "./clients/GrowthChart";
 import { AncScheduleView } from "./clients/AncScheduleView";
 import { TransferHistoryView } from "./clients/TransferHistoryView";
 import { MotherChildRecord, MotherLink } from "./clients/MotherChildRecord";
@@ -273,6 +274,8 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
               <>
                 <Separator />
                 <ImmunizationScheduleView clientId={client.id} />
+                <Separator />
+                <GrowthChart clientId={client.id} accountId={client.account_id} childDob={client.childDob} />
               </>
             )}
 

@@ -45,7 +45,13 @@ const PAGE_MAP: Array<{ match: RegExp; name: string; description: string }> = [
     match: /^\/transfers$/,
     name: "Transfers",
     description:
-      "Incoming and outgoing client transfer requests between facilities. The source facility must approve before a client moves; both sides get notifications.",
+      "Incoming and outgoing client transfer and share requests between facilities. Permanent transfers move the client after source approval. Temporary shares give the requesting facility access for a chosen duration, with a reason (visiting or relocation), and expire automatically. The requester can cancel a pending request, which deletes it so it disappears for both facilities.",
+  },
+  {
+    match: /^\/inbox$/,
+    name: "Facility Inbox",
+    description:
+      "Pending transfer and share requests addressed to your facility, showing type, reason and share end date, with Approve/Reject actions (Facility Officers, Program Managers, System Admins; Data Entry Officers view only). Also lists clients currently shared with your facility and when each share ends.",
   },
   {
     match: /^\/team$/,
@@ -69,7 +75,7 @@ const PAGE_MAP: Array<{ match: RegExp; name: string; description: string }> = [
     match: /^\/roster$/,
     name: "Facility Roster",
     description:
-      "Roster of health workers at the facility (name + designation, active/inactive). Supports Excel upload with a downloadable template and per-row validation. The active worker selected here is attributed to every action in the audit log.",
+      "Roster of health workers at the facility (name + designation, active/inactive). Supports Excel upload with a downloadable template and per-row validation. The active worker selected here is attributed to every action in the audit log. Also shows clients shared with the facility, their share dates and time remaining.",
   },
   {
     match: /^\/audit-log$/,

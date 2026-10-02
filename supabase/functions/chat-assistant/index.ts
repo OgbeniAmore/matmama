@@ -96,6 +96,14 @@ ROLE CAPABILITY SUMMARIES (what each role can view and do):
 const CHANGELOG = `
 RECENT CHANGES (knowledge base version ${KB_VERSION}). If asked "what's new?", summarise from here, newest first:
 
+**2026-10 — Mother & child, sharing and Inbox** (all roles):
+- Temporary share of a client with another facility: pick a reason (visiting or relocation) and a duration; access ends automatically. Permanent transfer still moves the client after source approval.
+- Facility Inbox (/inbox): pending requests to your facility with Approve/Reject (Facility Officer, Program Manager, System Admin; Data Entry Officer view only) plus currently shared clients. The Roster (/roster) shows each share's end date and time left.
+- Cancelling a pending request (requester only) deletes it so it vanishes for both facilities.
+- ANC mothers: record a delivery per pregnancy, register babies under the mother's file (each becomes a Routine Immunization client linked to her), and start subsequent pregnancies. Any role that can act on the mother can do this (Data Entry Officers included).
+- Baby name optional at birth ("Baby of [mother]"), required from the 2nd immunization visit. The Schedule button beside each baby opens their immunization schedule.
+- Growth chart on each child's file: record dated weight (kg) and height (cm); trends shown by age in months.
+
 **2026-09 — Knowledge base upkeep**: a changelog Thelma can quote, concise role capability summaries, and an automated check that flags when this knowledge base drifts from the app's routes or database tables.
 
 **2026-08 — Security and access scope**: anonymous access to database functions removed; resync RPCs require an authenticated caller with the right role and only touch clients in their own organisation; visit/immunization/reminder writes verify the client belongs to the caller's organisation; reminder visibility narrowed to the user's facility (PM = their LGA, Admin = all); profile creation limited to Program Managers and System Admins; System Admins now see all facilities/users/roles and Program Managers see everything in their LGA.

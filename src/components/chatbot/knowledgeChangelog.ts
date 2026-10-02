@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.09.03";
+export const KB_VERSION = "2026.10.02";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,18 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-02",
+    title: "Mother & child records, temporary sharing and Facility Inbox",
+    items: [
+      "Temporary client sharing with another facility: choose a reason (visiting or relocation) and a duration; access ends automatically.",
+      "Facility Inbox (/inbox) lists pending requests to approve or reject plus currently shared clients; the Roster shows when each share ends.",
+      "Cancelling a pending request deletes it, so it disappears for both facilities. Only the requester can cancel.",
+      "ANC mothers: record a delivery per pregnancy, register babies under the mother's file (each becomes a Routine Immunization client), and start a new pregnancy.",
+      "Baby name is optional at birth ('Baby of [mother]') but required from the second immunization visit. A Schedule button opens each baby's immunization schedule.",
+      "Growth chart on each child's file: record dated weight and height and track trends by age in months.",
+    ],
+  },
   {
     date: "2026-09-03",
     title: "Knowledge base, sync checks and role summaries",

@@ -49,7 +49,7 @@ Other features:
 - Mobile-first responsive UI with bottom navigation, dark/light mode, and a logo animation after sign-in.
 
 Navigation:
-- /dashboard — home overview (greets by PHC name)
+- /dashboard — home overview (time-of-day greeting, e.g. "Good Afternoon, System Admin" or "Good Afternoon, <PHC name>")
 - /clients — manage clients (card layout, tap name for details)
 - /defaulters — view and act on defaulting clients
 - /reminders — reminder history, delivery timelines, resend, CSV export

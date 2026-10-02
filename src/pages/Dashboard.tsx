@@ -121,11 +121,14 @@ const Dashboard = () => {
   const phcName = facility?.name?.trim();
   const ensurePhcSuffix = (n: string) =>
     /\bphc\b|primary health (?:centre|center)/i.test(n) ? n : `${n} PHC`;
+  const hour = new Date().getHours();
+  const timeGreeting =
+    hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
   const greeting = standaloneRole
-    ? `Welcome, ${role === 'system_admin' ? 'System Admin' : 'Program Manager'}!`
+    ? `${timeGreeting}, ${role === 'system_admin' ? 'System Admin' : 'Program Manager'}!`
     : phcName
-      ? `Welcome, ${ensurePhcSuffix(phcName)}!`
-      : 'Welcome back!';
+      ? `${timeGreeting}, ${ensurePhcSuffix(phcName)}!`
+      : `${timeGreeting}!`;
 
   return (
     <div className="space-y-6">

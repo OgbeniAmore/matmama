@@ -98,12 +98,13 @@ const TransfersPage = () => {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("transfer_requests")
-        .update({ status: "cancelled" })
-        .eq("id", id);
+        .delete()
+        .eq("id", id)
+        .eq("status", "pending");
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Transfer Cancelled", description: "The transfer request has been cancelled." });
+      toast({ title: "Transfer Cancelled", description: "The transfer request has been removed." });
       queryClient.invalidateQueries({ queryKey: ["transfer-requests"] });
     },
     onError: (error: Error) => {

@@ -32,6 +32,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     ],
     canDo: [
       "Invite admins, program managers and facility staff, and change roles",
+      "Approve/reject transfer and temporary share requests from the Inbox",
       "Assign and reassign the single Program Manager seat per LGA (audited)",
       "Manage the PHC master list per LGA and ward",
       "Edit SMS templates, resend failed SMS, export trends and audit CSVs",
@@ -50,6 +51,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     ],
     canDo: [
       "Approve or reject client transfers",
+      "Use the Inbox to approve/reject transfers and temporary shares (reason + duration) in their LGA",
       "Invite and manage team members and facility assignments in their LGA",
       "Edit SMS templates and resend failed reminders",
       "Export audit logs and reminder history to CSV",
@@ -71,6 +73,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     ],
     canDo: [
       "Register clients (Routine Immunization, Family Planning, Ante Natal Care) and record or complete visits",
+      "Share clients temporarily with another facility, approve/reject requests in the Inbox, cancel own pending requests; record deliveries, register babies under the mother, add growth measurements",
       "Follow up defaulters, send and resend reminders",
       "Request transfers out and approve transfers of their own clients",
       "Maintain the health worker roster, including Excel import",
@@ -91,6 +94,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     ],
     canDo: [
       "Register clients and update contact and profile details",
+      "Record deliveries, register babies under the mother's file and add growth measurements (weight/height); view the Inbox without approving",
       "Record that a client attended a visit",
       "Select the acting health worker so actions are attributed correctly",
     ],

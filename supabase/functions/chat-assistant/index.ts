@@ -36,7 +36,7 @@ Reminders and SMS:
 - Admins are alerted when the 24-hour delivery failure rate spikes.
 
 Facilities, roster and accountability:
-- Facilities are tagged to an LGA and ward. The dashboard greets users by their PHC/facility name.
+- Facilities are tagged to an LGA and ward. The dashboard greets users by time of day (Good Morning/Afternoon/Evening) plus their name — System Admin or Program Manager for standalone roles, or the PHC/facility name for facility roles.
 - Each facility keeps a roster of health workers (name + designation) with Excel import, a downloadable template and per-row validation.
 - Before saving an action, staff confirm which health worker is acting; that name and designation is stored on the audit entry.
 - Audit Log (/audit-log) is available to all roles (scoped to their own data): who did what, when, which client/visit, before/after field changes in a details drawer, filters, server-side pagination and CSV export.
@@ -49,7 +49,7 @@ Other features:
 - Mobile-first responsive UI with bottom navigation, dark/light mode, and a logo animation after sign-in.
 
 Navigation:
-- /dashboard — home overview (greets by PHC name)
+- /dashboard — home overview (time-of-day greeting, e.g. "Good Afternoon, System Admin" or "Good Afternoon, <PHC name>")
 - /clients — manage clients (card layout, tap name for details)
 - /defaulters — view and act on defaulting clients
 - /reminders — reminder history, delivery timelines, resend, CSV export
@@ -112,7 +112,7 @@ RECENT CHANGES (knowledge base version ${KB_VERSION}). If asked "what's new?", s
 
 **2026-07 — Accountability**: facility roster with Excel template, upload and per-row validation; acting health worker captured on every audit entry; Audit Log for all roles with filters, pagination, before/after drawer and CSV export; "Last updated by" badge on client cards; branded client IDs (RXM-YYMMDD-XXXX) backfilled onto existing clients.
 
-**2026-07 — Lagos State oversight**: Admin Dashboard with global KPIs, LGA performance grid, 30-day trend chart with CSV export and role-filtered team management; one PM per LGA enforced in the database with an audited reassignment action; PHC management per LGA/ward with an "Other" option; sign-up captures LGA, ward and PHC; dashboard greets by PHC name.
+**2026-07 — Lagos State oversight**: Admin Dashboard with global KPIs, LGA performance grid, 30-day trend chart with CSV export and role-filtered team management; one PM per LGA enforced in the database with an audited reassignment action; PHC management per LGA/ward with an "Other" option; sign-up captures LGA, ward and PHC; dashboard greeting is time-of-day based (Good Morning/Afternoon/Evening) and names the System Admin, Program Manager, or PHC.
 
 **2026-06 — Clinical schedules**: ANC WHO 8-contact schedule from LMP with working completion toggles; Nigeria 2026 EPI immunization schedule with progress tracking; daily defaulter detection with automatic return to On Track; transfer approval by the source facility; cross-facility search with phone redaction outside your organisation.
 `;

@@ -9,7 +9,7 @@ const PAGE_MAP: Array<{ match: RegExp; name: string; description: string }> = [
     match: /^\/(dashboard)?$/,
     name: "Dashboard",
     description:
-      "Home dashboard. Greets the user by their PHC/facility name, shows services overview (Routine Immunization, Family Planning, ANC), reminder stats widget, and quick links.",
+      "Home dashboard. Greets the user by time of day (Good Morning/Afternoon/Evening) plus their name — System Admin or Program Manager for standalone roles, or the PHC/facility name for facility roles. Shows services overview (Routine Immunization, Family Planning, ANC), reminder stats widget, and quick links.",
   },
   {
     match: /^\/clients$/,

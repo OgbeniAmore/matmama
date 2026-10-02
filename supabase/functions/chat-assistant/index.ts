@@ -112,7 +112,7 @@ RECENT CHANGES (knowledge base version ${KB_VERSION}). If asked "what's new?", s
 
 **2026-07 — Accountability**: facility roster with Excel template, upload and per-row validation; acting health worker captured on every audit entry; Audit Log for all roles with filters, pagination, before/after drawer and CSV export; "Last updated by" badge on client cards; branded client IDs (RXM-YYMMDD-XXXX) backfilled onto existing clients.
 
-**2026-07 — Lagos State oversight**: Admin Dashboard with global KPIs, LGA performance grid, 30-day trend chart with CSV export and role-filtered team management; one PM per LGA enforced in the database with an audited reassignment action; PHC management per LGA/ward with an "Other" option; sign-up captures LGA, ward and PHC; dashboard greets by PHC name.
+**2026-07 — Lagos State oversight**: Admin Dashboard with global KPIs, LGA performance grid, 30-day trend chart with CSV export and role-filtered team management; one PM per LGA enforced in the database with an audited reassignment action; PHC management per LGA/ward with an "Other" option; sign-up captures LGA, ward and PHC; dashboard greeting is time-of-day based (Good Morning/Afternoon/Evening) and names the System Admin, Program Manager, or PHC.
 
 **2026-06 — Clinical schedules**: ANC WHO 8-contact schedule from LMP with working completion toggles; Nigeria 2026 EPI immunization schedule with progress tracking; daily defaulter detection with automatic return to On Track; transfer approval by the source facility; cross-facility search with phone redaction outside your organisation.
 `;

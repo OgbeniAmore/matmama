@@ -16,14 +16,10 @@ export default function AdminDashboard() {
   const queryClient = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  // Hard gate
-  if (role !== "system_admin") {
-    return <Navigate to="/" replace />;
-  }
-
   // Fetch all data in parallel
   const { data, isLoading } = useQuery({
     queryKey: ["admin-overview"],
+    enabled: role === "system_admin",
     queryFn: async () => {
       const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 

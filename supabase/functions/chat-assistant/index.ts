@@ -36,7 +36,7 @@ Reminders and SMS:
 - Admins are alerted when the 24-hour delivery failure rate spikes.
 
 Facilities, roster and accountability:
-- Facilities are tagged to an LGA and ward. The dashboard greets users by their PHC/facility name.
+- Facilities are tagged to an LGA and ward. The dashboard greets users by time of day (Good Morning/Afternoon/Evening) plus their name — System Admin or Program Manager for standalone roles, or the PHC/facility name for facility roles.
 - Each facility keeps a roster of health workers (name + designation) with Excel import, a downloadable template and per-row validation.
 - Before saving an action, staff confirm which health worker is acting; that name and designation is stored on the audit entry.
 - Audit Log (/audit-log) is available to all roles (scoped to their own data): who did what, when, which client/visit, before/after field changes in a details drawer, filters, server-side pagination and CSV export.

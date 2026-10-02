@@ -21,6 +21,7 @@ import FacilitiesPage from "./pages/Facilities";
 import FacilityDetail from "./pages/FacilityDetail";
 import ClientSearch from "./pages/ClientSearch";
 import TransfersPage from "./pages/Transfers";
+import InboxPage from "./pages/Inbox";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -57,6 +58,7 @@ const App = () => (
                 <Route path="/facilities/:id" element={<FacilityDetail />} />
                 <Route path="/client-search" element={<ClientSearch />} />
                 <Route path="/transfers" element={<TransfersPage />} />
+                <Route path="/inbox" element={<InboxPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/notification-preferences" element={<NotificationPreferences />} />
                 <Route path="/sms-templates" element={<SmsTemplates />} />

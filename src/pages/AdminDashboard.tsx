@@ -117,6 +117,11 @@ export default function AdminDashboard() {
     },
   });
 
+  // Hard gate (after all hooks so hook order stays stable)
+  if (role !== "system_admin") {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">

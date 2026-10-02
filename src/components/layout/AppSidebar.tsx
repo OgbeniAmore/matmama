@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck, ArrowRightLeft, ShieldCheck, MessageSquareText, Activity, Hospital, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, LogIn, User as UserIcon, AlertTriangle, History, FileText, UsersRound, Building2, SearchCheck, ArrowRightLeft, ShieldCheck, MessageSquareText, Activity, Hospital, ClipboardList, Inbox } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/Logo";
@@ -31,6 +31,7 @@ export function AppSidebar() {
     { href: "/clients", label: "Clients", icon: Users },
     { href: "/defaulters", label: "Defaulters", icon: AlertTriangle },
     { href: "/client-search", label: "Client Search", icon: SearchCheck },
+    { href: "/inbox", label: "Inbox", icon: Inbox },
     { href: "/transfers", label: "Transfers", icon: ArrowRightLeft },
     { href: "/reminders", label: "Reminders", icon: History },
     { href: "/audit-log", label: "Audit Log", icon: FileText },

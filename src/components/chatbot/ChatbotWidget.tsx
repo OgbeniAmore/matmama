@@ -198,7 +198,7 @@ export function ChatbotWidget() {
         onClick={() => setOpen((v) => !v)}
         size="icon"
         className={cn(
-          "fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 h-14 w-14 rounded-full shadow-lg",
+          "fixed bottom-nav-offset right-4 md:bottom-6 md:right-6 z-50 h-14 w-14 rounded-full shadow-lg",
           "bg-primary hover:bg-primary/90 overflow-hidden"
         )}
         aria-label={open ? "Close assistant" : "Open assistant"}
@@ -224,8 +224,8 @@ export function ChatbotWidget() {
         <div
           className={cn(
             "fixed z-50 flex flex-col bg-background border shadow-2xl",
-            "bottom-36 right-4 md:bottom-24 md:right-6",
-            "w-[calc(100vw-2rem)] sm:w-96 h-[28rem] max-h-[calc(100vh-10rem)] rounded-lg overflow-hidden"
+            "bottom-[calc(9rem+env(safe-area-inset-bottom))] right-4 md:bottom-24 md:right-6",
+            "w-[calc(100vw-2rem)] sm:w-96 h-[28rem] max-h-[calc(100dvh-12rem)] rounded-lg overflow-hidden"
           )}
         >
           {/* Header */}

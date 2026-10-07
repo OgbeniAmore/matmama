@@ -19,7 +19,7 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-safe border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center justify-around h-16 px-2">
           {mainNavItems.map((item) => (
             <NavLink
@@ -50,7 +50,7 @@ export function BottomNav() {
       </nav>
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent side="bottom" className="h-auto rounded-t-2xl">
+        <SheetContent side="bottom" className="h-auto max-h-[85vh] overflow-y-auto rounded-t-2xl pb-safe">
           <SheetHeader className="pb-2">
             <SheetTitle className="text-left">
               {profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}` : 'Menu'}

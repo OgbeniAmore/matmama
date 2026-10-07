@@ -38,7 +38,7 @@ export function MainLayout() {
           <AppSidebar />
         </div>
         <div className="flex flex-col flex-1 min-w-0">
-          <header className="flex h-14 items-center gap-3 border-b bg-muted/40 px-4 md:px-6">
+          <header className="flex h-14 items-center gap-2 sm:gap-3 border-b bg-muted/40 px-3 sm:px-4 sticky top-0 z-40 backdrop-blur md:px-6">
             {/* Sidebar trigger - tablet only */}
             <SidebarTrigger className="hidden md:block lg:hidden" />
 
@@ -88,7 +88,7 @@ export function MainLayout() {
               </DropdownMenu>
             </div>
           </header>
-          <main className="flex-1 p-4 pb-20 md:pb-6 md:p-6 lg:p-8">
+          <main className="flex-1 min-w-0 overflow-x-hidden p-3 sm:p-4 main-mobile-pb md:pb-6 md:p-6 lg:p-8">
             <Outlet />
           </main>
         </div>

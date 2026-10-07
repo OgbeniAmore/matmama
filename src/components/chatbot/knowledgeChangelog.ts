@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.02";
+export const KB_VERSION = "2026.10.07";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,16 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-07",
+    title: "Phone-friendly layout and home screen icon (all roles)",
+    items: [
+      "Matmama now fits all Android and iPhone screens, including phones with notches and gesture bars.",
+      "Add to home screen on iPhone: open Matmama in Safari, tap Share, then 'Add to Home Screen'. The Matmama logo becomes the app icon.",
+      "Add to home screen on Android: open Matmama in Chrome, tap the menu, then 'Add to Home screen' or 'Install app'.",
+      "Opened from the home screen, Matmama runs full-screen like an app. Internet is still required.",
+    ],
+  },
   {
     date: "2026-10-02",
     title: "Mother & child records, temporary sharing and Facility Inbox",

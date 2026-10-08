@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
+  optimizeDeps: {
+    include: ["react", "react-dom", "react/jsx-runtime", "react-dom/client"],
+  },
   define: {
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
       process.env.VITE_SUPABASE_URL || lovableCloudUrl

@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.07";
+export const KB_VERSION = "2026.10.10";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,17 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-10",
+    title: "ANC clinical vitals and maternal risk triage (all roles)",
+    items: [
+      "Open an ANC client and tap 'Record vitals' to enter BP, fundal height, fetal heart rate, urine protein/glucose, weight and haemoglobin. Gestational age is pre-filled from LMP.",
+      "Live triage while typing: Critical = BP >=160/110 (severe hypertension, or severe pre-eclampsia with proteinuria), Hb <7, FHR <110. High = BP >=140/90 with protein >=1+ (pre-eclampsia), Hb 7-9.9, FHR >160. Moderate = BP >=140/90 alone, Hb 10-10.9, urine glucose >=2+, fundal height off by >3 cm from gestational weeks (20-40 wks), weight <45 kg.",
+      "Each flag shows a recommended action (e.g. MgSO4 + urgent referral). This is decision support only; facility protocol and clinical judgement come first.",
+      "The latest moderate/high/critical result shows as a red or amber risk banner at the top of the client's profile; full vitals history is listed with who recorded it.",
+      "All roles that can act on the client (including Data Entry Officers) can record vitals; Facility Officers, Program Managers and System Admins can delete entries. Every entry is audit-logged.",
+    ],
+  },
   {
     date: "2026-10-07",
     title: "Phone-friendly layout and home screen icon (all roles)",

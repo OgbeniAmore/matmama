@@ -25,6 +25,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     label: "System Admin",
     scope: "Whole platform — all 20 Lagos LGAs, every facility, user and record. Not attached to an LGA or PHC.",
     canView: [
+      "ANC vitals history and maternal risk flags (pre-eclampsia, anaemia, fetal heart rate, glycosuria, fundal height) on client profiles in their scope",
       "Global KPIs, client and defaulter overview across all LGAs",
       "All facilities, all team members and all roles",
       "All audit logs, SMS runs and delivery KPIs",
@@ -45,6 +46,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     label: "Program Manager",
     scope: "Exactly one Lagos LGA (only one PM per LGA). Not attached to a PHC.",
     canView: [
+      "ANC vitals history and maternal risk flags (pre-eclampsia, anaemia, fetal heart rate, glycosuria, fundal height) on client profiles in their scope",
       "Every facility, team member, client and defaulter in their LGA",
       "Audit logs and SMS runs for their LGA",
       "Incoming and outgoing transfer requests",
@@ -73,7 +75,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     ],
     canDo: [
       "Register clients (Routine Immunization, Family Planning, Ante Natal Care) and record or complete visits",
-      "Share clients temporarily with another facility, approve/reject requests in the Inbox, cancel own pending requests; record deliveries, register babies under the mother, add growth measurements",
+      "Share clients temporarily with another facility, approve/reject requests in the Inbox, cancel own pending requests; record deliveries, register babies under the mother, add growth measurements; record ANC vitals (BP, fundal height, FHR, urinalysis, weight, Hb) and act on maternal risk flags",
       "Follow up defaulters, send and resend reminders",
       "Request transfers out and approve transfers of their own clients",
       "Maintain the health worker roster, including Excel import",
@@ -94,7 +96,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     ],
     canDo: [
       "Register clients and update contact and profile details",
-      "Record deliveries, register babies under the mother's file and add growth measurements (weight/height); view the Inbox without approving",
+      "Record deliveries, register babies under the mother's file and add growth measurements (weight/height); record ANC vitals with automatic maternal risk triage; view the Inbox without approving",
       "Record that a client attended a visit",
       "Select the acting health worker so actions are attributed correctly",
     ],

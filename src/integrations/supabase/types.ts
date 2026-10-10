@@ -95,6 +95,110 @@ export type Database = {
           },
         ]
       }
+      anc_vitals: {
+        Row: {
+          account_id: string | null
+          actor_name: string | null
+          anc_visit_id: string | null
+          client_id: string
+          created_at: string
+          diastolic_bp: number | null
+          facility_id: string | null
+          fetal_heart_rate_bpm: number | null
+          fundal_height_cm: number | null
+          gestational_weeks: number | null
+          hemoglobin_g_dl: number | null
+          id: string
+          measured_on: string
+          notes: string | null
+          recorded_by: string | null
+          risk_flags: Json
+          risk_level: string
+          systolic_bp: number | null
+          updated_at: string
+          urine_glucose: string | null
+          urine_protein: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          account_id?: string | null
+          actor_name?: string | null
+          anc_visit_id?: string | null
+          client_id: string
+          created_at?: string
+          diastolic_bp?: number | null
+          facility_id?: string | null
+          fetal_heart_rate_bpm?: number | null
+          fundal_height_cm?: number | null
+          gestational_weeks?: number | null
+          hemoglobin_g_dl?: number | null
+          id?: string
+          measured_on?: string
+          notes?: string | null
+          recorded_by?: string | null
+          risk_flags?: Json
+          risk_level?: string
+          systolic_bp?: number | null
+          updated_at?: string
+          urine_glucose?: string | null
+          urine_protein?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          account_id?: string | null
+          actor_name?: string | null
+          anc_visit_id?: string | null
+          client_id?: string
+          created_at?: string
+          diastolic_bp?: number | null
+          facility_id?: string | null
+          fetal_heart_rate_bpm?: number | null
+          fundal_height_cm?: number | null
+          gestational_weeks?: number | null
+          hemoglobin_g_dl?: number | null
+          id?: string
+          measured_on?: string
+          notes?: string | null
+          recorded_by?: string | null
+          risk_flags?: Json
+          risk_level?: string
+          systolic_bp?: number | null
+          updated_at?: string
+          urine_glucose?: string | null
+          urine_protein?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anc_vitals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anc_vitals_anc_visit_id_fkey"
+            columns: ["anc_visit_id"]
+            isOneToOne: false
+            referencedRelation: "anc_visits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anc_vitals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anc_vitals_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           account_id: string | null

@@ -11,14 +11,15 @@ import { toast } from "sonner";
 import { Pencil } from "lucide-react";
 
 const isAlert = (v?: string | null) => v === "Reactive" || v === "Positive";
-const SEROLOGY = ["Non-reactive", "Reactive", "Pending"];
+const SEROLOGY = ["Non-Reactive", "Reactive", "Pending"];
+const HBV = ["Negative", "Positive", "Pending"];
 
 type Key = "blood_group" | "genotype" | "hiv_status" | "hepatitis_b_status" | "vdrl_status";
 const FIELDS: { key: Key; label: string; options: string[] }[] = [
   { key: "blood_group", label: "Blood group", options: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Pending"] },
   { key: "genotype", label: "Genotype", options: ["AA", "AS", "AC", "SS", "SC", "Pending"] },
   { key: "hiv_status", label: "HIV I & II", options: SEROLOGY },
-  { key: "hepatitis_b_status", label: "Hepatitis B", options: SEROLOGY },
+  { key: "hepatitis_b_status", label: "Hepatitis B", options: HBV },
   { key: "vdrl_status", label: "VDRL", options: SEROLOGY },
 ];
 

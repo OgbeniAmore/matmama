@@ -17,6 +17,14 @@ export type ChangelogEntry = {
 export const KB_CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-10",
+    title: "Ticking ANC visits/vaccines fixed; update pending lab results from the profile (all roles)",
+    items: [
+      "Marking ANC visits Complete and vaccines Administered now works for Facility Officers, Program Managers and System Admins, including for clients whose records moved between facilities. Data Entry Officers remain view-only for ticking.",
+      "On an ANC client's profile, the 'Booking history & tests' card has an Update button (shows how many results are pending). Enter Blood group, Genotype, HIV I & II, Hepatitis B, VDRL and Gravida/Para there once results return; no need to open Edit client.",
+    ],
+  },
+  {
+    date: "2026-10-10",
     title: "Service chosen first on the registration form (all roles)",
     items: [
       "On Add Client, the Service selector is now the first field. Pick Routine Immunization, Family Planning or Ante Natal Care before entering details.",

@@ -1,5 +1,6 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -29,7 +30,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Client, Service, PreferredChannel } from "@/types";
-import { Phone, MessageSquare, Baby } from "lucide-react";
+import { Phone, MessageSquare, Baby, Search, Link2, X, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   calculateEddFromLmp,
@@ -66,6 +67,7 @@ export const clientFormSchema = z.object({
   hivStatus: z.string().optional(),
   hepatitisBStatus: z.string().optional(),
   vdrlStatus: z.string().optional(),
+  motherClientId: z.string().optional(),
 }).refine((data) => {
   if (data.service === "Routine Immunization") {
     return data.childName && data.childName.trim().length > 0 && data.childDob;
@@ -97,6 +99,17 @@ const BASELINE_FIELDS: { name: "bloodGroup" | "genotype" | "hivStatus" | "hepati
   { name: "vdrlStatus", label: "VDRL (Syphilis)", options: ["Non-Reactive", "Reactive", "Pending"] },
 ];
 
+interface MotherHit {
+  id: string;
+  name: string;
+  service: string;
+  contact: string;
+  facility_name: string;
+  lasraa_id: string | null;
+  nin_id: string | null;
+  system_id: string | null;
+}
+
 interface ClientFormProps {
   onSave: (data: ClientFormValues) => void;
   clientToEdit?: Client | null;
@@ -113,6 +126,42 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
   });
 
   const watchedService = form.watch("service");
+  const [motherQuery, setMotherQuery] = useState("");
+  const [motherResults, setMotherResults] = useState<MotherHit[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [linkedMother, setLinkedMother] = useState<MotherHit | null>(null);
+
+  const searchMother = async () => {
+    if (motherQuery.trim().length < 3) {
+      toast({ title: "Enter at least 3 characters", variant: "destructive" });
+      return;
+    }
+    setSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("search-client", { body: { searchId: motherQuery.trim() } });
+      if (error) throw error;
+      const hits = ((data?.clients ?? []) as MotherHit[]).filter((c) => c.service === "Ante Natal Care");
+      setMotherResults(hits);
+      if (hits.length === 0) toast({ title: "No ANC record found", description: "Try LASRAA ID, NIN, system ID or full name." });
+    } catch (e: any) {
+      toast({ title: "Search failed", description: e.message, variant: "destructive" });
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const linkMother = (m: MotherHit) => {
+    setLinkedMother(m);
+    setMotherResults([]);
+    form.setValue("motherClientId", m.id);
+    form.setValue("name", m.name, { shouldValidate: true });
+    if (m.contact && m.contact !== "[Redacted]") form.setValue("contact", m.contact, { shouldValidate: true });
+  };
+
+  const unlinkMother = () => {
+    setLinkedMother(null);
+    form.setValue("motherClientId", undefined);
+  };
 
   const watchedLmp = form.watch("lmp");
 
@@ -164,7 +213,11 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           lasraaId: "",
           ninId: "",
           preferredChannel: "sms" as const,
+          motherClientId: undefined,
         });
+        setLinkedMother(null);
+        setMotherResults([]);
+        setMotherQuery("");
       }
     }
   }, [clientToEdit, open, form, isEditMode]);
@@ -233,6 +286,53 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                 </FormItem>
               )}
             />
+
+            {watchedService === "Routine Immunization" && !isEditMode && (
+              <div className="rounded-lg border p-4 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold flex items-center gap-2"><Link2 className="h-4 w-4 text-primary" />Link mother's ANC record (optional)</p>
+                  <p className="text-xs text-muted-foreground">Search any facility in Lagos by LASRAA ID, NIN, system ID or name. The child will appear under her record.</p>
+                </div>
+                {linkedMother ? (
+                  <div className="flex items-start justify-between gap-2 rounded-md bg-muted/50 p-3">
+                    <div className="min-w-0 text-sm">
+                      <p className="font-medium truncate">{linkedMother.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{linkedMother.facility_name} · {linkedMother.lasraa_id || linkedMother.nin_id || linkedMother.system_id || linkedMother.id}</p>
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" onClick={unlinkMother} aria-label="Remove link"><X className="h-4 w-4" /></Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="LASRAA ID, NIN or name"
+                        value={motherQuery}
+                        onChange={(e) => setMotherQuery(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); searchMother(); } }}
+                      />
+                      <Button type="button" variant="outline" onClick={searchMother} disabled={searching} aria-label="Search mother">
+                        {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {motherResults.length > 0 && (
+                      <div className="space-y-2">
+                        {motherResults.map((m) => (
+                          <button
+                            type="button"
+                            key={m.id}
+                            onClick={() => linkMother(m)}
+                            className="w-full text-left rounded-md border p-3 hover:bg-muted/50 min-h-11"
+                          >
+                            <p className="text-sm font-medium">{m.name}</p>
+                            <p className="text-xs text-muted-foreground">{m.facility_name} · {m.lasraa_id || m.nin_id || m.system_id || m.id}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
             {watchedService === "Routine Immunization" && (
               <>

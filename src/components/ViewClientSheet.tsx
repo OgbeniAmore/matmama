@@ -209,7 +209,7 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
                     <>
                       <h3 className="text-sm font-medium text-muted-foreground">Trimester</h3>
                       <p className="col-start-2">
-                        {client.trimester === 1 && "First Trimester (1-12 weeks)"}{client.lmp && " · updates automatically"}
+                        {client.trimester === 1 && "First Trimester (1-12 weeks)"}
                         {client.trimester === 2 && "Second Trimester (13-26 weeks)"}
                         {client.trimester === 3 && "Third Trimester (27-40 weeks)"}
                       </p>

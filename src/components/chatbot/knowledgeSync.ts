@@ -24,6 +24,7 @@ export const UNDOCUMENTED_ROUTES = [
 export const KNOWN_TABLES = [
   "accounts",
   "anc_visits",
+  "anc_vitals",
   "audit_logs",
   "clients",
   "deliveries",

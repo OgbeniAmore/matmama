@@ -52,7 +52,7 @@ export function useAncVitals(clientId: string) {
   });
 }
 
-function gaFromLmp(lmp?: string | null) {
+function gaFromLmp(lmp?: Date | string | null) {
   if (!lmp) return "";
   const w = Math.floor((Date.now() - new Date(lmp).getTime()) / (7 * 86400000));
   return w > 0 && w < 45 ? String(w) : "";
@@ -86,10 +86,10 @@ export function AncRiskBanner({ clientId }: { clientId: string }) {
 
 const num = (s: string) => (s.trim() === "" ? null : Number(s));
 
-export function AncVitalsPanel({ clientId, lmp }: { clientId: string; lmp?: string | null }) {
+export function AncVitalsPanel({ clientId, lmp }: { clientId: string; lmp?: Date | string | null }) {
   const qc = useQueryClient();
   const { user } = useAuth();
-  const { requireWorker, activeWorker } = useActiveWorker() as ReturnType<typeof useActiveWorker> & { activeWorker?: { name?: string } };
+  const { requireWorker, worker } = useActiveWorker();
   const { data = [], isLoading } = useAncVitals(clientId);
   const [open, setOpen] = useState(false);
   const empty = { ga: "", sys: "", dia: "", fh: "", fhr: "", wt: "", hb: "", up: "", ug: "", notes: "" };
@@ -110,7 +110,7 @@ export function AncVitalsPanel({ clientId, lmp }: { clientId: string; lmp?: stri
       const { error } = await supabase.from("anc_vitals").insert({
         client_id: clientId, ...input, risk_level: triage.level,
         risk_flags: triage.flags as never, notes: f.notes.trim() || null,
-        recorded_by: user!.id, actor_name: activeWorker?.name ?? null,
+        recorded_by: user!.id, actor_name: worker?.name ?? null,
       });
       if (error) throw error;
     },

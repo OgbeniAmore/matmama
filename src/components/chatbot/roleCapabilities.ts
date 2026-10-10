@@ -73,7 +73,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     ],
     canDo: [
       "Register clients (Routine Immunization, Family Planning, Ante Natal Care) and record or complete visits",
-      "Share clients temporarily with another facility, approve/reject requests in the Inbox, cancel own pending requests; record deliveries, register babies under the mother, add growth measurements",
+      "Share clients temporarily with another facility, approve/reject requests in the Inbox, cancel own pending requests; record deliveries, register babies under the mother, add growth measurements; record ANC vitals (BP, fundal height, FHR, urinalysis, weight, Hb) and act on maternal risk flags",
       "Follow up defaulters, send and resend reminders",
       "Request transfers out and approve transfers of their own clients",
       "Maintain the health worker roster, including Excel import",
@@ -94,7 +94,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     ],
     canDo: [
       "Register clients and update contact and profile details",
-      "Record deliveries, register babies under the mother's file and add growth measurements (weight/height); view the Inbox without approving",
+      "Record deliveries, register babies under the mother's file and add growth measurements (weight/height); record ANC vitals with automatic maternal risk triage; view the Inbox without approving",
       "Record that a client attended a visit",
       "Select the acting health worker so actions are attributed correctly",
     ],

@@ -471,6 +471,8 @@ serve(async (req) => {
 
         const updates: Record<string, unknown> = {};
         if (facility_id !== undefined) updates.facility_id = facility_id;
+        if (role === "system_admin" || role === "program_manager") updates.facility_id = null;
+        if (role === "system_admin") updates.lga = null;
         if (lga !== undefined) updates.lga = lga;
         if (Object.keys(updates).length > 0) {
           await supabaseAdmin
@@ -521,8 +523,8 @@ serve(async (req) => {
       await supabaseAdmin.from("profiles").insert({
         user_id: userId,
         account_id: accountId,
-        facility_id: facility_id || null,
-        lga: lga || null,
+        facility_id: role === "system_admin" || role === "program_manager" ? null : facility_id || null,
+        lga: role === "system_admin" ? null : lga || null,
       });
 
       await supabaseAdmin.from("user_roles").insert({

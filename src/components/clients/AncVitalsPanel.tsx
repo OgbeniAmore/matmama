@@ -86,11 +86,12 @@ export function AncRiskBanner({ clientId }: { clientId: string }) {
 
 const num = (s: string) => (s.trim() === "" ? null : Number(s));
 
-export function AncVitalsPanel({ clientId, lmp }: { clientId: string; lmp?: Date | string | null }) {
+export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks, compact }: { clientId: string; lmp?: Date | string | null; visitId?: string; visitLabel?: string; visitWeeks?: number; compact?: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const { requireWorker, worker } = useActiveWorker();
-  const { data = [], isLoading } = useAncVitals(clientId);
+  const { data: all = [], isLoading } = useAncVitals(clientId);
+  const data = visitId ? all.filter((v) => (v as AncVitalsRow & { anc_visit_id?: string | null }).anc_visit_id === visitId) : all;
   const [open, setOpen] = useState(false);
   const empty = { ga: "", sys: "", dia: "", fh: "", fhr: "", wt: "", hb: "", up: "", ug: "", notes: "" };
   const [f, setF] = useState(empty);
@@ -108,7 +109,7 @@ export function AncVitalsPanel({ clientId, lmp }: { clientId: string; lmp?: Date
     mutationFn: async () => {
       if ((input.systolic_bp == null) !== (input.diastolic_bp == null)) throw new Error("Enter both systolic and diastolic BP");
       const { error } = await supabase.from("anc_vitals").insert({
-        client_id: clientId, ...input, risk_level: triage.level,
+        client_id: clientId, anc_visit_id: visitId ?? null, ...input, risk_level: triage.level,
         risk_flags: triage.flags as never, notes: f.notes.trim() || null,
         recorded_by: user!.id, actor_name: worker?.name ?? null,
       });
@@ -128,16 +129,16 @@ export function AncVitalsPanel({ clientId, lmp }: { clientId: string; lmp?: Date
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-base">Clinical Vitals & Risk</h3>
+          <Activity className={compact ? "h-4 w-4 text-primary" : "h-5 w-5 text-primary"} />
+          <h3 className={compact ? "font-medium text-sm" : "font-semibold text-base"}>{compact ? "Vitals for this visit" : "Clinical Vitals & Risk"}</h3>
         </div>
-        <Button size="sm" onClick={async () => { if (await requireWorker()) { setF({ ...empty, ga: gaFromLmp(lmp) }); setOpen(true); } }}>
+        <Button size="sm" variant={compact ? "outline" : "default"} onClick={async () => { if (await requireWorker()) { setF({ ...empty, ga: gaFromLmp(lmp) || (visitWeeks ? String(visitWeeks) : "") }); setOpen(true); } }}>
           <Plus className="h-4 w-4 mr-1" /> Record vitals
         </Button>
       </div>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No vitals recorded yet.</p>
+        <p className="text-sm text-muted-foreground">{compact ? "No vitals recorded for this visit yet." : "No vitals recorded yet."}</p>
       ) : (
         <div className="space-y-2">
           {data.map((v) => (
@@ -168,7 +169,7 @@ export function AncVitalsPanel({ clientId, lmp }: { clientId: string; lmp?: Date
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Record ANC vitals</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Record ANC vitals{visitLabel ? ` — ${visitLabel}` : ""}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Gestational age (wks)" value={f.ga} onChange={set("ga")} />
             <Field label="Weight (kg)" value={f.wt} onChange={set("wt")} />

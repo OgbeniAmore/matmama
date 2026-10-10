@@ -288,9 +288,7 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
                 <AncBaselineCard client={client} />
                 <MotherChildRecord client={client} />
                 <Separator />
-                <AncVitalsPanel clientId={client.id} lmp={client.lmp} />
-                <Separator />
-                <AncScheduleView clientId={client.id} />
+                <AncScheduleView clientId={client.id} lmp={client.lmp} />
               </>
             )}
 

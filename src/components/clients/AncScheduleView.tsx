@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button";
 import { HeartPulse, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { AncVitalsPanel, useAncVitals, RiskBadge } from "./AncVitalsPanel";
 
 interface AncScheduleViewProps {
   clientId: string;
@@ -21,7 +24,9 @@ const statusConfig: Record<string, { icon: React.ElementType; color: string; bad
   Missed: { icon: AlertCircle, color: "text-red-600", badgeClass: "bg-red-100 text-red-800 border-red-200" },
 };
 
-export function AncScheduleView({ clientId }: AncScheduleViewProps) {
+export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?: Date | string | null }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  const { data: vitals = [] } = useAncVitals(clientId);
   const queryClient = useQueryClient();
   const { requireWorker, logAction } = useActiveWorker();
 
@@ -137,7 +142,8 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
           const isCompleted = visit.status === "Completed";
           const isPending = visit.status === "Pending" || visit.status === "Missed";
           return (
-            <div key={visit.id} className="border rounded-lg p-3 flex items-center justify-between gap-2">
+            <div key={visit.id} className="border rounded-lg p-3 space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-3 min-w-0">
                 <StatusIcon className={`h-5 w-5 flex-shrink-0 ${config.color}`} />
                 <div className="min-w-0">
@@ -174,7 +180,23 @@ export function AncScheduleView({ clientId }: AncScheduleViewProps) {
                     Undo
                   </Button>
                 )}
+                {(() => {
+                  const vs = vitals.filter((x) => (x as { anc_visit_id?: string | null }).anc_visit_id === visit.id);
+                  const open = openId === visit.id;
+                  return (
+                    <Button size="sm" variant="ghost" className="h-7 text-xs px-2" onClick={() => setOpenId(open ? null : visit.id)}>
+                      {vs[0] ? <RiskBadge level={vs[0].risk_level} /> : "Vitals"}
+                      {open ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+                    </Button>
+                  );
+                })()}
               </div>
+            </div>
+            {openId === visit.id && (
+              <div className="border-t pt-3">
+                <AncVitalsPanel clientId={clientId} lmp={lmp} visitId={visit.id} visitLabel={visit.visit_name} visitWeeks={visit.gestational_weeks} compact />
+              </div>
+            )}
             </div>
           );
         })}

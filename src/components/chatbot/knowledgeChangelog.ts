@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.10";
+export const KB_VERSION = "2026.10.10b";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,14 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-10",
+    title: "Vitals recorded under each of the 8 ANC visits; Admins and PMs not tied to a facility (all roles)",
+    items: [
+      "On an ANC client's profile, each of the 8 contacts in the ANC Schedule has a 'Vitals' button. Open it to record and view BP, fundal height, fetal heart rate, urinalysis, weight and Hb for that visit. The risk level of the visit shows on the button.",
+      "System Admins are no longer linked to any facility or LGA and see all facilities and clients across every Lagos LGA. Program Managers are no longer linked to a facility; they oversee every facility in their assigned LGA.",
+    ],
+  },
   {
     date: "2026-10-10",
     title: "Ticking ANC visits/vaccines fixed; update pending lab results from the profile (all roles)",

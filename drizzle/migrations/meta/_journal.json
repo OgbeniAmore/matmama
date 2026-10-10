@@ -22,6 +22,13 @@
       "when": 1791640253007,
       "tag": "0002_fix_visit_vaccine_ticking",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791641454230,
+      "tag": "0003_unlink_admin_pm_facility",
+      "breakpoints": true
     }
   ]
 }

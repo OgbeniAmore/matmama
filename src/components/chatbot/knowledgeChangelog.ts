@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.10b";
+export const KB_VERSION = "2026.10.10c";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,15 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-10",
+    title: "Live ANC trimester; link a child to the mother's ANC record at registration (all roles)",
+    items: [
+      "The trimester on ANC client cards, profiles and SMS reminders is now worked out from the LMP every time, so it moves from 1st to 2nd (13 weeks) to 3rd (27 weeks) automatically.",
+      "On Add Client for Routine Immunization, 'Link mother's ANC record' searches all Lagos facilities by LASRAA ID, NIN, system ID or name. Choosing her fills the parent name and phone and links the child to her record, so the child appears under her Delivery & Children section. Facility Officers, Program Managers and System Admins can search; Data Entry Officers cannot run the cross-facility search.",
+      "If the mother's record is at another facility, the child's profile shows that she is linked; request a share to view her file.",
+    ],
+  },
   {
     date: "2026-10-10",
     title: "Vitals recorded under each of the 8 ANC visits; Admins and PMs not tied to a facility (all roles)",

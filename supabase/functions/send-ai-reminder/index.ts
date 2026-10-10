@@ -353,6 +353,14 @@ async function sendByChannel(channel: string, phoneNumber: string, message: stri
 }
 
 // ──────────────── MESSAGE GENERATION ────────────────
+function liveTrimester(client: any): number | null {
+  if (client?.lmp) {
+    const w = Math.floor((Date.now() - new Date(client.lmp).getTime()) / (7 * 86400000));
+    return w < 13 ? 1 : w < 27 ? 2 : 3;
+  }
+  return client?.trimester ?? null;
+}
+
 function renderTemplate(body: string, client: any, facilityName?: string): string {
   const dueDate = client.due_date ? new Date(client.due_date).toLocaleDateString() : '';
   const map: Record<string, string> = {
@@ -360,7 +368,7 @@ function renderTemplate(body: string, client: any, facilityName?: string): strin
     '{service}': client.service || '',
     '{due_date}': dueDate,
     '{child_name}': client.child_name || '',
-    '{trimester}': client.trimester ? String(client.trimester) : '',
+    '{trimester}': liveTrimester(client) ? String(liveTrimester(client)) : '',
     '{facility}': facilityName || 'your facility',
   };
   return body.replace(/\{name\}|\{service\}|\{due_date\}|\{child_name\}|\{trimester\}|\{facility\}/g, (m) => map[m] ?? '');
@@ -402,7 +410,7 @@ Client Details:
 - Service: ${client.service}
 - Due Date: ${new Date(client.due_date).toLocaleDateString()}
 ${client.child_name ? `- Child Name: ${client.child_name}` : ''}
-${client.service === 'Ante Natal Care' && client.trimester ? `- Trimester: ${client.trimester}` : ''}
+${client.service === 'Ante Natal Care' && liveTrimester(client) ? `- Trimester: ${liveTrimester(client)}` : ''}
 
 Context: ${contextMap[type]}
 

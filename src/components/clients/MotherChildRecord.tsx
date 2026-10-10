@@ -390,7 +390,12 @@ export function MotherLink({ motherId }: { motherId: string }) {
       return data;
     },
   });
-  if (!data) return null;
+  if (!data) return (
+    <div>
+      <h3 className="text-sm font-medium text-muted-foreground">Mother</h3>
+      <p className="text-sm">Linked to her ANC record at another facility (request a share to view it).</p>
+    </div>
+  );
   return (
     <div>
       <h3 className="text-sm font-medium text-muted-foreground">Mother</h3>

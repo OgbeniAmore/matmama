@@ -39,7 +39,7 @@ export function AncRiskAlerts() {
       </CardHeader>
       <CardContent className="space-y-3">
         {data.slice(0, 8).map((r) => (
-          <Link key={r.client_id} to={`/clients?client=${r.client_id}`} className="block rounded-md border bg-background p-3 hover:bg-muted/50">
+          <Link key={r.client_id} to={`/clients?view=${r.client_id}`} className="block rounded-md border bg-background p-3 hover:bg-muted/50">
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium truncate">{r.clients?.name ?? r.client_id}</span>
               <RiskBadge level={r.risk_level} />

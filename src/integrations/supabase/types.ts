@@ -260,6 +260,7 @@ export type Database = {
           account_id: string | null
           address: string
           assigned_to: string
+          blood_group: string | null
           child_dob: string | null
           child_name: string | null
           contact: string
@@ -267,23 +268,30 @@ export type Database = {
           due_date: string
           edd: string | null
           facility_id: string | null
+          genotype: string | null
+          gravida: number | null
+          hepatitis_b_status: string | null
+          hiv_status: string | null
           id: string
           lasraa_id: string | null
           lmp: string | null
           mother_client_id: string | null
           name: string
           nin_id: string | null
+          para: number | null
           preferred_channel: string
           service: string
           status: string
           system_id: string | null
           trimester: number | null
           updated_at: string
+          vdrl_status: string | null
         }
         Insert: {
           account_id?: string | null
           address: string
           assigned_to?: string
+          blood_group?: string | null
           child_dob?: string | null
           child_name?: string | null
           contact: string
@@ -291,23 +299,30 @@ export type Database = {
           due_date: string
           edd?: string | null
           facility_id?: string | null
+          genotype?: string | null
+          gravida?: number | null
+          hepatitis_b_status?: string | null
+          hiv_status?: string | null
           id: string
           lasraa_id?: string | null
           lmp?: string | null
           mother_client_id?: string | null
           name: string
           nin_id?: string | null
+          para?: number | null
           preferred_channel?: string
           service: string
           status?: string
           system_id?: string | null
           trimester?: number | null
           updated_at?: string
+          vdrl_status?: string | null
         }
         Update: {
           account_id?: string | null
           address?: string
           assigned_to?: string
+          blood_group?: string | null
           child_dob?: string | null
           child_name?: string | null
           contact?: string
@@ -315,18 +330,24 @@ export type Database = {
           due_date?: string
           edd?: string | null
           facility_id?: string | null
+          genotype?: string | null
+          gravida?: number | null
+          hepatitis_b_status?: string | null
+          hiv_status?: string | null
           id?: string
           lasraa_id?: string | null
           lmp?: string | null
           mother_client_id?: string | null
           name?: string
           nin_id?: string | null
+          para?: number | null
           preferred_channel?: string
           service?: string
           status?: string
           system_id?: string | null
           trimester?: number | null
           updated_at?: string
+          vdrl_status?: string | null
         }
         Relationships: [
           {

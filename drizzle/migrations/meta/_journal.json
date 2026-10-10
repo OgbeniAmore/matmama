@@ -8,6 +8,13 @@
       "when": 1791636380031,
       "tag": "0000_anc_vitals",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791638754744,
+      "tag": "0001_anc_booking_baseline",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ReminderStatsWidget } from "@/components/dashboard/ReminderStatsWidget";
+import { AncRiskAlerts } from "@/components/dashboard/AncRiskAlerts";
 
 const fetchClients = async (): Promise<Client[]> => {
   const { data, error } = await supabase
@@ -171,6 +172,8 @@ const Dashboard = () => {
           className="border-l-4 border-l-status-completed"
         />
       </div>
+
+      <AncRiskAlerts />
 
       {/* Overdue alerts */}
       {!isLoading && overdue.length > 0 && (

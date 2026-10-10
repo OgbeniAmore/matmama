@@ -59,6 +59,13 @@ export const clientFormSchema = z.object({
   lasraaId: z.string().max(50).optional(),
   ninId: z.string().max(20).optional(),
   preferredChannel: z.enum(["sms", "whatsapp"]).default("sms"),
+  gravida: z.preprocess((v) => (v === "" || v == null ? undefined : Number(v)), z.number().int().min(1).max(30).optional()),
+  para: z.preprocess((v) => (v === "" || v == null ? undefined : Number(v)), z.number().int().min(0).max(30).optional()),
+  bloodGroup: z.string().optional(),
+  genotype: z.string().optional(),
+  hivStatus: z.string().optional(),
+  hepatitisBStatus: z.string().optional(),
+  vdrlStatus: z.string().optional(),
 }).refine((data) => {
   if (data.service === "Routine Immunization") {
     return data.childName && data.childName.trim().length > 0 && data.childDob;
@@ -75,9 +82,20 @@ export const clientFormSchema = z.object({
 }, {
   message: "LMP (Last Menstrual Period) is required for Ante Natal Care",
   path: ["lmp"],
+}).refine((d) => d.gravida == null || d.para == null || d.para < d.gravida, {
+  message: "Para must be less than Gravida (Gravida includes this pregnancy)",
+  path: ["para"],
 });
 
 export type ClientFormValues = z.infer<typeof clientFormSchema>;
+
+const BASELINE_FIELDS: { name: "bloodGroup" | "genotype" | "hivStatus" | "hepatitisBStatus" | "vdrlStatus"; label: string; options: string[] }[] = [
+  { name: "bloodGroup", label: "Blood group", options: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Pending"] },
+  { name: "genotype", label: "Genotype", options: ["AA", "AS", "AC", "SS", "SC", "Pending"] },
+  { name: "hivStatus", label: "HIV I & II", options: ["Non-Reactive", "Reactive", "Pending"] },
+  { name: "hepatitisBStatus", label: "Hepatitis B (HBsAg)", options: ["Negative", "Positive", "Pending"] },
+  { name: "vdrlStatus", label: "VDRL (Syphilis)", options: ["Non-Reactive", "Reactive", "Pending"] },
+];
 
 interface ClientFormProps {
   onSave: (data: ClientFormValues) => void;
@@ -123,6 +141,13 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           lasraaId: clientToEdit.lasraa_id || "",
           ninId: clientToEdit.nin_id || "",
           preferredChannel: (clientToEdit.preferred_channel || "sms") as "sms" | "whatsapp",
+          gravida: clientToEdit.gravida ?? undefined,
+          para: clientToEdit.para ?? undefined,
+          bloodGroup: clientToEdit.blood_group ?? undefined,
+          genotype: clientToEdit.genotype ?? undefined,
+          hivStatus: clientToEdit.hiv_status ?? undefined,
+          hepatitisBStatus: clientToEdit.hepatitis_b_status ?? undefined,
+          vdrlStatus: clientToEdit.vdrl_status ?? undefined,
         });
       } else {
         form.reset({
@@ -304,6 +329,46 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                     </p>
                   </div>
                 )}
+
+                <div className="rounded-lg border p-4 space-y-3">
+                  <p className="text-sm font-semibold">Pregnancy history</p>
+                  <FormField control={form.control} name="gravida" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gravida (G) — total pregnancies</FormLabel>
+                      <p className="text-xs text-muted-foreground">Ask: "How many times have you ever been pregnant, counting this pregnancy and any miscarriage, abortion or lost pregnancy?"</p>
+                      <FormControl><Input type="number" inputMode="numeric" min={1} placeholder="e.g. 3" {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="para" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Para (P) — past births from 28 weeks</FormLabel>
+                      <p className="text-xs text-muted-foreground">Ask: "How many times have you given birth to a baby after about 7 months of pregnancy, whether the baby was born alive or not?" (Do not count this pregnancy.)</p>
+                      <FormControl><Input type="number" inputMode="numeric" min={0} placeholder="e.g. 2" {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <div className="rounded-lg border p-4 space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold">Booking tests (first contact only)</p>
+                    <p className="text-xs text-muted-foreground">Requested once at registration. Leave as "Pending" until results are back.</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {BASELINE_FIELDS.map((b) => (
+                      <FormField key={b.name} control={form.control} name={b.name} render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{b.label}</FormLabel>
+                          <Select onValueChange={field.onChange} value={(field.value as string) || undefined}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                            <SelectContent>{b.options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </FormItem>
+                      )} />
+                    ))}
+                  </div>
+                </div>
               </>
             )}
 

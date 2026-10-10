@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.10";
+export const KB_VERSION = "2026.10.10b";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,16 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-10",
+    title: "ANC booking tests, Gravida/Para and Home risk alerts (all roles)",
+    items: [
+      "When registering an ANC client, record Gravida and Para. Gravida = total times ever pregnant including this pregnancy (ask: 'How many times have you ever been pregnant, counting this one and any miscarriage or lost pregnancy?'). Para = past births after about 7 months (28 weeks), alive or stillborn (ask: 'How many times have you given birth to a baby after about 7 months of pregnancy?'). Para must be less than Gravida.",
+      "Booking tests are requested at first contact (registration) only: Blood group, Genotype, HIV I & II, Hepatitis B (HBsAg) and VDRL. Use 'Pending' until results return, then update via Edit client.",
+      "The ANC profile shows a 'Booking history & tests' card (e.g. G3 P2); reactive/positive results, Rh-negative blood groups and SS/SC genotype are highlighted red for follow-up.",
+      "The Home dashboard now lists every ANC client whose latest vitals are Critical or High risk, with the risk reasons, so Facility Officers can act immediately. Visible to all roles for the clients they can access.",
+    ],
+  },
   {
     date: "2026-10-10",
     title: "ANC clinical vitals and maternal risk triage (all roles)",

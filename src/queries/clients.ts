@@ -88,6 +88,15 @@ export const saveClient = async ({
     nin_id: data.ninId || null,
     system_id: systemId,
     preferred_channel: data.preferredChannel || 'sms',
+    ...(data.service === "Ante Natal Care" ? {
+      gravida: data.gravida ?? null,
+      para: data.para ?? null,
+      blood_group: data.bloodGroup || null,
+      genotype: data.genotype || null,
+      hiv_status: data.hivStatus || null,
+      hepatitis_b_status: data.hepatitisBStatus || null,
+      vdrl_status: data.vdrlStatus || null,
+    } : {}),
   };
 
   if (clientId) {

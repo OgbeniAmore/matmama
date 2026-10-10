@@ -35,7 +35,7 @@ import { Separator } from "./ui/separator";
 import { ImmunizationScheduleView } from "./clients/ImmunizationScheduleView";
 import { GrowthChart } from "./clients/GrowthChart";
 import { AncScheduleView } from "./clients/AncScheduleView";
-import { AncVitalsPanel, AncRiskBanner } from "./clients/AncVitalsPanel";
+import { AncRiskBanner } from "./clients/AncVitalsPanel";
 import { AncBaselineCard } from "./clients/AncBaselineCard";
 import { TransferHistoryView } from "./clients/TransferHistoryView";
 import { MotherChildRecord, MotherLink } from "./clients/MotherChildRecord";
@@ -288,9 +288,7 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
                 <AncBaselineCard client={client} />
                 <MotherChildRecord client={client} />
                 <Separator />
-                <AncVitalsPanel clientId={client.id} lmp={client.lmp} />
-                <Separator />
-                <AncScheduleView clientId={client.id} />
+                <AncScheduleView clientId={client.id} lmp={client.lmp} />
               </>
             )}
 

@@ -121,6 +121,7 @@ serve(async (req) => {
       updates.facility_id = null;
       updates.lga = null;
     }
+    if (role === "program_manager") updates.facility_id = null;
 
     if (Object.keys(updates).length > 0) {
       const { error: profErr } = await admin

@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.10b";
+export const KB_VERSION = "2026.10.10";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,15 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-10",
+    title: "Service chosen first on the registration form (all roles)",
+    items: [
+      "On Add Client, the Service selector is now the first field. Pick Routine Immunization, Family Planning or Ante Natal Care before entering details.",
+      "The rest of the form then adapts to the service: child name and date of birth for Routine Immunization; LMP, pregnancy history and booking tests for Ante Natal Care.",
+      "The name field is labelled 'Parent/Guardian Name' for Routine Immunization and 'Client Name' for the other services.",
+    ],
+  },
   {
     date: "2026-10-10",
     title: "ANC booking tests, Gravida/Para and Home risk alerts (all roles)",

@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.10c";
+export const KB_VERSION = "2026.10.10";
 
 export type ChangelogEntry = {
   date: string;

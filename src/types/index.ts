@@ -25,6 +25,13 @@ export interface Client {
   system_id?: string;
   preferred_channel?: PreferredChannel;
   mother_client_id?: string | null;
+  gravida?: number | null;
+  para?: number | null;
+  blood_group?: string | null;
+  genotype?: string | null;
+  hiv_status?: string | null;
+  hepatitis_b_status?: string | null;
+  vdrl_status?: string | null;
 }
 
 export interface TransferRequest {

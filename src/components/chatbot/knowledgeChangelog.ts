@@ -17,6 +17,15 @@ export type ChangelogEntry = {
 export const KB_CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-10",
+    title: "Service chosen first on the registration form (all roles)",
+    items: [
+      "On Add Client, the Service selector is now the first field. Pick Routine Immunization, Family Planning or Ante Natal Care before entering details.",
+      "The rest of the form then adapts to the service: child name and date of birth for Routine Immunization; LMP, pregnancy history and booking tests for Ante Natal Care.",
+      "The name field is labelled 'Parent/Guardian Name' for Routine Immunization and 'Client Name' for the other services.",
+    ],
+  },
+  {
+    date: "2026-10-10",
     title: "ANC booking tests, Gravida/Para and Home risk alerts (all roles)",
     items: [
       "When registering an ANC client, record Gravida and Para. Gravida = total times ever pregnant including this pregnancy (ask: 'How many times have you ever been pregnant, counting this one and any miscarriage or lost pregnancy?'). Para = past births after about 7 months (28 weeks), alive or stillborn (ask: 'How many times have you given birth to a baby after about 7 months of pregnancy?'). Para must be less than Gravida.",

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Client, EpiSchedule, Status, Service } from "@/types";
 import { type ClientFormValues } from "@/components/ClientForm";
 import { generateImmunizationSchedule } from "@/utils/immunizationUtils";
-import { generateAncSchedule } from "@/utils/ancUtils";
+import { generateAncSchedule, calculateGestationalAge, calculateTrimester } from "@/utils/ancUtils";
 import { generateClientId, generateSystemId } from "@/lib/ids";
 
 export const fetchClients = async (): Promise<Client[]> => {
@@ -25,7 +25,7 @@ export const fetchClients = async (): Promise<Client[]> => {
     assignedTo: p.assigned_to,
     childDob: p.child_dob ? new Date(p.child_dob) : undefined,
     childName: p.child_name || undefined,
-    trimester: p.trimester || undefined,
+    trimester: p.lmp ? calculateTrimester(calculateGestationalAge(new Date(p.lmp))) : (p.trimester || undefined),
     edd: p.edd ? new Date(p.edd) : undefined,
     lmp: p.lmp ? new Date(p.lmp) : undefined,
     lasraa_id: p.lasraa_id || undefined,
@@ -88,6 +88,7 @@ export const saveClient = async ({
     nin_id: data.ninId || null,
     system_id: systemId,
     preferred_channel: data.preferredChannel || 'sms',
+    ...(data.motherClientId ? { mother_client_id: data.motherClientId } : {}),
     ...(data.service === "Ante Natal Care" ? {
       gravida: data.gravida ?? null,
       para: data.para ?? null,

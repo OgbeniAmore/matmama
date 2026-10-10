@@ -25,6 +25,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     label: "System Admin",
     scope: "Whole platform — all 20 Lagos LGAs, every facility, user and record. Not attached to an LGA or PHC.",
     canView: [
+      "ANC vitals history and maternal risk flags (pre-eclampsia, anaemia, fetal heart rate, glycosuria, fundal height) on client profiles in their scope",
       "Global KPIs, client and defaulter overview across all LGAs",
       "All facilities, all team members and all roles",
       "All audit logs, SMS runs and delivery KPIs",
@@ -45,6 +46,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     label: "Program Manager",
     scope: "Exactly one Lagos LGA (only one PM per LGA). Not attached to a PHC.",
     canView: [
+      "ANC vitals history and maternal risk flags (pre-eclampsia, anaemia, fetal heart rate, glycosuria, fundal height) on client profiles in their scope",
       "Every facility, team member, client and defaulter in their LGA",
       "Audit logs and SMS runs for their LGA",
       "Incoming and outgoing transfer requests",

@@ -35,7 +35,7 @@ import { Separator } from "./ui/separator";
 import { ImmunizationScheduleView } from "./clients/ImmunizationScheduleView";
 import { GrowthChart } from "./clients/GrowthChart";
 import { AncScheduleView } from "./clients/AncScheduleView";
-import { AncVitalsPanel, AncRiskBanner } from "./clients/AncVitalsPanel";
+import { AncRiskBanner } from "./clients/AncVitalsPanel";
 import { AncBaselineCard } from "./clients/AncBaselineCard";
 import { TransferHistoryView } from "./clients/TransferHistoryView";
 import { MotherChildRecord, MotherLink } from "./clients/MotherChildRecord";

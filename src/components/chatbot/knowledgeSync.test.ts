@@ -45,8 +45,13 @@ describe("Thelma knowledge base sync", () => {
 
   it("keeps a changelog whose newest entry matches KB_VERSION", () => {
     expect(KB_CHANGELOG.length).toBeGreaterThan(0);
-    expect(KB_VERSION).toMatch(/^\d{4}\.\d{2}\.\d{2}$/);
-    expect(KB_CHANGELOG[0].date).toBe(KB_VERSION.replace(/\./g, "-"));
+    expect(KB_VERSION).toMatch(/^\d{4}\.\d{2}\.\d{2}[a-z]?$/);
+    expect(KB_CHANGELOG[0].date).toBe(KB_VERSION.replace(/[a-z]$/, "").replace(/\./g, "-"));
+  });
+
+  it("matches the deployed assistant version", () => {
+    const edge = readFileSync("supabase/functions/chat-assistant/index.ts", "utf8");
+    expect(edge).toContain(`const KB_VERSION = "${KB_VERSION}"`);
   });
 
   it("covers every app_role with a capability summary", () => {

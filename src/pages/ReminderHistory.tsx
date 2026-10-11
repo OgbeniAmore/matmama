@@ -89,7 +89,7 @@ const ReminderHistory = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Reminder History</h1>
           <p className="text-muted-foreground">

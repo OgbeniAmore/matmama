@@ -143,7 +143,7 @@ const Dashboard = () => {
       </div>
 
       {/* Summary cards - 2 cols on mobile, 4 cols on desktop */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+      <div className="grid grid-cols-1 min-[350px]:grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         <StatusCard
           title="Total Clients"
           count={totalClients}

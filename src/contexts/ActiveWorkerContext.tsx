@@ -1,5 +1,4 @@
 import {
-  createContext,
   useCallback,
   useContext,
   useRef,
@@ -28,32 +27,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export type ActiveWorker = {
-  name: string;
-  designation: string;
-};
+import { ActiveWorkerContext, type ActiveWorker } from "./activeWorkerState";
+export type { ActiveWorker } from "./activeWorkerState";
 
 const STORAGE_KEY = "matmama.active-worker";
-
-type ActiveWorkerContextType = {
-  worker: ActiveWorker | null;
-  setWorker: (w: ActiveWorker | null) => void;
-  /** Prompts for the health worker if not yet identified. Resolves null if cancelled. */
-  requireWorker: () => Promise<ActiveWorker | null>;
-  /** Prompts (always) so the user can switch the acting health worker. */
-  changeWorker: () => Promise<ActiveWorker | null>;
-  /** Records an action in the audit log attributed to the active health worker. */
-  logAction: (
-    action: string,
-    tableName: string,
-    recordId: string | null,
-    details?: Record<string, unknown>,
-  ) => Promise<void>;
-};
-
-const ActiveWorkerContext = createContext<ActiveWorkerContextType | undefined>(
-  undefined,
-);
 
 const readStored = (): ActiveWorker | null => {
   try {

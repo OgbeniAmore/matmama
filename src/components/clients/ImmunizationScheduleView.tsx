@@ -208,12 +208,12 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
                   const isAdministered = vaccine.status === "Administered";
                   const isPending = vaccine.status === "Pending" || vaccine.status === "Missed";
                   return (
-                    <div key={vaccine.id} className="flex items-center justify-between gap-2">
+                    <div key={vaccine.id} className="flex flex-col items-stretch sm:flex-row sm:items-center justify-between gap-2 py-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <StatusIcon className={`h-4 w-4 flex-shrink-0 ${config.color}`} />
-                        <span className="text-sm truncate">{vaccine.vaccine_name}</span>
+                        <span className="text-sm break-words">{vaccine.vaccine_name}</span>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center flex-wrap gap-2 [&>button]:min-h-11">
                         <Badge variant="outline" className={config.badgeClass}>
                           {vaccine.status}
                         </Badge>

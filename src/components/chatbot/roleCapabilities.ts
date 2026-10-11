@@ -25,6 +25,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     label: "System Admin",
     scope: "Whole platform — all 20 Lagos LGAs, every facility, user and record. Not attached to an LGA or PHC.",
     canView: [
+      "Phone-friendly client profiles and clinical records within existing role scope; responsive layouts do not grant additional permissions",
       "ANC vitals history and maternal risk flags (pre-eclampsia, anaemia, fetal heart rate, glycosuria, fundal height) on client profiles in their scope",
       "Global KPIs, client and defaulter overview across all LGAs",
       "All facilities, all team members and all roles",
@@ -46,6 +47,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     label: "Program Manager",
     scope: "Exactly one Lagos LGA (only one PM per LGA). Not attached to a PHC.",
     canView: [
+      "Phone-friendly client profiles and clinical records within existing role scope; responsive layouts do not grant additional permissions",
       "ANC vitals history and maternal risk flags (pre-eclampsia, anaemia, fetal heart rate, glycosuria, fundal height) on client profiles in their scope",
       "Every facility, team member, client and defaulter in their LGA",
       "Audit logs and SMS runs for their LGA",
@@ -69,6 +71,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     label: "Facility Officer",
     scope: "Their assigned PHC / facility only.",
     canView: [
+      "Phone-friendly client profiles and clinical records within existing role scope; responsive layouts do not grant additional permissions",
       "Clients, schedules and defaulters at their facility",
       "Reminder history and delivery timelines for their facility",
       "Their facility's roster and audit log",
@@ -91,6 +94,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     label: "Data Entry Officer",
     scope: "Their assigned facility, data entry only.",
     canView: [
+      "Phone-friendly client profiles and clinical records within existing role scope; responsive layouts do not grant additional permissions",
       "Clients and schedules at their facility",
       "Their facility's audit log activity",
     ],

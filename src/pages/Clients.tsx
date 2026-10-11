@@ -185,26 +185,27 @@ const Clients = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-3xl font-bold">Clients</h1>
           <p className="text-muted-foreground">
             Manage all clients in the system.
           </p>
         </div>
-        <Button onClick={openAddForm}>
+        <Button onClick={openAddForm} className="min-h-11 w-full sm:w-auto shrink-0">
           <PlusCircle className="mr-2 h-4 w-4" />
           Add New Client
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
+      <div className="relative w-full sm:max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
           placeholder="Search by name, phone, service…"
+          aria-label="Search clients"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
+          className="h-11 pl-9"
         />
       </div>
 
@@ -220,11 +221,11 @@ const Clients = () => {
 
 
       {!isLoading && filteredClients.length > PAGE_SIZE && (
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
           <p className="text-sm text-muted-foreground">
             Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredClients.length)} of {filteredClients.length} clients
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 [&>button]:min-h-11 [&>button]:flex-1 sm:[&>button]:flex-none">
             <Button
               variant="outline"
               size="sm"

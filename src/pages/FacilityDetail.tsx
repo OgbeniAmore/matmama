@@ -245,7 +245,7 @@ export default function FacilityDetail() {
 
       {/* Tabs */}
       <Tabs defaultValue="staff" className="w-full">
-        <TabsList>
+        <TabsList className="flex w-full justify-start overflow-x-auto [&>button]:shrink-0">
           <TabsTrigger value="staff">Staff ({staff.length})</TabsTrigger>
           <TabsTrigger value="clients">Clients ({clients.length})</TabsTrigger>
           <TabsTrigger value="activity">Recent Activity</TabsTrigger>

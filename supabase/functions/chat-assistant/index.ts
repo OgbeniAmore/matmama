@@ -7,10 +7,10 @@ const corsHeaders = {
 };
 
 const ROLE_GUIDES: Record<string, string> = {
-  system_admin: `You are speaking with a SYSTEM ADMIN. They stand alone — not tied to any LGA or PHC — and have unrestricted oversight across all 20 Lagos LGAs: every facility, every client, every user and all audit logs. They can invite other admins and program managers, assign one Program Manager per LGA (and reassign that seat), manage the PHC master list, edit SMS templates, monitor automated SMS runs and delivery KPIs, and export trends and audit data to CSV. Guide them on platform-wide configuration, user provisioning and oversight. Their home is the Admin Dashboard (/admin).`,
-  program_manager: `You are speaking with a PROGRAM MANAGER. They stand alone — not tied to a PHC — and are assigned to exactly one Lagos LGA (only one PM per LGA). They see every facility, team member, client and defaulter within their LGA, approve transfers, manage team members, edit SMS templates, monitor SMS runs and read audit logs. Guide them on LGA-level analytics, defaulter management and team coordination.`,
-  facility_officer: `You are speaking with a FACILITY OFFICER. They manage clients in their assigned PHC/facility: registering clients (Routine Immunization, Family Planning, Ante Natal Care), recording and completing visits, following up defaulters, sending and resending reminders, requesting and approving transfers, and maintaining the facility's health worker roster (including Excel upload). Guide them on day-to-day client care workflows.`,
-  data_entry_officer: `You are speaking with a DATA ENTRY OFFICER. They register clients and update records but cannot delete clients or manage transfers, team, facilities or templates. They can view audit logs for their own facility's activity. Guide them on accurate data entry: registering clients, recording visits, updating contact info, and selecting the correct health worker so actions are attributed properly.`,
+  system_admin: `You are speaking with a SYSTEM ADMIN. They stand alone — not tied to any LGA or PHC — and have unrestricted oversight across all 20 Lagos LGAs: every facility, every client, every user and all audit logs. They can invite other admins and program managers, assign one Program Manager per LGA (and reassign that seat), manage the PHC master list, edit SMS templates, monitor automated SMS runs and delivery KPIs, and export trends and audit data to CSV. Mobile layouts provide full-width scrollable client profiles and larger touch controls, without changing permissions. Guide them on platform-wide configuration, user provisioning and oversight. Their home is the Admin Dashboard (/admin).`,
+  program_manager: `You are speaking with a PROGRAM MANAGER. They stand alone — not tied to a PHC — and are assigned to exactly one Lagos LGA (only one PM per LGA). They see every facility, team member, client and defaulter within their LGA, approve transfers, manage team members, edit SMS templates, monitor SMS runs and read audit logs. Mobile layouts provide full-width scrollable client profiles and larger touch controls, without changing permissions. Guide them on LGA-level analytics, defaulter management and team coordination.`,
+  facility_officer: `You are speaking with a FACILITY OFFICER. They manage clients in their assigned PHC/facility: registering clients (Routine Immunization, Family Planning, Ante Natal Care), recording and completing visits, following up defaulters, sending and resending reminders, requesting and approving transfers, and maintaining the facility's health worker roster (including Excel upload). Mobile layouts provide full-width scrollable client profiles and larger touch controls, without changing permissions. Guide them on day-to-day client care workflows.`,
+  data_entry_officer: `You are speaking with a DATA ENTRY OFFICER. They register clients and update records but cannot delete clients or manage transfers, team, facilities or templates. They can view audit logs for their own facility's activity. Mobile layouts provide full-width scrollable client profiles and larger touch controls, without changing permissions. Guide them on accurate data entry: registering clients, recording visits, updating contact info, and selecting the correct health worker so actions are attributed properly.`,
 };
 
 const PLATFORM_OVERVIEW = `
@@ -46,6 +46,7 @@ Other features:
 - Secure transfer workflow — the source facility must approve before a client moves.
 - Notification preferences for in-app and email alerts (transfers, reminders, defaulters).
 - Password strength meter and breached-password checks; invitations by email with status tracking, resend and cooldown.
+- Mobile client records and cross-facility search: phone cards retain identifiers, facility, status and transfer actions; desktop search uses a table. ANC visits, vaccine controls and growth inputs wrap/stack. Registration dialogs fit the viewport. Internet is still required.
 - Mobile-first responsive UI with bottom navigation, dark/light mode, and a logo animation after sign-in.
 
 Navigation:
@@ -67,7 +68,7 @@ Navigation:
 - /notification-preferences — toggle alert types
 `;
 
-const KB_VERSION = "2026.09.03";
+const KB_VERSION = "2026.10.11b";
 
 const ROLE_CAPABILITIES = `
 ROLE CAPABILITY SUMMARIES (what each role can view and do):
@@ -95,6 +96,8 @@ ROLE CAPABILITY SUMMARIES (what each role can view and do):
 
 const CHANGELOG = `
 RECENT CHANGES (knowledge base version ${KB_VERSION}). If asked "what's new?", summarise from here, newest first:
+
+**2026-10-11 — Mobile responsiveness** (all roles): full-width scrollable client records, card search results on phones, stacked registration/vitals/growth inputs, wrapping ANC/vaccine and defaulter actions, larger touch controls, adaptive dashboard and reminder header and scrollable facility tabs. Permissions unchanged; no offline sync added.
 
 **2026-10 — Mother & child, sharing and Inbox** (all roles):
 - Temporary share of a client with another facility: pick a reason (visiting or relocation) and a duration; access ends automatically. Permanent transfer still moves the client after source approval.

@@ -70,6 +70,9 @@
   img, video, canvas { max-width: 100%; }
   @media (max-width: 767px) {
     input, select, textarea { font-size: 16px !important; }
+    input:not([type="checkbox"]):not([type="radio"]), select, [role="combobox"], button:not([role="checkbox"]):not([role="switch"]), [role="menuitem"] { min-height: 44px; }
+    [role="combobox"] { min-width: 0; }
+    [role="combobox"] > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   }
 }
 @layer utilities {

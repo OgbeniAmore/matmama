@@ -9,7 +9,7 @@ export function ActiveWorkerChip() {
     <Button
       variant="ghost"
       size="sm"
-      className="gap-2 max-w-[180px]"
+      className="gap-1 sm:gap-2 min-w-0 h-11 max-w-[120px] sm:max-w-[180px]"
       onClick={() => changeWorker()}
       title="Change the health worker recording actions"
     >

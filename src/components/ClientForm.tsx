@@ -239,7 +239,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <ScrollArea className="h-96 pr-6">
+        <ScrollArea className="h-[min(24rem,calc(100dvh-16rem))] pr-3 sm:pr-6">
           <div className="space-y-4">
             <FormField
               control={form.control}
@@ -303,7 +303,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                   </div>
                 ) : (
                   <>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 min-w-0 [&>input]:min-w-0 [&>button]:shrink-0 [&>button]:h-11 [&>button]:w-11">
                       <Input
                         placeholder="LASRAA ID, NIN or name"
                         value={motherQuery}
@@ -324,7 +324,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                             className="w-full text-left rounded-md border p-3 hover:bg-muted/50 min-h-11"
                           >
                             <p className="text-sm font-medium">{m.name}</p>
-                            <p className="text-xs text-muted-foreground">{m.facility_name} · {m.lasraa_id || m.nin_id || m.system_id || m.id}</p>
+                            <p className="text-xs text-muted-foreground break-words">{m.facility_name} · {m.lasraa_id || m.nin_id || m.system_id || m.id}</p>
                           </button>
                         ))}
                       </div>
@@ -362,7 +362,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                             <Button
                               variant={"outline"}
                               className={cn(
-                                "w-full justify-start text-left font-normal",
+                                "w-full h-auto min-h-11 justify-start whitespace-normal text-left font-normal [&>svg]:shrink-0",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
@@ -407,7 +407,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                             <Button
                               variant={"outline"}
                               className={cn(
-                                "w-full justify-start text-left font-normal",
+                                "w-full h-auto min-h-11 justify-start whitespace-normal text-left font-normal [&>svg]:shrink-0",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
@@ -534,7 +534,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="lasraaId"

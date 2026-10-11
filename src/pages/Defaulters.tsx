@@ -144,13 +144,13 @@ const Defaulters = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Defaulters</h1>
           <p className="text-muted-foreground">A list of clients who have defaulted on their schedule.</p>
         </div>
         {isAdmin && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 [&>button]:min-h-11">
             <Button
               variant="outline"
               onClick={() => resyncMutation.mutate()}
@@ -175,7 +175,7 @@ const Defaulters = () => {
 
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/50 px-4 py-3 [&>button]:min-h-11">
           <span className="text-sm font-medium">
             {selectedIds.size} selected
           </span>

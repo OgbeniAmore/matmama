@@ -15,19 +15,19 @@ const PAGE_MAP: Array<{ match: RegExp; name: string; description: string }> = [
     match: /^\/clients$/,
     name: "Clients",
     description:
-      "Card-based list of clients. Users can add clients (service-specific fields like LMP for ANC, child DOB for immunization), tap a client name to open full details, view ANC/immunization schedules and transfer history, mark visits completed, send AI reminders, and open the client's location on a map. Clients carry branded system IDs (RXM-YYMMDD-XXXX) plus optional LASRAA ID and NIN. Each card shows a 'Last updated by' badge naming the health worker who last acted.",
+      "Phone-friendly card-based list with stacked search and pagination controls; full-width scrollable client profiles on phones, wrapping ANC/vaccine controls and stacked growth inputs. Card-based list of clients. Users can add clients (service-specific fields like LMP for ANC, child DOB for immunization), tap a client name to open full details, view ANC/immunization schedules and transfer history, mark visits completed, send AI reminders, and open the client's location on a map. Clients carry branded system IDs (RXM-YYMMDD-XXXX) plus optional LASRAA ID and NIN. Each card shows a 'Last updated by' badge naming the health worker who last acted.",
   },
   {
     match: /^\/defaulters$/,
     name: "Defaulters",
     description:
-      "Clients who missed scheduled visits. Supports bulk reminders, individual actions, and a manual 'Run Defaulter Check'. Defaulters automatically return to On Track when a new visit date is ahead of today.",
+      "Clients who missed scheduled visits. Phone cards expose selection, due date, status and actions without sideways scrolling; desktop uses a table. Supports bulk reminders, individual actions, and a manual 'Run Defaulter Check'. Defaulters automatically return to On Track when a new visit date is ahead of today.",
   },
   {
     match: /^\/reminders$/,
     name: "Reminder History",
     description:
-      "History of AI-generated SMS (Termii) and WhatsApp reminders. Filter by facility, delivery status and date range; open a reminder to see its delivery timeline (sent, delivered, failed, reason, retry attempts), resend failed SMS (rate-limited with cooldown), and export history or a timeline to CSV.",
+      "History of AI-generated SMS (Termii) and WhatsApp reminders. Phone cards show the full message and a View Timeline button; desktop uses a table. Filter by facility, delivery status and date range; open a reminder to see its delivery timeline (sent, delivered, failed, reason, retry attempts), resend failed SMS (rate-limited with cooldown), and export history or a timeline to CSV.",
   },
   {
     match: /^\/sms-runs$/,
@@ -99,7 +99,7 @@ const PAGE_MAP: Array<{ match: RegExp; name: string; description: string }> = [
     match: /^\/client-search$/,
     name: "Cross-Facility Client Search",
     description:
-      "Secure global search for clients across all facilities by name, LASRAA ID, NIN ID, or system ID. Phone numbers of clients outside your own organisation are redacted.",
+      "Phone screens display search results as cards with identifiers, facility, status and transfer actions; desktop retains a table. Secure global search for clients across all facilities by name, LASRAA ID, NIN ID, or system ID. Phone numbers of clients outside your own organisation are redacted.",
   },
   {
     match: /^\/profile$/,

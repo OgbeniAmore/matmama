@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.11a";
+export const KB_VERSION = "2026.10.11b";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,15 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-11",
+    title: "Mobile client records, search and clinical controls (all roles)",
+    items: [
+      "Client lists and cross-facility search use phone-friendly cards; search and pagination controls fit narrow screens.",
+      "Client profiles open full-width on phones with scrollable records. ANC visit/vitals, booking tests, vaccines and growth inputs wrap or stack with larger touch targets.",
+      "Registration dialogs stay within the phone screen. Dashboard, defaulter actions, reminder history and facility tabs adapt to narrow displays. Permissions and clinical rules are unchanged; this is not offline sync.",
+    ],
+  },
   {
     date: "2026-10-11",
     title: "AI reminders use the service's SMS template for the reminder type (all roles)",

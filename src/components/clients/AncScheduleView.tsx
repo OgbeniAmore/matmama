@@ -147,13 +147,13 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
               <div className="flex items-center gap-3 min-w-0">
                 <StatusIcon className={`h-5 w-5 flex-shrink-0 ${config.color}`} />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{visit.visit_name}</p>
+                  <p className="text-sm font-medium break-words">{visit.visit_name}</p>
                   <p className="text-xs text-muted-foreground">
                     Week {visit.gestational_weeks} — {format(new Date(visit.scheduled_date), "PP")}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex flex-wrap items-center gap-2 [&>button]:min-h-11">
                 <Badge variant="outline" className={config.badgeClass}>
                   {visit.status}
                 </Badge>

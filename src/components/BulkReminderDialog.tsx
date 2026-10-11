@@ -36,6 +36,7 @@ interface ClientSendState {
 export function BulkReminderDialog({ clients, open, onOpenChange, onComplete }: BulkReminderDialogProps) {
   const { toast } = useToast();
   const [reminderType, setReminderType] = useState<"sms" | "whatsapp">("sms");
+  const [category, setCategory] = useState<string>("auto");
   const [isSending, setIsSending] = useState(false);
   const [sendStates, setSendStates] = useState<ClientSendState[]>([]);
 
@@ -62,7 +63,7 @@ export function BulkReminderDialog({ clients, open, onOpenChange, onComplete }: 
 
       try {
         const { data, error } = await supabase.functions.invoke('send-ai-reminder', {
-          body: { patientId: client.id, reminderType: reminderType },
+          body: { patientId: client.id, reminderType: reminderType, category },
         });
 
         if (error) throw error;

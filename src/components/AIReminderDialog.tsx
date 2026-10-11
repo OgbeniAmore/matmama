@@ -27,6 +27,7 @@ export function AIReminderDialog({ client, open, onOpenChange }: AIReminderDialo
   const [reminderType, setReminderType] = useState<"sms" | "whatsapp">(
     client?.preferred_channel || "sms"
   );
+  const [category, setCategory] = useState<string>("auto");
 
   const sendReminderMutation = useMutation({
     mutationFn: async ({ patientId, type }: { patientId: string; type: "sms" | "whatsapp" }) => {
@@ -34,6 +35,7 @@ export function AIReminderDialog({ client, open, onOpenChange }: AIReminderDialo
         body: {
           patientId,
           reminderType: type,
+          category,
         },
       });
 
@@ -74,6 +76,25 @@ export function AIReminderDialog({ client, open, onOpenChange }: AIReminderDialo
         </DialogHeader>
         
         <div className="space-y-4">
+          <div>
+            <Label className="text-base font-medium">Message template:</Label>
+            <RadioGroup value={category} onValueChange={setCategory} className="mt-2">
+              {[
+                ["auto", "Auto-detect from visit date"],
+                ["reminder", "Visit reminder"],
+                ["follow_up", "Day after scheduled visit"],
+                ["defaulter", "Defaulter follow-up"],
+              ].map(([v, l]) => (
+                <div key={v} className="flex items-center space-x-2">
+                  <RadioGroupItem value={v} id={`cat-${v}`} />
+                  <Label htmlFor={`cat-${v}`} className="cursor-pointer">{l}</Label>
+                </div>
+              ))}
+            </RadioGroup>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Uses your {client.service} SMS template for this type.
+            </p>
+          </div>
           <div>
             <Label className="text-base font-medium">Choose reminder method:</Label>
             <RadioGroup

@@ -212,7 +212,25 @@ const ReminderHistory = () => {
       </div>
 
       {/* Table */}
-      <Card>
+      <div className="space-y-3 md:hidden">
+        {isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-36 w-full" />) : reminders.length === 0 ? (
+          <p className="text-center py-8 text-muted-foreground">{filtersActive ? "No reminders match the selected filters." : "No reminders have been sent yet."}</p>
+        ) : reminders.map((reminder) => (
+          <Card key={reminder.id}>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0"><p className="font-medium break-words">{reminder.client_name}</p><p className="text-sm text-muted-foreground break-words">{reminder.client_service}</p></div>
+                <DeliveryStatusBadge status={reminder.delivery_status} />
+              </div>
+              <p className="text-xs text-muted-foreground break-words">{reminder.facility_name}</p>
+              <p className="text-sm break-words">{reminder.message}</p>
+              <p className="text-xs text-muted-foreground">{format(new Date(reminder.sent_at), "MMM d, yyyy h:mm a")} · {reminder.reminder_type} · Retries: {reminder.retry_count || 0}/{reminder.max_retries || 3}</p>
+              <Button variant="outline" className="w-full min-h-11" onClick={() => openTimeline(reminder)}><History className="mr-2 h-4 w-4" />View Timeline</Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

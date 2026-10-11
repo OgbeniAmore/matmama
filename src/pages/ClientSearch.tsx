@@ -125,29 +125,30 @@ const ClientSearch = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Cross-Facility Client Search</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold break-words">Cross-Facility Client Search</h1>
         <p className="text-muted-foreground">
           Search for clients across all facilities by name, LASRAA ID, NIN, or System ID.
         </p>
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-6">
           <CardTitle className="text-lg">Search by Unique ID</CardTitle>
           <CardDescription>
             Enter a client name, LASRAA ID, NIN, System ID, or Client ID to find a client across facilities.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
+        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
-              placeholder="Enter client name, LASRAA ID, NIN, System ID, or Client ID..."
+              placeholder="Client name or ID"
+              aria-label="Search across facilities by client name or ID"
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="flex-1"
+              className="h-11 min-w-0 flex-1"
             />
-            <Button onClick={handleSearch} disabled={isSearching}>
+            <Button onClick={handleSearch} disabled={isSearching} className="min-h-11 shrink-0">
               {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
               Search
             </Button>
@@ -156,7 +157,35 @@ const ClientSearch = () => {
       </Card>
 
       {results.length > 0 && (
-        <Card>
+        <section className="space-y-3" aria-label="Search results">
+          <h2 className="text-lg font-semibold md:hidden">Search Results ({results.length})</h2>
+          <div className="grid gap-3 md:hidden">
+            {results.map((client) => (
+              <Card key={client.id} className="min-w-0">
+                <CardHeader className="p-4 pb-3">
+                  <CardTitle className="text-lg break-words">{client.name}</CardTitle>
+                  <CardDescription className="break-words">{client.service}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 p-4 pt-0 text-sm">
+                  <p className="break-words">{client.facility_name}</p>
+                  <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-xs">
+                    {client.lasraa_id && <><dt className="text-muted-foreground">LASRAA</dt><dd className="break-all">{client.lasraa_id}</dd></>}
+                    {client.nin_id && <><dt className="text-muted-foreground">NIN</dt><dd className="break-all">{client.nin_id}</dd></>}
+                    <dt className="text-muted-foreground">System ID</dt><dd className="break-all">{client.system_id || client.id}</dd>
+                  </dl>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Badge variant={client.status === "On Track" ? "default" : client.status === "Defaulting" ? "destructive" : "secondary"}>{client.status}</Badge>
+                    {isOwnFacility(client) ? <Badge variant="outline">Own Facility</Badge> : (
+                      <Button variant="outline" className="min-h-11" onClick={() => setTransferClient(client)}>
+                        <ArrowRightLeft className="mr-2 h-4 w-4" />Transfer
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        <Card className="hidden md:block">
           <CardHeader>
             <CardTitle className="text-lg">Search Results ({results.length})</CardTitle>
           </CardHeader>
@@ -206,6 +235,7 @@ const ClientSearch = () => {
             </Table>
           </CardContent>
         </Card>
+        </section>
       )}
 
       <Dialog open={!!transferClient} onOpenChange={(open) => !open && setTransferClient(null)}>
@@ -218,7 +248,7 @@ const ClientSearch = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 text-sm [&>span]:break-words">
               <span className="text-muted-foreground">Client:</span>
               <span>{transferClient?.name}</span>
               <span className="text-muted-foreground">Service:</span>

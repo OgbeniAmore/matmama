@@ -38,36 +38,39 @@ interface ClientCardProps {
 export const ClientCard = ({ client, lastActor, onView, onEdit, onDelete }: ClientCardProps) => {
 
   return (
-    <Card className="flex flex-col hover:shadow-lg transition-shadow duration-300">
-      <CardHeader>
-        <div className="flex justify-between items-start">
+    <Card className="min-w-0 flex flex-col hover:shadow-lg transition-shadow duration-300">
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex justify-between items-start gap-2">
           <div className="flex items-center gap-3 min-w-0">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               type="button"
               onClick={() => onView(client)}
-              className="bg-primary/10 p-2 rounded-full shrink-0"
+              className="bg-primary/10 h-11 w-11 rounded-full shrink-0"
               aria-label={`View details for ${client.name}`}
             >
               <User className="h-5 w-5 text-primary" />
-            </button>
+            </Button>
             <div className="min-w-0">
               <CardTitle className="text-lg">
-                <button
+                <Button
+                  variant="link"
                   type="button"
                   onClick={() => onView(client)}
-                  className="text-left hover:text-primary hover:underline underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm truncate max-w-full"
+                  className="h-auto min-h-11 max-w-full whitespace-normal break-words p-0 text-left text-lg text-foreground justify-start"
                   title={`View ${client.name}'s details`}
                 >
                   {client.name}
-                </button>
+                </Button>
               </CardTitle>
-              <CardDescription>{client.service}</CardDescription>
+              <CardDescription className="break-words">{client.service}</CardDescription>
             </div>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-11 w-11 shrink-0 p-0">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
@@ -89,7 +92,7 @@ export const ClientCard = ({ client, lastActor, onView, onEdit, onDelete }: Clie
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow space-y-3 text-sm">
+      <CardContent className="flex-grow space-y-3 p-4 pt-0 sm:p-6 sm:pt-0 text-sm [&_svg]:shrink-0 [&_span]:min-w-0 [&_span]:break-words">
         {client.service === "Routine Immunization" && client.childName && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <User className="h-4 w-4" />
@@ -113,7 +116,7 @@ export const ClientCard = ({ client, lastActor, onView, onEdit, onDelete }: Clie
           <span className="font-medium">Due: {format(client.dueDate, "PPP")}</span>
         </div>
       </CardContent>
-      <CardFooter className="flex flex-wrap items-center gap-2">
+      <CardFooter className="flex flex-wrap items-center gap-2 p-4 pt-0 sm:p-6 sm:pt-0">
         <Badge
           className={cn("capitalize font-semibold", statusColors[client.status])}
           variant="outline"

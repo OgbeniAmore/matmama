@@ -84,10 +84,15 @@ serve(async (req) => {
       .from('clients').select('*').eq('id', patientId).eq('account_id', callerAccountId).single();
     if (clientError || !client) throw new Error('Client not found');
 
-    const generatedMessage = await generateMessage(client, 'manual');
+    const requested = body.category;
+    if (requested && !['auto', 'reminder', 'follow_up', 'defaulter'].includes(requested)) {
+      throw new Error('Invalid category');
+    }
+    const category = resolveManualCategory(client, requested);
+    const generatedMessage = await generateMessage(client, category);
     const channel = reminderType as 'sms' | 'whatsapp';
     const result = await sendByChannel(channel, client.contact, generatedMessage);
-    await logReminder(patientId, channel, generatedMessage, client.account_id, 'manual', result.messageSid);
+    await logReminder(patientId, channel, generatedMessage, client.account_id, category, result.messageSid);
 
     return jsonResponse({ success: true, generatedMessage, messageSid: result.messageSid });
   } catch (error: any) {
@@ -372,6 +377,20 @@ function renderTemplate(body: string, client: any, facilityName?: string): strin
     '{facility}': facilityName || 'your facility',
   };
   return body.replace(/\{name\}|\{service\}|\{due_date\}|\{child_name\}|\{trimester\}|\{facility\}/g, (m) => map[m] ?? '');
+}
+
+// Picks the template category for staff-sent reminders.
+// reminder → upcoming (or day_of when due today); auto → derived from due date/status.
+function resolveManualCategory(client: any, requested?: string): 'upcoming' | 'day_of' | 'follow_up' | 'defaulter' {
+  const today = lagosDateStr(new Date());
+  const due = client.due_date ? lagosDateStr(new Date(client.due_date)) : today;
+  const diffDays = Math.round((Date.parse(today) - Date.parse(due)) / 86400000);
+  if (requested === 'defaulter') return 'defaulter';
+  if (requested === 'follow_up') return 'follow_up';
+  if (requested === 'reminder') return diffDays === 0 ? 'day_of' : 'upcoming';
+  if (client.status === 'Defaulting' || diffDays >= 3) return 'defaulter';
+  if (diffDays >= 1) return 'follow_up';
+  return diffDays === 0 ? 'day_of' : 'upcoming';
 }
 
 async function getTemplate(accountId: string | null, service: string, category: string): Promise<string | null> {

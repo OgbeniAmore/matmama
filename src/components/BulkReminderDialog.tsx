@@ -36,6 +36,7 @@ interface ClientSendState {
 export function BulkReminderDialog({ clients, open, onOpenChange, onComplete }: BulkReminderDialogProps) {
   const { toast } = useToast();
   const [reminderType, setReminderType] = useState<"sms" | "whatsapp">("sms");
+  const [category, setCategory] = useState<string>("auto");
   const [isSending, setIsSending] = useState(false);
   const [sendStates, setSendStates] = useState<ClientSendState[]>([]);
 
@@ -62,7 +63,7 @@ export function BulkReminderDialog({ clients, open, onOpenChange, onComplete }: 
 
       try {
         const { data, error } = await supabase.functions.invoke('send-ai-reminder', {
-          body: { patientId: client.id, reminderType: reminderType },
+          body: { patientId: client.id, reminderType: reminderType, category },
         });
 
         if (error) throw error;
@@ -110,6 +111,22 @@ export function BulkReminderDialog({ clients, open, onOpenChange, onComplete }: 
         <div className="space-y-4">
           {sendStates.length === 0 ? (
             <>
+              <div>
+                <Label className="text-base font-medium">Message template:</Label>
+                <RadioGroup value={category} onValueChange={setCategory} className="mt-2">
+                  {[
+                    ["auto", "Auto-detect per client"],
+                    ["reminder", "Visit reminder"],
+                    ["follow_up", "Day after scheduled visit"],
+                    ["defaulter", "Defaulter follow-up"],
+                  ].map(([v, l]) => (
+                    <div key={v} className="flex items-center space-x-2">
+                      <RadioGroupItem value={v} id={`bulk-cat-${v}`} />
+                      <Label htmlFor={`bulk-cat-${v}`} className="cursor-pointer">{l}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
               <div>
                 <Label className="text-base font-medium">Choose reminder method:</Label>
                 <RadioGroup

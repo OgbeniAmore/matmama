@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.10c";
+export const KB_VERSION = "2026.10.11a";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,15 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-11",
+    title: "AI reminders use the service's SMS template for the reminder type (all roles)",
+    items: [
+      "When sending an AI reminder (single or bulk), staff pick: Visit reminder, Day after scheduled visit, or Defaulter follow-up — or Auto-detect from the visit date.",
+      "The message comes from the SMS Templates page for the client's service (Immunization, Family Planning or ANC) and that type. If the template is turned off, an AI message is written instead.",
+      "Auto-detect: due today or later → visit reminder; 1–2 days late → day after visit; 3+ days late or Defaulting → defaulter follow-up. Program Managers and System Admins edit templates.",
+    ],
+  },
   {
     date: "2026-10-10",
     title: "Live ANC trimester; link a child to the mother's ANC record at registration (all roles)",

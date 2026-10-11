@@ -112,6 +112,22 @@ export function BulkReminderDialog({ clients, open, onOpenChange, onComplete }: 
           {sendStates.length === 0 ? (
             <>
               <div>
+                <Label className="text-base font-medium">Message template:</Label>
+                <RadioGroup value={category} onValueChange={setCategory} className="mt-2">
+                  {[
+                    ["auto", "Auto-detect per client"],
+                    ["reminder", "Visit reminder"],
+                    ["follow_up", "Day after scheduled visit"],
+                    ["defaulter", "Defaulter follow-up"],
+                  ].map(([v, l]) => (
+                    <div key={v} className="flex items-center space-x-2">
+                      <RadioGroupItem value={v} id={`bulk-cat-${v}`} />
+                      <Label htmlFor={`bulk-cat-${v}`} className="cursor-pointer">{l}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+              <div>
                 <Label className="text-base font-medium">Choose reminder method:</Label>
                 <RadioGroup
                   value={reminderType}

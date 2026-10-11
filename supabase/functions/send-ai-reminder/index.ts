@@ -558,7 +558,7 @@ async function sendSMS(phoneNumber: string, message: string): Promise<{ messageS
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      to, from: termiiSenderId, sm: message, type: 'plain', channel: 'generic', api_key: termiiApiKey,
+      to, from: termiiSenderId, sms: message, type: 'plain', channel: 'generic', api_key: termiiApiKey,
     }),
   });
   const data = await response.json().catch(() => ({}));

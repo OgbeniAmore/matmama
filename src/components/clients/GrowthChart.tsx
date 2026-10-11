@@ -110,7 +110,7 @@ export function GrowthChart({ clientId, accountId, childDob }: Props) {
       {rows.length > 0 && (
         <div className="text-sm divide-y rounded-md border">
           {[...rows].reverse().map((r) => (
-            <div key={r.id} className="flex items-center justify-between px-3 py-2">
+            <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
               <span>
                 {format(new Date(r.measured_on), "PP")}
                 {childDob && <span className="text-muted-foreground"> · {ageMonths(childDob, r.measured_on)} months</span>}
@@ -127,7 +127,7 @@ export function GrowthChart({ clientId, accountId, childDob }: Props) {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
         <div className="space-y-1">
           <Label className="text-xs">Date</Label>
           <Input type="date" value={date} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setDate(e.target.value)} />

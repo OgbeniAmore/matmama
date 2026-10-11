@@ -149,10 +149,10 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
   return (
     <>
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col">
-        <SheetHeader>
-          <SheetTitle>{client.name}</SheetTitle>
-          <SheetDescription>
+      <SheetContent className="sm:max-w-lg w-full flex flex-col h-[100dvh] p-4 sm:p-6 pb-safe">
+        <SheetHeader className="text-left pr-7 min-w-0">
+          <SheetTitle className="break-words">{client.name}</SheetTitle>
+          <SheetDescription className="break-all">
             Client ID: {client.id}
           </SheetDescription>
         </SheetHeader>
@@ -171,9 +171,9 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
 
         <Separator />
 
-        <ScrollArea className="flex-grow">
-          <div className="space-y-4 pr-6 py-4">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+        <ScrollArea className="flex-1 min-h-0 min-w-0">
+          <div className="space-y-4 pr-3 py-4 min-w-0 break-words">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.5fr] gap-x-4 gap-y-2 [&>p]:col-start-1 sm:[&>p]:col-start-2 [&>p]:min-w-0 [&>p]:break-words [&>h3]:mt-2">
               <h3 className="text-sm font-medium text-muted-foreground">Service</h3>
               <p className="col-start-2">{client.service}</p>
 
@@ -297,7 +297,7 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
             <TransferHistoryView clientId={client.id} />
           </div>
         </ScrollArea>
-        <SheetFooter className="pt-4 flex flex-row gap-2 sm:justify-start">
+        <SheetFooter className="pt-2 pb-4 shrink-0 flex flex-wrap flex-row gap-2 sm:justify-start [&>button]:min-h-11 [&>button]:flex-1">
           <Button type="button" onClick={handleEditClick}>Edit Client</Button>
           {client.facility_id && client.account_id && (
             <Button type="button" variant="outline" onClick={() => setIsTransferOpen(true)}>

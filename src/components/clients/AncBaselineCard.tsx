@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
 import { toast } from "sonner";
 import { Pencil } from "lucide-react";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
 const isAlert = (v?: string | null) => v === "Reactive" || v === "Positive";
 const SEROLOGY = ["Non-Reactive", "Reactive", "Pending"];
@@ -41,7 +42,7 @@ export function AncBaselineCard({ client }: { client: Client }) {
   const save = async () => {
     if (!(await requireWorker())) return;
     setSaving(true);
-    const update: Record<string, unknown> = {};
+    const update: TablesUpdate<"clients"> = {};
     FIELDS.forEach(({ key }) => (update[key] = draft[key] || null));
     update.gravida = draft.gravida ? Number(draft.gravida) : null;
     update.para = draft.para ? Number(draft.para) : null;
@@ -62,9 +63,9 @@ export function AncBaselineCard({ client }: { client: Client }) {
 
   return (
     <div className="rounded-lg border p-4 space-y-3">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="font-semibold text-sm">Booking history & tests</h4>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 [&>button]:min-h-11">
           <Badge variant="outline">G{values.gravida ?? "?"} P{values.para ?? "?"}</Badge>
           {!editing && (
             <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setDraft(values); setEditing(true); }}>
@@ -76,7 +77,7 @@ export function AncBaselineCard({ client }: { client: Client }) {
 
       {editing ? (
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <label className="text-xs text-muted-foreground">Gravida (times pregnant)
               <Input type="number" min={0} value={draft.gravida ?? ""} onChange={(e) => setDraft({ ...draft, gravida: e.target.value })} />
             </label>

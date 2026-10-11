@@ -127,7 +127,7 @@ export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks,
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 [&>button]:min-h-11">
         <div className="flex items-center gap-2">
           <Activity className={compact ? "h-4 w-4 text-primary" : "h-5 w-5 text-primary"} />
           <h3 className={compact ? "font-medium text-sm" : "font-semibold text-base"}>{compact ? "Vitals for this visit" : "Clinical Vitals & Risk"}</h3>
@@ -147,7 +147,7 @@ export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks,
                 <span className="text-sm font-medium">{format(new Date(v.measured_on), "PP")}{v.gestational_weeks ? ` · ${v.gestational_weeks} wks` : ""}</span>
                 <RiskBadge level={v.risk_level} />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1 text-xs">
+              <div className="grid grid-cols-1 min-[400px]:grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1 text-xs">
                 {v.systolic_bp != null && <span>BP: <b>{v.systolic_bp}/{v.diastolic_bp}</b></span>}
                 {v.fundal_height_cm != null && <span>Fundal: <b>{v.fundal_height_cm} cm</b></span>}
                 {v.fetal_heart_rate_bpm != null && <span>FHR: <b>{v.fetal_heart_rate_bpm} bpm</b></span>}
@@ -170,7 +170,7 @@ export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks,
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Record ANC vitals{visitLabel ? ` — ${visitLabel}` : ""}</DialogTitle></DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
             <Field label="Gestational age (wks)" value={f.ga} onChange={set("ga")} />
             <Field label="Weight (kg)" value={f.wt} onChange={set("wt")} />
             <Field label="Systolic BP (mmHg)" value={f.sys} onChange={set("sys")} />
@@ -178,7 +178,7 @@ export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks,
             <Field label="Fundal height (cm)" value={f.fh} onChange={set("fh")} />
             <Field label="Fetal heart rate (bpm)" value={f.fhr} onChange={set("fhr")} />
             <Field label="Haemoglobin (g/dL)" value={f.hb} onChange={set("hb")} />
-            <div />
+            <div className="hidden min-[400px]:block" />
             <UrineSelect label="Urine protein" value={f.up} onChange={(v) => setF((p) => ({ ...p, up: v }))} />
             <UrineSelect label="Urine glucose" value={f.ug} onChange={(v) => setF((p) => ({ ...p, ug: v }))} />
           </div>

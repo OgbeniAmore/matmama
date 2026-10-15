@@ -322,7 +322,7 @@ serve(async (req) => {
 
       const resendExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       const resendKeyForResend = Deno.env.get("RESEND_API_KEY");
-      const resendAppUrl = Deno.env.get("APP_URL") || "https://matmama.lovable.app";
+      const resendAppUrl = Deno.env.get("APP_URL") || "https://main.d34ou16e4j43yh.amplifyapp.com";
       let resendSent = false;
       let resendError: string | null = null;
 
@@ -557,7 +557,7 @@ serve(async (req) => {
 
     // Send invitation email via Lovable AI Gateway -> use Resend if available, else log
     const resendKey = Deno.env.get("RESEND_API_KEY");
-    const appUrl = Deno.env.get("APP_URL") || "https://matmama.lovable.app";
+    const appUrl = Deno.env.get("APP_URL") || "https://main.d34ou16e4j43yh.amplifyapp.com";
     let emailSent = false;
     let emailError: string | null = null;
 

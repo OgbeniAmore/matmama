@@ -105,7 +105,7 @@ export const ActiveWorkerProvider = ({ children }: { children: ReactNode }) => {
     } else if (manualName.trim()) {
       next = {
         name: manualName.trim(),
-        designation: manualDesignation.trim() || "Health Worker",
+        designation: manualDesignation.trim() || "Designated Personnel",
       };
     }
     if (!next) return;
@@ -155,7 +155,7 @@ export const ActiveWorkerProvider = ({ children }: { children: ReactNode }) => {
           <DialogHeader>
             <DialogTitle>Who is recording this?</DialogTitle>
             <DialogDescription>
-              Select the health worker performing this action. This name is saved
+              Select the designated personnel performing this action. This name is saved
               to the audit log for accountability.
             </DialogDescription>
           </DialogHeader>
@@ -163,7 +163,7 @@ export const ActiveWorkerProvider = ({ children }: { children: ReactNode }) => {
           <div className="space-y-4">
             {roster.length > 0 && (
               <div className="space-y-2">
-                <Label>Health worker</Label>
+                <Label>Designated personnel</Label>
                 <Select value={selected} onValueChange={setSelected}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select from facility roster" />

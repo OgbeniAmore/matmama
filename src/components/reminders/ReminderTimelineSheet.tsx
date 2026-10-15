@@ -57,7 +57,7 @@ export function ReminderTimelineSheet({ reminder, open, onOpenChange }: Props) {
     mutationFn: async () => {
       if (!reminder) return;
       const actor = worker ?? (await requireWorker());
-      if (!actor) throw new Error("Health worker identification is required to resend.");
+      if (!actor) throw new Error("Designated personnel identification is required to resend.");
       const { data, error } = await supabase.functions.invoke("send-ai-reminder", {
         body: {
           retryOf: reminder.id,

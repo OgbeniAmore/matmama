@@ -15,7 +15,7 @@ const PAGE_MAP: Array<{ match: RegExp; name: string; description: string }> = [
     match: /^\/clients$/,
     name: "Clients",
     description:
-      "Phone-friendly card-based list with stacked search and pagination controls; full-width scrollable client profiles on phones, wrapping ANC/vaccine controls and stacked growth inputs. Card-based list of clients. Users can add clients (service-specific fields like LMP for ANC, child DOB for immunization), tap a client name to open full details, view ANC/immunization schedules and transfer history, mark visits completed, send AI reminders, and open the client's location on a map. Clients carry branded system IDs (RXM-YYMMDD-XXXX) plus optional LASRAA ID and NIN. Each card shows a 'Last updated by' badge naming the health worker who last acted.",
+      "Phone-friendly card-based list with stacked search and pagination controls; full-width scrollable client profiles on phones, wrapping ANC/vaccine controls and stacked growth inputs. Card-based list of clients. Users can add clients (service-specific fields like LMP for ANC, child DOB for immunization), tap a client name to open full details, view ANC/immunization schedules and transfer history, mark visits completed, send AI reminders, and open the client's location on a map. Clients carry branded system IDs (RXM-YYMMDD-XXXX) plus optional LASRAA ID and NIN. Each card shows a 'Last updated by' badge naming the designated personnel who last acted.",
   },
   {
     match: /^\/defaulters$/,
@@ -75,13 +75,13 @@ const PAGE_MAP: Array<{ match: RegExp; name: string; description: string }> = [
     match: /^\/roster$/,
     name: "Facility Roster",
     description:
-      "Roster of health workers at the facility (name + designation, active/inactive). Supports Excel upload with a downloadable template and per-row validation. The active worker selected here is attributed to every action in the audit log. Also shows clients shared with the facility, their share dates and time remaining.",
+      "Roster of designated personnels at the facility (name + designation, active/inactive). Supports Excel upload with a downloadable template and per-row validation. The active worker selected here is attributed to every action in the audit log. Also shows clients shared with the facility, their share dates and time remaining.",
   },
   {
     match: /^\/audit-log$/,
     name: "Audit Log",
     description:
-      "Non-editable audit trail: who did what, when, and which client/visit was affected, including the health worker's name and designation. Supports date-range and action filters, server-side pagination, a details drawer with before/after field changes, and CSV export. Available to all roles, scoped to their own data.",
+      "Non-editable audit trail: who did what, when, and which client/visit was affected, including the designated personnel's name and designation. Supports date-range and action filters, server-side pagination, a details drawer with before/after field changes, and CSV export. Available to all roles, scoped to their own data.",
   },
   {
     match: /^\/admin\/phcs$/,
@@ -140,7 +140,7 @@ const ROLE_SUGGESTIONS: Record<string, Suggestion[]> = {
     { label: "Mark a visit completed", prompt: "How do I mark an ANC or immunization visit as completed?" },
     { label: "Handle a defaulter", prompt: "How do I follow up with a defaulting client, and how does a client return to On Track?" },
     { label: "Fix a failed SMS", prompt: "A reminder SMS failed. How do I check its delivery timeline and resend it?" },
-    { label: "Manage the roster", prompt: "How do I manage the health worker roster and upload it from Excel?" },
+    { label: "Manage the roster", prompt: "How do I manage the designated personnel roster and upload it from Excel?" },
     { label: "Transfer a client", prompt: "How do I transfer a client to another facility?" },
   ],
   data_entry_officer: [
@@ -148,7 +148,7 @@ const ROLE_SUGGESTIONS: Record<string, Suggestion[]> = {
     { label: "Update client info", prompt: "How do I update a client's contact details?" },
     { label: "Record a visit", prompt: "How do I record that a client attended a visit?" },
     { label: "Find a client", prompt: "How do I find an existing client by name or ID?" },
-    { label: "Who am I logging as?", prompt: "Why am I asked to pick a health worker before saving, and where does that show up?" },
+    { label: "Who am I logging as?", prompt: "Why am I asked to pick a designated personnel before saving, and where does that show up?" },
   ],
   program_manager: [
     { label: "Approve a transfer", prompt: "How do I approve or reject a client transfer request?" },

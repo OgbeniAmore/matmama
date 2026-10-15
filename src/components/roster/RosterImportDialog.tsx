@@ -79,12 +79,12 @@ export function RosterImportDialog({
       ["Matmama roster upload template"],
       [],
       ["Column", "Required", "Format"],
-      ["Name", "Yes", "Full name of the health worker, 2-100 characters"],
+      ["Name", "Yes", "Full name of the designated personnel, 2-100 characters"],
       ["Designation", "No", `One of: ${designations.join(", ")}`],
       [],
       ["Notes"],
       ["Keep the header row exactly as provided on the 'Roster' sheet."],
-      ["One health worker per row. Duplicate names are skipped."],
+      ["One designated personnel per row. Duplicate names are skipped."],
       ["Leave Designation blank to use the default designation chosen at upload."],
     ]);
     guide["!cols"] = [{ wch: 22 }, { wch: 12 }, { wch: 60 }];

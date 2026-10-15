@@ -322,7 +322,7 @@ serve(async (req) => {
 
       const resendExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       const resendKeyForResend = Deno.env.get("RESEND_API_KEY");
-      const resendAppUrl = Deno.env.get("APP_URL") || "https://main.d34ou16e4j43yh.amplifyapp.com";
+      const resendAppUrl = Deno.env.get("APP_URL") || "https://matmama.lovable.app";
       let resendSent = false;
       let resendError: string | null = null;
 
@@ -344,7 +344,7 @@ serve(async (req) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              from: "Matmama <onboarding@resend.dev>",
+              from: Deno.env.get("RESEND_FROM_EMAIL") || "Matmama <onboarding@resend.dev>",
               to: [targetEmail],
               subject: `Your Matmama invitation (resent)`,
               html: resendHtml,
@@ -557,7 +557,7 @@ serve(async (req) => {
 
     // Send invitation email via Lovable AI Gateway -> use Resend if available, else log
     const resendKey = Deno.env.get("RESEND_API_KEY");
-    const appUrl = Deno.env.get("APP_URL") || "https://main.d34ou16e4j43yh.amplifyapp.com";
+    const appUrl = Deno.env.get("APP_URL") || "https://matmama.lovable.app";
     let emailSent = false;
     let emailError: string | null = null;
 
@@ -580,7 +580,7 @@ serve(async (req) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              from: "Matmama <onboarding@resend.dev>",
+              from: Deno.env.get("RESEND_FROM_EMAIL") || "Matmama <onboarding@resend.dev>",
               to: [email],
               subject: `${inviterName} invited you to Matmama`,
               html,

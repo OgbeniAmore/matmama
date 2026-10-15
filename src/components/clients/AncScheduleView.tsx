@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { HeartPulse, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { AncVitalsPanel, useAncVitals, RiskBadge } from "./AncVitalsPanel";
@@ -29,6 +30,8 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
   const { data: vitals = [] } = useAncVitals(clientId);
   const queryClient = useQueryClient();
   const { requireWorker, logAction } = useActiveWorker();
+  const { role } = useAuth();
+  const canAct = role === "facility_officer";
 
   const { data: visits = [], isLoading } = useQuery<AncVisit[]>({
     queryKey: ["anc-visits", clientId],
@@ -157,7 +160,7 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
                 <Badge variant="outline" className={config.badgeClass}>
                   {visit.status}
                 </Badge>
-                {isPending && (
+                {canAct && isPending && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -169,7 +172,7 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
                     Complete
                   </Button>
                 )}
-                {isCompleted && (
+                {canAct && isCompleted && (
                   <Button
                     size="sm"
                     variant="ghost"

@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.15a";
+export const KB_VERSION = "2026.10.15b";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,13 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-15",
+    title: "'Designated Personnel' terminology (all roles)",
+    items: [
+      "Staff who perform and record actions are now called 'Designated Personnel' instead of 'health workers' — in the roster, the 'Who is recording this?' prompt, the header chip and audit attribution.",
+    ],
+  },
   {
     date: "2026-10-15",
     title: "Only facility accounts act on clients (all roles)",

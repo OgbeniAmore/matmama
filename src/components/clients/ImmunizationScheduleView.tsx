@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Syringe, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useActiveWorker } from "@/contexts/ActiveWorkerContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,8 @@ const statusConfig: Record<string, { icon: React.ElementType; color: string; bad
 export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewProps) {
   const queryClient = useQueryClient();
   const { requireWorker, logAction } = useActiveWorker();
+  const { role } = useAuth();
+  const canAct = role === "facility_officer";
 
   const { data: records = [], isLoading } = useQuery<ImmunizationRecord[]>({
     queryKey: ["immunization-records", clientId],
@@ -217,7 +220,7 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
                         <Badge variant="outline" className={config.badgeClass}>
                           {vaccine.status}
                         </Badge>
-                        {isPending && (
+                        {canAct && isPending && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -229,7 +232,7 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
                             Administer
                           </Button>
                         )}
-                        {isAdministered && (
+                        {canAct && isAdministered && (
                           <Button
                             size="sm"
                             variant="ghost"

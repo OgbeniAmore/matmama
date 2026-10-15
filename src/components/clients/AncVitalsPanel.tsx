@@ -88,7 +88,8 @@ const num = (s: string) => (s.trim() === "" ? null : Number(s));
 
 export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks, compact }: { clientId: string; lmp?: Date | string | null; visitId?: string; visitLabel?: string; visitWeeks?: number; compact?: boolean }) {
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const canRecord = role === "facility_officer" || role === "data_entry_officer";
   const { requireWorker, worker } = useActiveWorker();
   const { data: all = [], isLoading } = useAncVitals(clientId);
   const data = visitId ? all.filter((v) => (v as AncVitalsRow & { anc_visit_id?: string | null }).anc_visit_id === visitId) : all;
@@ -132,9 +133,9 @@ export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks,
           <Activity className={compact ? "h-4 w-4 text-primary" : "h-5 w-5 text-primary"} />
           <h3 className={compact ? "font-medium text-sm" : "font-semibold text-base"}>{compact ? "Vitals for this visit" : "Clinical Vitals & Risk"}</h3>
         </div>
-        <Button size="sm" variant={compact ? "outline" : "default"} onClick={async () => { if (await requireWorker()) { setF({ ...empty, ga: gaFromLmp(lmp) || (visitWeeks ? String(visitWeeks) : "") }); setOpen(true); } }}>
+        {canRecord && <Button size="sm" variant={compact ? "outline" : "default"} onClick={async () => { if (await requireWorker()) { setF({ ...empty, ga: gaFromLmp(lmp) || (visitWeeks ? String(visitWeeks) : "") }); setOpen(true); } }}>
           <Plus className="h-4 w-4 mr-1" /> Record vitals
-        </Button>
+        </Button>}
       </div>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : data.length === 0 ? (

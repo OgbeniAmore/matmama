@@ -68,7 +68,7 @@ Navigation:
 - /notification-preferences — toggle alert types
 `;
 
-const KB_VERSION = "2026.10.11b";
+const KB_VERSION = "2026.10.15a";
 
 const ROLE_CAPABILITIES = `
 ROLE CAPABILITY SUMMARIES (what each role can view and do):
@@ -76,12 +76,13 @@ ROLE CAPABILITY SUMMARIES (what each role can view and do):
 **System Admin** — scope: whole platform, all 20 Lagos LGAs; not attached to an LGA or PHC.
 - View: global KPIs, all clients and defaulters, all facilities, all users and roles, all audit logs, SMS runs and delivery KPIs, 30-day per-LGA trends.
 - Do: invite admins/managers/staff and change roles; assign and reassign the one Program Manager per LGA (audited); manage the PHC master list; edit SMS templates; resend failed SMS; export trends and audit CSVs.
+- Cannot: act on individual clients (record vitals, complete ANC visits, administer vaccines) — statewide overview only; only facility accounts act on clients.
 - Cannot: nothing restricted (clinical data entry is normally done by facility staff).
 
 **Program Manager** — scope: exactly one Lagos LGA (one PM per LGA); not attached to a PHC.
 - View: every facility, team member, client and defaulter in their LGA; LGA audit logs and SMS runs; transfer requests.
 - Do: approve/reject transfers; invite and manage team members and facility assignments in their LGA; edit SMS templates; resend reminders; export CSVs.
-- Cannot: see or manage anything outside their LGA; manage the PHC master list; reassign Program Managers.
+- Cannot: see or manage anything outside their LGA; manage the PHC master list; reassign Program Managers; act on clients (record vitals, complete ANC visits, administer vaccines) — LGA overview only.
 
 **Facility Officer** — scope: their assigned PHC/facility.
 - View: their facility's clients, schedules, defaulters, reminder history and timelines, roster and audit log.
@@ -105,7 +106,7 @@ RECENT CHANGES (knowledge base version ${KB_VERSION}). If asked "what's new?", s
 - Cancelling a pending request (requester only) deletes it so it vanishes for both facilities.
 - ANC mothers: record a delivery per pregnancy, register babies under the mother's file (each becomes a Routine Immunization client linked to her), and start subsequent pregnancies. Any role that can act on the mother can do this (Data Entry Officers included).
 - Baby name optional at birth ("Baby of [mother]"), required from the 2nd immunization visit. The Schedule button beside each baby opens their immunization schedule.
-- ANC vitals & maternal risk triage: on an ANC client tap 'Record vitals' (BP, fundal height, fetal heart rate, urine protein/glucose, weight, Hb). Critical: BP >=160/110, Hb <7, FHR <110 (severe pre-eclampsia if severe BP + proteinuria: MgSO4 and immediate referral). High: BP >=140/90 + protein >=1+ (pre-eclampsia, refer same day), Hb 7-9.9, FHR >160. Moderate: BP >=140/90 alone, Hb 10-10.9, glucose >=2+ (screen for GDM), fundal height >3 cm off gestational weeks, weight <45 kg. Latest risk shows as a banner on the client profile. Available to all roles that can act on the client; System Admins and Program Managers see it in their scope. Decision support only.
+- ANC vitals & maternal risk triage: on an ANC client tap 'Record vitals' (BP, fundal height, fetal heart rate, urine protein/glucose, weight, Hb). Critical: BP >=160/110, Hb <7, FHR <110 (severe pre-eclampsia if severe BP + proteinuria: MgSO4 and immediate referral). High: BP >=140/90 + protein >=1+ (pre-eclampsia, refer same day), Hb 7-9.9, FHR >160. Moderate: BP >=140/90 alone, Hb 10-10.9, glucose >=2+ (screen for GDM), fundal height >3 cm off gestational weeks, weight <45 kg. Latest risk shows as a banner on the client profile. Recorded only by facility accounts (Facility Officer, Data Entry Officer); System Admins and Program Managers see it read-only in their scope. Decision support only.
 - Growth chart on each child's file: record dated weight (kg) and height (cm); trends shown by age in months.
 
 **2026-09 — Knowledge base upkeep**: a changelog Thelma can quote, concise role capability summaries, and an automated check that flags when this knowledge base drifts from the app's routes or database tables.

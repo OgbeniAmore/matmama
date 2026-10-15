@@ -29,6 +29,13 @@
       "when": 1791641454230,
       "tag": "0003_unlink_admin_pm_facility",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792065944710,
+      "tag": "0004_facility_only_clinical_actions",
+      "breakpoints": true
     }
   ]
 }

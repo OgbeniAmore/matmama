@@ -82,7 +82,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
       "Share clients temporarily with another facility, approve/reject requests in the Inbox, cancel own pending requests; record deliveries, register babies under the mother, add growth measurements; record ANC vitals (BP, fundal height, FHR, urinalysis, weight, Hb) and act on maternal risk flags",
       "Follow up defaulters, send and resend reminders",
       "Request transfers out and approve transfers of their own clients",
-      "Maintain the health worker roster, including Excel import",
+      "Maintain the designated personnel roster, including Excel import",
     ],
     cannotDo: [
       "See other facilities' clients (beyond redacted cross-facility search)",
@@ -103,7 +103,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
       "Register clients and update contact and profile details",
       "Record deliveries, register babies under the mother's file and add growth measurements (weight/height); record ANC vitals with automatic maternal risk triage; view the Inbox without approving",
       "Record that a client attended a visit",
-      "Select the acting health worker so actions are attributed correctly",
+      "Select the acting designated personnel so actions are attributed correctly",
     ],
     cannotDo: [
       "Delete clients",

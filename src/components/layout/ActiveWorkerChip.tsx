@@ -11,11 +11,11 @@ export function ActiveWorkerChip() {
       size="sm"
       className="gap-1 sm:gap-2 min-w-0 h-11 max-w-[120px] sm:max-w-[180px]"
       onClick={() => changeWorker()}
-      title="Change the health worker recording actions"
+      title="Change the designated personnel recording actions"
     >
       <UserCog className="h-4 w-4 shrink-0" />
       <span className="truncate text-xs">
-        {worker ? worker.name : "Set health worker"}
+        {worker ? worker.name : "Set designated personnel"}
       </span>
     </Button>
   );

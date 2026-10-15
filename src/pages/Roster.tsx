@@ -121,7 +121,7 @@ const Roster = () => {
       return payload.length;
     },
     onSuccess: (count) => {
-      toast.success(count ? `Imported ${count} health worker(s)` : "No new workers to import");
+      toast.success(count ? `Imported ${count} designated personnel` : "No new workers to import");
       qc.invalidateQueries({ queryKey: ["facility-roster"] });
       setImportOpen(false);
     },
@@ -176,7 +176,7 @@ const Roster = () => {
         <div>
           <h1 className="text-2xl font-bold md:text-3xl">Facility Roster</h1>
           <p className="text-muted-foreground text-sm md:text-base">
-            Health workers at this facility. Linking a roster entry to a user account attributes
+            Designated personnel at this facility. Linking a roster entry to a user account attributes
             their actions in the audit log.
           </p>
         </div>
@@ -192,7 +192,7 @@ const Roster = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add health worker</DialogTitle>
+              <DialogTitle>Add designated personnel</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               <div className="space-y-1">
@@ -273,7 +273,7 @@ const Roster = () => {
               ) : roster.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
-                    No roster entries yet. Add your first health worker above.
+                    No roster entries yet. Add your first designated personnel above.
                   </TableCell>
                 </TableRow>
               ) : (

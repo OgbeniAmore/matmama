@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.11b";
+export const KB_VERSION = "2026.10.15a";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,15 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-15",
+    title: "Only facility accounts act on clients (all roles)",
+    items: [
+      "Facility Officers record ANC vitals, mark ANC visits complete and administer vaccines for their own facility's clients (or clients shared with them). Data Entry Officers can record vitals but cannot tick visits or vaccines.",
+      "Program Managers have a read-only LGA overview and System Admins a read-only statewide overview — the Record vitals, Complete, Administer and Undo buttons are hidden for them and blocked on the server.",
+      "Fixed: Facility Officers could not save ANC vitals because of a permission error; it now works.",
+    ],
+  },
   {
     date: "2026-10-11",
     title: "Mobile client records, search and clinical controls (all roles)",

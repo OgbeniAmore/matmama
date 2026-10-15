@@ -39,7 +39,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
       "Manage the PHC master list per LGA and ward",
       "Edit SMS templates, resend failed SMS, export trends and audit CSVs",
     ],
-    cannotDo: ["Nothing is restricted; day-to-day clinical data entry is normally done by facility staff"],
+    cannotDo: ["Act on individual clients — record vitals, complete ANC visits or administer vaccines (facility accounts only; System Admin is a statewide read-only overview)"],
     routes: ["/admin", "/admin/phcs", "/team", "/facilities", "/audit-log", "/sms-runs", "/sms-templates", "/reminders", "/client-search"],
   },
   program_manager: {
@@ -63,6 +63,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     cannotDo: [
       "See or manage data outside their LGA",
       "Manage the PHC master list or reassign Program Managers",
+      "Act on individual clients — record vitals, complete ANC visits or administer vaccines (facility accounts only; PM is an LGA read-only overview)",
     ],
     routes: ["/dashboard", "/clients", "/defaulters", "/facilities", "/team", "/transfers", "/audit-log", "/reminders", "/sms-runs", "/sms-templates"],
   },
@@ -107,6 +108,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     cannotDo: [
       "Delete clients",
       "Manage transfers, team members, facilities or SMS templates",
+      "Mark ANC visits complete or administer vaccines (Facility Officers only)",
     ],
     routes: ["/dashboard", "/clients", "/audit-log", "/profile"],
   },

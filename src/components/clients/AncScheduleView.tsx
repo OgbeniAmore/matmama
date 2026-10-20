@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { AncVitalsPanel, useAncVitals, RiskBadge } from "./AncVitalsPanel";
+import { AddExtraVisitDialog } from "./AddExtraVisitDialog";
 
 interface AncScheduleViewProps {
   clientId: string;
@@ -40,7 +41,7 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
         .from("anc_visits")
         .select("*")
         .eq("client_id", clientId)
-        .order("visit_number", { ascending: true });
+        .order("scheduled_date", { ascending: true });
 
       if (error) throw error;
       // Show only the current (latest) pregnancy's schedule
@@ -118,8 +119,9 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
     );
   }
 
-  const completed = visits.filter(v => v.status === "Completed").length;
-  const total = visits.length;
+  const core = visits.filter(v => !(v as AncVisit & { is_extra?: boolean }).is_extra);
+  const completed = core.filter(v => v.status === "Completed").length;
+  const total = core.length;
   const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
@@ -127,12 +129,17 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
       <div className="flex items-center gap-2 mb-1">
         <HeartPulse className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-base">Antenatal Care (ANC) Schedule</h3>
+        {canAct && (
+          <div className="ml-auto">
+            <AddExtraVisitDialog clientId={clientId} lmp={lmp} visits={visits as (AncVisit & { pregnancy_number?: number })[]} />
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium">
-            {completed} of {total} visits completed
+            {completed} of {total} core contacts completed
           </span>
           <span className="text-muted-foreground font-medium">{progressPercent}%</span>
         </div>
@@ -150,7 +157,15 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
               <div className="flex items-center gap-3 min-w-0">
                 <StatusIcon className={`h-5 w-5 flex-shrink-0 ${config.color}`} />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium break-words">{visit.visit_name}</p>
+                  <p className="text-sm font-medium break-words">
+                    {visit.visit_name}
+                    {(visit as AncVisit & { is_extra?: boolean }).is_extra && (
+                      <Badge variant="outline" className="ml-2 text-[10px]">Extra / review</Badge>
+                    )}
+                  </p>
+                  {(visit as AncVisit & { visit_reason?: string | null }).visit_reason && (
+                    <p className="text-xs text-muted-foreground break-words">Reason: {(visit as AncVisit & { visit_reason?: string | null }).visit_reason}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Week {visit.gestational_weeks} — {format(new Date(visit.scheduled_date), "PP")}
                   </p>

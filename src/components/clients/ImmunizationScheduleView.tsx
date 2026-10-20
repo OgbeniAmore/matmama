@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ImmunizationRecord } from "@/types/immunization";
+import { computeCatchUpShifts } from "@/utils/immunizationUtils";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -88,15 +89,25 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
         })
         .eq("id", recordId);
       if (error) throw error;
+      // Catch-up: keep later doses of the same series at least 4 weeks apart.
+      const shifts = computeCatchUpShifts(records, recordId, new Date());
+      for (const sft of shifts) {
+        const { error: e2 } = await supabase.from("immunization_records")
+          .update({ due_date: sft.due_date, status: "Pending" }).eq("id", sft.id);
+        if (e2) console.warn("catch-up shift failed:", e2);
+      }
       const { error: rpcError } = await supabase.rpc("resync_client_status", { _client_id: clientId });
       if (rpcError) console.warn("resync_client_status failed:", rpcError);
+      return shifts;
     },
-    onSuccess: (_data, id: string) => {
+    onSuccess: (shifts, id: string) => {
       queryClient.invalidateQueries({ queryKey: ["immunization-records", clientId] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["defaulters"] });
-      logAction("VACCINE_ADMINISTERED", "immunization_records", id);
-      toast.success("Vaccine marked as administered");
+      logAction("VACCINE_ADMINISTERED", "immunization_records", id, shifts.length ? { catch_up_rescheduled: shifts } : undefined);
+      toast.success(shifts.length
+        ? `Vaccine administered. ${shifts.length} later dose${shifts.length > 1 ? "s" : ""} rescheduled for catch-up (4-week gap).`
+        : "Vaccine marked as administered");
     },
     onError: (error) => {
       toast.error("Failed to update vaccine status");
@@ -214,7 +225,15 @@ export function ImmunizationScheduleView({ clientId }: ImmunizationScheduleViewP
                     <div key={vaccine.id} className="flex flex-col items-stretch sm:flex-row sm:items-center justify-between gap-2 py-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <StatusIcon className={`h-4 w-4 flex-shrink-0 ${config.color}`} />
-                        <span className="text-sm break-words">{vaccine.vaccine_name}</span>
+                        <span className="text-sm break-words">
+                          {vaccine.vaccine_name}
+                          {vaccine.due_date !== vaccines[0].due_date && !isAdministered && (
+                            <span className="ml-2 text-xs text-amber-700">Catch-up: from {format(new Date(vaccine.due_date), "PP")}</span>
+                          )}
+                          {isAdministered && vaccine.administered_date && (
+                            <span className="ml-2 text-xs text-muted-foreground">given {format(new Date(vaccine.administered_date), "PP")}</span>
+                          )}
+                        </span>
                       </div>
                       <div className="flex items-center flex-wrap gap-2 [&>button]:min-h-11">
                         <Badge variant="outline" className={config.badgeClass}>

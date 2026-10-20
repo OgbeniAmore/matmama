@@ -27,6 +27,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     canView: [
       "Phone-friendly client profiles and clinical records within existing role scope; responsive layouts do not grant additional permissions",
       "ANC vitals history and maternal risk flags (pre-eclampsia, anaemia, fetal heart rate, glycosuria, fundal height) on client profiles in their scope",
+      "Read-only view of scan-dated pregnancies, extra ANC review visits, maternal Tetanus (TT1–5), IPTp-SP/Fansidar and supplements, and child vaccine catch-up dates",
       "Global KPIs, client and defaulter overview across all LGAs",
       "All facilities, all team members and all roles",
       "All audit logs, SMS runs and delivery KPIs",
@@ -49,6 +50,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     canView: [
       "Phone-friendly client profiles and clinical records within existing role scope; responsive layouts do not grant additional permissions",
       "ANC vitals history and maternal risk flags (pre-eclampsia, anaemia, fetal heart rate, glycosuria, fundal height) on client profiles in their scope",
+      "Read-only view of scan-dated pregnancies, extra ANC review visits, maternal Tetanus (TT1–5), IPTp-SP/Fansidar and supplements, and child vaccine catch-up dates",
       "Every facility, team member, client and defaulter in their LGA",
       "Audit logs and SMS runs for their LGA",
       "Incoming and outgoing transfer requests",
@@ -80,6 +82,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
     canDo: [
       "Register clients (Routine Immunization, Family Planning, Ante Natal Care) and record or complete visits",
       "Share clients temporarily with another facility, approve/reject requests in the Inbox, cancel own pending requests; record deliveries, register babies under the mother, add growth measurements; record ANC vitals (BP, fundal height, FHR, urinalysis, weight, Hb) and act on maternal risk flags",
+      "Book ANC by early ultrasound when LMP is unknown; add extra/weekly ANC review visits; give and record Tetanus TT/Td 1–5, IPTp-SP (Fansidar) and Iron/Folic Acid, Calcium, Albendazole; late vaccine doses auto-reschedule later doses for catch-up (4-week gap)",
       "Follow up defaulters, send and resend reminders",
       "Request transfers out and approve transfers of their own clients",
       "Maintain the designated personnel roster, including Excel import",
@@ -109,6 +112,7 @@ export const ROLE_CAPABILITIES: Record<AppRole, RoleCapability> = {
       "Delete clients",
       "Manage transfers, team members, facilities or SMS templates",
       "Mark ANC visits complete or administer vaccines (Facility Officers only)",
+      "Add extra ANC visits or give maternal Tetanus/Fansidar/supplements (Facility Officers only) — can book ANC by ultrasound dating and view these records",
     ],
     routes: ["/dashboard", "/clients", "/audit-log", "/profile"],
   },

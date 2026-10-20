@@ -95,3 +95,39 @@ export const getOverdueAncVisits = (
       new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime()
     );
 };
+
+/**
+ * Ultrasound dating: given scan date and gestational age at scan, derive EDD.
+ * EDD = scanDate + (280 − GA_days).
+ */
+export const calculateEddFromScan = (scanDate: Date, gaWeeks: number, gaDays = 0): Date =>
+  addDays(scanDate, 280 - (gaWeeks * 7 + gaDays));
+
+/** Equivalent LMP for an EDD (EDD − 280 days) so gestational age/trimester logic is uniform. */
+export const lmpFromEdd = (edd: Date): Date => addDays(edd, -280);
+
+/** Minimum days between Tetanus (TT/Td) doses, indexed by the dose being given (2..5). */
+export const TT_MIN_INTERVAL_DAYS: Record<number, number> = { 2: 28, 3: 182, 4: 365, 5: 365 };
+
+/** Earliest date the next TT dose can be given, or null if 5 doses complete. */
+export const nextTtEligibleDate = (doses: { dose_number: number; given_on: string }[]): Date | null => {
+  if (doses.length === 0) return new Date();
+  const last = [...doses].sort((a, b) => b.dose_number - a.dose_number)[0];
+  if (last.dose_number >= 5) return null;
+  return addDays(new Date(last.given_on), TT_MIN_INTERVAL_DAYS[last.dose_number + 1]);
+};
+
+/** IPTp-SP (Fansidar): from 13 weeks gestation, doses at least 28 days apart. */
+export const IPTP_MIN_WEEKS = 13;
+export const IPTP_MIN_INTERVAL_DAYS = 28;
+export const iptpEligibility = (
+  gaWeeks: number,
+  doses: { given_on: string }[],
+  today = new Date()
+): { eligible: boolean; reason?: string; nextDate?: Date } => {
+  if (gaWeeks < IPTP_MIN_WEEKS) return { eligible: false, reason: `Starts from ${IPTP_MIN_WEEKS} weeks` };
+  if (doses.length === 0) return { eligible: true };
+  const last = doses.map((d) => new Date(d.given_on)).sort((a, b) => b.getTime() - a.getTime())[0];
+  const next = addDays(last, IPTP_MIN_INTERVAL_DAYS);
+  return next <= today ? { eligible: true } : { eligible: false, reason: "Needs 4 weeks since last dose", nextDate: next };
+};

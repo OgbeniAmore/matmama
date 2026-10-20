@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.15b";
+export const KB_VERSION = "2026.10.20a";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,17 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-20",
+    title: "Scan dating, extra ANC visits, maternal TT/Fansidar, child catch-up (all roles)",
+    items: [
+      "ANC registration: choose 'Early ultrasound / dating scan' when the mother does not know her LMP; enter the scan date and gestational age on the report and the EDD, gestational age and 8 contacts are worked out from it.",
+      "ANC schedule: 'Extra visit' adds a review visit (or weekly visits, e.g. from 36 weeks) with a reason; they get vitals, reminders and defaulter tracking like routine contacts.",
+      "Maternal Vaccines & Medications card: Tetanus TT/Td 1–5 with protection status and minimum gaps (4 weeks, 6 months, 1 year, 1 year), previous doses from her card; IPTp-SP (Fansidar) from 13 weeks, at least 4 weeks apart, minimum 3 doses; Iron+Folic Acid, Calcium and Albendazole dispensing.",
+      "Child immunization catch-up: giving a late Penta/OPV/PCV/Rota/Measles dose moves later doses of the same series so each is at least 4 weeks after the previous one.",
+      "Only Facility Officers record these; Data Entry Officers, Program Managers and System Admins see them read-only.",
+    ],
+  },
   {
     date: "2026-10-15",
     title: "'Designated Personnel' terminology (all roles)",

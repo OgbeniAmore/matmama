@@ -34,6 +34,7 @@ export const KNOWN_TABLES = [
   "growth_measurements",
   "immunization_records",
   "invitations",
+  "maternal_treatments",
   "notification_preferences",
   "notifications",
   "patient_reminders",

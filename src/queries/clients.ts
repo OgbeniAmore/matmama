@@ -109,7 +109,7 @@ export const saveClient = async ({
     const { account_id: _a, facility_id: _f, ...updateData } = clientDataForSupabase;
     const { error } = await supabase
       .from("clients")
-      .update(updateData)
+      .update(updateData as never)
       .eq("id", clientId);
     if (error) throw error;
   } else {
@@ -120,7 +120,7 @@ export const saveClient = async ({
       status: "On Track" as Status,
     };
     
-    const { error: clientError } = await supabase.from("clients").insert(newClientData);
+    const { error: clientError } = await supabase.from("clients").insert(newClientData as never);
     if (clientError) throw clientError;
 
     // Auto-generate immunization schedule for Routine Immunization clients

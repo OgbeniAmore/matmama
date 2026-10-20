@@ -43,12 +43,14 @@ export type Database = {
           created_at: string
           gestational_weeks: number
           id: string
+          is_extra: boolean
           notes: string | null
           pregnancy_number: number
           scheduled_date: string
           status: string
           visit_name: string
           visit_number: number
+          visit_reason: string | null
         }
         Insert: {
           account_id?: string | null
@@ -57,12 +59,14 @@ export type Database = {
           created_at?: string
           gestational_weeks: number
           id?: string
+          is_extra?: boolean
           notes?: string | null
           pregnancy_number?: number
           scheduled_date: string
           status?: string
           visit_name: string
           visit_number: number
+          visit_reason?: string | null
         }
         Update: {
           account_id?: string | null
@@ -71,12 +75,14 @@ export type Database = {
           created_at?: string
           gestational_weeks?: number
           id?: string
+          is_extra?: boolean
           notes?: string | null
           pregnancy_number?: number
           scheduled_date?: string
           status?: string
           visit_name?: string
           visit_number?: number
+          visit_reason?: string | null
         }
         Relationships: [
           {
@@ -265,6 +271,7 @@ export type Database = {
           child_name: string | null
           contact: string
           created_at: string
+          dating_method: string
           due_date: string
           edd: string | null
           facility_id: string | null
@@ -280,6 +287,9 @@ export type Database = {
           nin_id: string | null
           para: number | null
           preferred_channel: string
+          scan_date: string | null
+          scan_ga_days: number | null
+          scan_ga_weeks: number | null
           service: string
           status: string
           system_id: string | null
@@ -296,6 +306,7 @@ export type Database = {
           child_name?: string | null
           contact: string
           created_at?: string
+          dating_method?: string
           due_date: string
           edd?: string | null
           facility_id?: string | null
@@ -311,6 +322,9 @@ export type Database = {
           nin_id?: string | null
           para?: number | null
           preferred_channel?: string
+          scan_date?: string | null
+          scan_ga_days?: number | null
+          scan_ga_weeks?: number | null
           service: string
           status?: string
           system_id?: string | null
@@ -327,6 +341,7 @@ export type Database = {
           child_name?: string | null
           contact?: string
           created_at?: string
+          dating_method?: string
           due_date?: string
           edd?: string | null
           facility_id?: string | null
@@ -342,6 +357,9 @@ export type Database = {
           nin_id?: string | null
           para?: number | null
           preferred_channel?: string
+          scan_date?: string | null
+          scan_ga_days?: number | null
+          scan_ga_weeks?: number | null
           service?: string
           status?: string
           system_id?: string | null
@@ -729,6 +747,79 @@ export type Database = {
           },
           {
             foreignKeyName: "invitations_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maternal_treatments: {
+        Row: {
+          account_id: string | null
+          actor_name: string | null
+          client_id: string
+          created_at: string
+          dose_number: number | null
+          facility_id: string | null
+          given_on: string
+          id: string
+          is_prior: boolean
+          notes: string | null
+          pregnancy_number: number
+          recorded_by: string | null
+          treatment_type: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          actor_name?: string | null
+          client_id: string
+          created_at?: string
+          dose_number?: number | null
+          facility_id?: string | null
+          given_on?: string
+          id?: string
+          is_prior?: boolean
+          notes?: string | null
+          pregnancy_number?: number
+          recorded_by?: string | null
+          treatment_type: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          actor_name?: string | null
+          client_id?: string
+          created_at?: string
+          dose_number?: number | null
+          facility_id?: string | null
+          given_on?: string
+          id?: string
+          is_prior?: boolean
+          notes?: string | null
+          pregnancy_number?: number
+          recorded_by?: string | null
+          treatment_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maternal_treatments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maternal_treatments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maternal_treatments_facility_id_fkey"
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"

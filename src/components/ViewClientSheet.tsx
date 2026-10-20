@@ -37,6 +37,7 @@ import { GrowthChart } from "./clients/GrowthChart";
 import { AncScheduleView } from "./clients/AncScheduleView";
 import { AncRiskBanner } from "./clients/AncVitalsPanel";
 import { AncBaselineCard } from "./clients/AncBaselineCard";
+import { MaternalTreatmentsCard } from "./clients/MaternalTreatmentsCard";
 import { TransferHistoryView } from "./clients/TransferHistoryView";
 import { MotherChildRecord, MotherLink } from "./clients/MotherChildRecord";
 import { ClientActionBar } from "./ClientActionBar";
@@ -289,6 +290,7 @@ export function ViewClientSheet({ client, open, onOpenChange, onEdit }: ViewClie
                 <MotherChildRecord client={client} />
                 <Separator />
                 <AncScheduleView clientId={client.id} lmp={client.lmp} />
+                <MaternalTreatmentsCard clientId={client.id} lmp={client.lmp} />
               </>
             )}
 

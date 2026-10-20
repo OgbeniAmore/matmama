@@ -90,6 +90,10 @@ export const saveClient = async ({
     preferred_channel: data.preferredChannel || 'sms',
     ...(data.motherClientId ? { mother_client_id: data.motherClientId } : {}),
     ...(data.service === "Ante Natal Care" ? {
+      dating_method: data.datingMethod === "scan" ? "scan" : "lmp",
+      scan_date: data.datingMethod === "scan" && data.scanDate ? data.scanDate.toISOString().split('T')[0] : null,
+      scan_ga_weeks: data.datingMethod === "scan" ? data.scanGaWeeks ?? null : null,
+      scan_ga_days: data.datingMethod === "scan" ? data.scanGaDays ?? null : null,
       gravida: data.gravida ?? null,
       para: data.para ?? null,
       blood_group: data.bloodGroup || null,

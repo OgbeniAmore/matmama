@@ -34,6 +34,8 @@ import { Phone, MessageSquare, Baby, Search, Link2, X, Loader2 } from "lucide-re
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   calculateEddFromLmp,
+  calculateEddFromScan,
+  lmpFromEdd,
   calculateGestationalAge,
   calculateTrimester,
 } from "@/utils/ancUtils";
@@ -57,6 +59,10 @@ export const clientFormSchema = z.object({
   trimester: z.coerce.number().min(1).max(3).optional(),
   edd: z.date().optional(),
   lmp: z.date().optional(),
+  datingMethod: z.enum(["lmp", "scan"]).default("lmp"),
+  scanDate: z.date().optional(),
+  scanGaWeeks: z.preprocess((v) => (v === "" || v == null ? undefined : Number(v)), z.number().int().min(4).max(42).optional()),
+  scanGaDays: z.preprocess((v) => (v === "" || v == null ? undefined : Number(v)), z.number().int().min(0).max(6).optional()),
   lasraaId: z.string().max(50).optional(),
   ninId: z.string().max(20).optional(),
   preferredChannel: z.enum(["sms", "whatsapp"]).default("sms"),
@@ -77,13 +83,21 @@ export const clientFormSchema = z.object({
   message: "Child name and date of birth are required for Routine Immunization",
   path: ["childName"],
 }).refine((data) => {
-  if (data.service === "Ante Natal Care") {
+  if (data.service === "Ante Natal Care" && data.datingMethod !== "scan") {
     return !!data.lmp;
   }
   return true;
 }, {
   message: "LMP (Last Menstrual Period) is required for Ante Natal Care",
   path: ["lmp"],
+}).refine((data) => {
+  if (data.service === "Ante Natal Care" && data.datingMethod === "scan") {
+    return !!data.scanDate && data.scanGaWeeks != null;
+  }
+  return true;
+}, {
+  message: "Scan date and gestational age at scan are required",
+  path: ["scanGaWeeks"],
 }).refine((d) => d.gravida == null || d.para == null || d.para < d.gravida, {
   message: "Para must be less than Gravida (Gravida includes this pregnancy)",
   path: ["para"],
@@ -163,7 +177,15 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
     form.setValue("motherClientId", undefined);
   };
 
-  const watchedLmp = form.watch("lmp");
+  const watchedLmpRaw = form.watch("lmp");
+  const watchedDating = form.watch("datingMethod") ?? "lmp";
+  const watchedScanDate = form.watch("scanDate");
+  const watchedScanW = form.watch("scanGaWeeks");
+  const watchedScanD = form.watch("scanGaDays");
+  const scanLmp = watchedDating === "scan" && watchedScanDate && watchedScanW != null && !Number.isNaN(Number(watchedScanW))
+    ? lmpFromEdd(calculateEddFromScan(watchedScanDate, Number(watchedScanW), Number(watchedScanD) || 0))
+    : undefined;
+  const watchedLmp = watchedDating === "scan" ? scanLmp : watchedLmpRaw;
 
   const ancPreview = (() => {
     if (watchedService !== "Ante Natal Care" || !watchedLmp) return null;
@@ -187,6 +209,10 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           trimester: clientToEdit.trimester || undefined,
           edd: clientToEdit.edd,
           lmp: clientToEdit.lmp,
+          datingMethod: ((clientToEdit as { dating_method?: string }).dating_method === "scan" ? "scan" : "lmp"),
+          scanDate: (clientToEdit as { scan_date?: string | null }).scan_date ? new Date((clientToEdit as { scan_date?: string }).scan_date!) : undefined,
+          scanGaWeeks: (clientToEdit as { scan_ga_weeks?: number | null }).scan_ga_weeks ?? undefined,
+          scanGaDays: (clientToEdit as { scan_ga_days?: number | null }).scan_ga_days ?? undefined,
           lasraaId: clientToEdit.lasraa_id || "",
           ninId: clientToEdit.nin_id || "",
           preferredChannel: (clientToEdit.preferred_channel || "sms") as "sms" | "whatsapp",
@@ -210,6 +236,10 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
           trimester: undefined,
           edd: undefined,
           lmp: undefined,
+          datingMethod: "lmp" as const,
+          scanDate: undefined,
+          scanGaWeeks: undefined,
+          scanGaDays: undefined,
           lasraaId: "",
           ninId: "",
           preferredChannel: "sms" as const,
@@ -224,6 +254,10 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
 
   const onSubmit = (data: ClientFormValues) => {
     // For ANC, derive EDD and trimester from LMP so downstream code keeps working.
+    if (data.service === "Ante Natal Care" && data.datingMethod === "scan" && data.scanDate && data.scanGaWeeks != null) {
+      // Ultrasound dating: store an equivalent LMP so all gestational logic stays uniform.
+      data.lmp = lmpFromEdd(calculateEddFromScan(data.scanDate, data.scanGaWeeks, data.scanGaDays ?? 0));
+    }
     if (data.service === "Ante Natal Care" && data.lmp) {
       const edd = calculateEddFromLmp(data.lmp);
       const ga = calculateGestationalAge(data.lmp);
@@ -397,6 +431,71 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
               <>
                 <FormField
                   control={form.control}
+                  name="datingMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>How is the pregnancy dated? *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value ?? "lmp"}>
+                        <FormControl>
+                          <SelectTrigger className="min-h-11"><SelectValue /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="lmp">Last Menstrual Period (she remembers her LMP)</SelectItem>
+                          <SelectItem value="scan">Early ultrasound / dating scan (LMP unknown)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {watchedDating === "scan" && (
+                  <div className="space-y-3 rounded-lg border p-3">
+                    <FormField
+                      control={form.control}
+                      name="scanDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Date of scan *</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button variant="outline" className={cn("w-full min-h-11 justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {field.value ? format(field.value, "PPP") : <span>Pick the date on the scan report</span>}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus className="p-3 pointer-events-auto"
+                                disabled={(date) => date > new Date() || date < subMonths(new Date(), 10)} />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormField control={form.control} name="scanGaWeeks" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Age at scan (weeks) *</FormLabel>
+                          <FormControl><Input type="number" inputMode="numeric" min={4} max={42} className="min-h-11" {...field} value={field.value ?? ""} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="scanGaDays" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>+ days</FormLabel>
+                          <FormControl><Input type="number" inputMode="numeric" min={0} max={6} className="min-h-11" {...field} value={field.value ?? ""} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Copy the gestational age written on the scan report (e.g. 14 weeks 2 days). Early scans (before 20 weeks) are most accurate.</p>
+                  </div>
+                )}
+                {watchedDating !== "scan" && (
+                <FormField
+                  control={form.control}
                   name="lmp"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
@@ -436,6 +535,8 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                   )}
                 />
 
+                )}
+
                 {ancPreview && (
                   <div className="rounded-lg border bg-muted/40 p-4 space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium">
@@ -443,7 +544,7 @@ export function ClientForm({ onSave, clientToEdit, onFinished, open }: ClientFor
                       Pregnancy Summary (auto-calculated)
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                      <span className="text-muted-foreground">EDD (Naegele's rule)</span>
+                      <span className="text-muted-foreground">{watchedDating === "scan" ? "EDD (from scan)" : "EDD (Naegele's rule)"}</span>
                       <span className="font-medium">{format(ancPreview.edd, "PPP")}</span>
                       <span className="text-muted-foreground">Gestational age</span>
                       <span className="font-medium">{ancPreview.ga} week{ancPreview.ga === 1 ? "" : "s"}</span>

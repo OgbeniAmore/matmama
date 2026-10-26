@@ -175,18 +175,25 @@ export function AncScheduleView({ clientId, lmp }: AncScheduleViewProps & { lmp?
                 <Badge variant="outline" className={config.badgeClass}>
                   {visit.status}
                 </Badge>
-                {canAct && isPending && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 text-xs px-2"
-                    disabled={markCompleted.isPending}
-                    onClick={async () => { if (await requireWorker()) markCompleted.mutate(visit.id); }}
-                  >
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Complete
-                  </Button>
-                )}
+                {canAct && isPending && (() => {
+                  const hasVitals = vitals.some((x) => (x as { anc_visit_id?: string | null }).anc_visit_id === visit.id);
+                  return (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs px-2"
+                      disabled={markCompleted.isPending}
+                      title={hasVitals ? undefined : "Record vitals to complete this visit"}
+                      onClick={async () => {
+                        if (!hasVitals) { setOpenId(visit.id); toast.info("Record vitals first — saving them completes the visit"); return; }
+                        if (await requireWorker()) markCompleted.mutate(visit.id);
+                      }}
+                    >
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      {hasVitals ? "Complete" : "Record vitals to complete"}
+                    </Button>
+                  );
+                })()}
                 {canAct && isCompleted && (
                   <Button
                     size="sm"

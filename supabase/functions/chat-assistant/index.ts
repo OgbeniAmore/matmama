@@ -68,7 +68,7 @@ Navigation:
 - /notification-preferences — toggle alert types
 `;
 
-const KB_VERSION = "2026.10.20a";
+const KB_VERSION = "2026.10.26a";
 
 const ROLE_CAPABILITIES = `
 ROLE CAPABILITY SUMMARIES (what each role can view and do):
@@ -97,6 +97,8 @@ ROLE CAPABILITY SUMMARIES (what each role can view and do):
 
 const CHANGELOG = `
 RECENT CHANGES (knowledge base version ${KB_VERSION}). If asked "what's new?", summarise from here, newest first:
+
+**2026-10-26 — ANC visits tick when vitals are saved** (all roles): when a Facility Officer saves vitals inside an ANC visit, that visit is automatically marked Completed (ticked) and the client's status updates. A visit cannot be completed without vitals — the button reads "Record vitals to complete" and opens the vitals form. Data Entry Officers can record vitals but the visit stays pending until a Facility Officer completes it; Program Managers and System Admins are read-only.
 
 **2026-10-20 — Scan dating, extra ANC visits, maternal TT/Fansidar, child catch-up** (all roles): ANC dating by early ultrasound (scan date + gestational age at scan) when LMP is unknown; extra/review ANC visits (single or weekly, e.g. weekly from 36 weeks, BP review) added by Facility Officers; Maternal Vaccines & Medications card — Tetanus TT/Td 1–5 (TT2 ≥4 weeks after TT1, TT3 ≥6 months, TT4/TT5 ≥1 year; 2 doses = protected this pregnancy, 5 = lifetime; previous doses from her card can be added), IPTp-SP/Fansidar from 13 weeks at least 4 weeks apart (minimum 3 doses), and Iron+Folic Acid, Calcium and Albendazole dispensing; child vaccine catch-up — when a late Penta/OPV/PCV/Rota/Measles dose is given, later doses in that series move forward to keep a 4-week gap. Only Facility Officers record these; Data Entry Officers, Program Managers and System Admins view only.
 

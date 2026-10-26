@@ -90,7 +90,7 @@ export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks,
   const qc = useQueryClient();
   const { user, role } = useAuth();
   const canRecord = role === "facility_officer" || role === "data_entry_officer";
-  const { requireWorker, worker } = useActiveWorker();
+  const { requireWorker, worker, logAction } = useActiveWorker();
   const { data: all = [], isLoading } = useAncVitals(clientId);
   const data = visitId ? all.filter((v) => (v as AncVitalsRow & { anc_visit_id?: string | null }).anc_visit_id === visitId) : all;
   const [open, setOpen] = useState(false);
@@ -115,13 +115,27 @@ export function AncVitalsPanel({ clientId, lmp, visitId, visitLabel, visitWeeks,
         recorded_by: user!.id, actor_name: worker?.name ?? null,
       });
       if (error) throw error;
+      // Facility Officers: saving vitals for a visit also ticks that visit as completed
+      if (visitId && role === "facility_officer") {
+        const { error: vErr } = await supabase.from("anc_visits")
+          .update({ status: "Completed", actual_date: new Date().toISOString().split("T")[0] })
+          .eq("id", visitId).neq("status", "Completed");
+        if (vErr) throw new Error("Vitals saved, but the visit could not be marked completed");
+        await supabase.rpc("resync_client_status", { _client_id: clientId });
+        logAction("ANC_VISIT_COMPLETED", "anc_visits", visitId, { via: "vitals" });
+        return true;
+      }
+      return false;
     },
-    onSuccess: () => {
+    onSuccess: (ticked) => {
       qc.invalidateQueries({ queryKey: ["anc-vitals", clientId] });
       qc.invalidateQueries({ queryKey: ["anc-risk"] });
+      qc.invalidateQueries({ queryKey: ["anc-visits", clientId] });
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      qc.invalidateQueries({ queryKey: ["defaulters"] });
       setOpen(false); setF(empty);
       if (triage.level === "critical") toast.error("Critical risk recorded — refer now");
-      else toast.success("Vitals saved");
+      else toast.success(ticked ? "Vitals saved and visit marked completed" : "Vitals saved");
     },
     onError: (e: Error) => toast.error(e.message || "Could not save vitals"),
   });

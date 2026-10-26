@@ -6,7 +6,7 @@
  * routes/tables exist in the app but are missing from the knowledge base.
  */
 
-export const KB_VERSION = "2026.10.20a";
+export const KB_VERSION = "2026.10.26a";
 
 export type ChangelogEntry = {
   date: string;
@@ -15,6 +15,15 @@ export type ChangelogEntry = {
 };
 
 export const KB_CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-10-26",
+    title: "ANC visits tick when vitals are saved (all roles)",
+    items: [
+      "Facility Officers: saving vitals inside an ANC visit now marks that visit Completed (ticked) automatically and updates the client's status.",
+      "A visit cannot be completed without vitals: the button reads 'Record vitals to complete' and opens the vitals form until vitals are saved for that visit.",
+      "Data Entry Officers can still record vitals, but the visit stays pending until a Facility Officer completes it. Program Managers and System Admins remain read-only.",
+    ],
+  },
   {
     date: "2026-10-20",
     title: "Scan dating, extra ANC visits, maternal TT/Fansidar, child catch-up (all roles)",
